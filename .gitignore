@@ -1,0 +1,5 @@
+*.dia~
+*.iml
+.idea
+pom.xml.versionsBackup
+target

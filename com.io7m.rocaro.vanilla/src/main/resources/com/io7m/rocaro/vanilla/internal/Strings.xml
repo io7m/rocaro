@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  Copyright © 2024 Mark Raynsford <code@io7m.com> https://www.io7m.com
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+  IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+-->
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+  <entry key="error_graph_name_already_used">A graph already exists with the given name.</entry>
+  <entry key="error_graph_node_name_already_used">A node already exists with the given name.</entry>
+  <entry key="error_port_constraint_error">
+    The given ports cannot be connected as the source port does not satisfy the target port''s datatype constraints.
+  </entry>
+  <entry key="error_port_duplicate_target">
+    The given ports cannot be connected as the target port is already connected.
+  </entry>
+  <entry key="error_port_not_connected">
+    The given port is not connected.
+  </entry>
+  <entry key="error_port_cyclic">
+    The given ports cannot be connected as this would introduce a cycle in the render graph.
+  </entry>
+  <entry key="error_resource_close">
+    One or more resources could not be closed.
+  </entry>
+  <entry key="error_vulkan_version_unsupported">
+    The current Vulkan driver provides a version of Vulkan that is unsupported.
+  </entry>
+  <entry key="error_vulkan_version_unsupported_remediation">
+    Try updating your Vulkan drivers.
+  </entry>
+  <entry key="error_vulkan_unsupported">
+    We could not find a compatible Vulkan installable client driver (ICD).
+  </entry>
+  <entry key="error_vulkan_extension_missing">
+    The Vulkan implementation is missing one or more required extensions.
+  </entry>
+  <entry key="error_glfw_init">
+    Unable to initialize GLFW. The current platform might be unsupported.
+  </entry>
+  <entry key="error_display_no_suitable_primary_fullscreen">
+    No suitable primary display could be located for a fullscreen window.
+  </entry>
+  <entry key="error_display_explicit">
+    Specify a display explicitly.
+  </entry>
+  <entry key="error_window_creation_failed">
+    Attempting to create a window failed.
+  </entry>
+  <entry key="error_device_no_suitable">
+    No suitable Vulkan device could be located that meets the hardware feature requirements for all render graphs.
+  </entry>
+  <entry key="error_device_explicit">
+    Specify a device explicitly, or use render graphs that require an appropriate set of features.
+  </entry>
+  <entry key="error_device_queue_presentation_unsupported">
+    No device queue could be found that supports presentation.
+  </entry>
+
+  <entry key="window_width">Window Width</entry>
+  <entry key="window_height">Window Height</entry>
+
+  <entry key="version_required">Version Required</entry>
+  <entry key="version_provided">Version Provided</entry>
+
+  <entry key="vulkan_operation">Vulkan Operation</entry>
+  <entry key="vulkan_error">Vulkan Error</entry>
+  <entry key="extension">Extension</entry>
+  <entry key="device_feature_indexed">Device Feature [{0}]</entry>
+  <entry key="resource">Resource</entry>
+  <entry key="graph">Graph</entry>
+  <entry key="node">Node</entry>
+  <entry key="type">Type</entry>
+  <entry key="depth_image">DepthImage</entry>
+  <entry key="render_pass">RenderPass</entry>
+  <entry key="source_node">Source Node</entry>
+  <entry key="target_node">Target Node</entry>
+  <entry key="source_port">Source Port</entry>
+  <entry key="target_port">Target Port</entry>
+  <entry key="target_port_requires">Target Port Requires</entry>
+  <entry key="source_port_provides">Source Port Provides</entry>
+
+  <entry key="depth_constraint_exact">A depth image of format {0}.</entry>
+  <entry key="depth_constraint_none">Any depth image.</entry>
+  <entry key="depth_constraint_with_caps">A depth image with at least the capabilities in {0}.</entry>
+
+  <entry key="color_constraint_exact">A color image of format {0}.</entry>
+  <entry key="color_constraint_none">Any color image.</entry>
+  <entry key="color_constraint_with_caps">A color image with at least the capabilities in {0}.</entry>
+</properties>
