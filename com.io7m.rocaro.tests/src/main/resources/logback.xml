@@ -6,12 +6,14 @@
     name="STDERR"
     class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%level %logger{128}: %msg%n</pattern>
+      <pattern>[%thread{8}] %level %logger{0}: %msg%n</pattern>
     </encoder>
     <target>System.err</target>
   </appender>
 
-  <root level="DEBUG">
+  <logger name="com.io7m.jcoronado.allocation_tracker.VulkanHostAllocatorTracker" level="DEBUG"/>
+
+  <root level="TRACE">
     <appender-ref ref="STDERR"/>
   </root>
 

@@ -17,10 +17,15 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
+import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
+import com.io7m.jcoronado.api.VulkanQueueType;
+import com.io7m.junreachable.UnimplementedCodeException;
+import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 
+import java.time.Duration;
 import java.util.Objects;
 
 /**
@@ -54,9 +59,38 @@ public record RCWindowWithoutSurface(
   }
 
   @Override
+  public RCWindowFrameContextType acquireFrame(
+    final RCFrameIndex frame,
+    final Duration timeout)
+  {
+    throw new UnimplementedCodeException();
+  }
+
+  @Override
+  public int maximumFramesInFlight()
+  {
+    return 1;
+  }
+
+  @Override
   public void configureForPhysicalDevice(
     final VulkanPhysicalDeviceType device)
   {
     Objects.requireNonNull(device, "device");
+
+    throw new UnimplementedCodeException();
+  }
+
+  @Override
+  public void configureForLogicalDevice(
+    final VulkanLogicalDeviceType device,
+    final VulkanQueueType graphicsQueue,
+    final VulkanQueueType presentationQueue)
+  {
+    Objects.requireNonNull(device, "device");
+    Objects.requireNonNull(graphicsQueue, "graphicsQueue");
+    Objects.requireNonNull(presentationQueue, "presentationQueue");
+
+    throw new UnimplementedCodeException();
   }
 }

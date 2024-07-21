@@ -17,13 +17,20 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.api.render_pass.RCRenderPassType;
+
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * A node in the render graph.
  *
  * @param <P> The type of parameters
  */
 
-public interface RCGNodeType<P>
+public sealed interface RCGNodeType<P>
+  permits RCGFrameNodeType, RCGResourceNodeType, RCRenderPassType
 {
   /**
    * @return The unique-within-a-graph node name
@@ -36,4 +43,51 @@ public interface RCGNodeType<P>
    */
 
   P parameters();
+
+  /**
+   * @return The node ports
+   */
+
+  Map<RCGPortName, RCGPortType<?>> ports();
+
+  /**
+   * @return The node producer ports
+   */
+
+  default Map<RCGPortName, RCGPortProducer<?>> portProducers()
+  {
+    return this.ports()
+      .values()
+      .stream()
+      .filter(p -> p instanceof RCGPortProducer<?>)
+      .map(p -> (RCGPortProducer<?>) p)
+      .map(p -> Map.entry(p.name(), p))
+      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  /**
+   * @return The node consumer ports
+   */
+
+  default Map<RCGPortName, RCGPortConsumer<?>> portConsumers()
+  {
+    return this.ports()
+      .values()
+      .stream()
+      .filter(p -> p instanceof RCGPortConsumer<?>)
+      .map(p -> (RCGPortConsumer<?>) p)
+      .map(p -> Map.entry(p.name(), p))
+      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  /**
+   * Evaluate the node.
+   *
+   * @param context The context
+   *
+   * @throws RocaroException On errors
+   */
+
+  void evaluate(RCGNodeRenderContextType context)
+    throws RocaroException;
 }

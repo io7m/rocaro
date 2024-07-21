@@ -20,6 +20,7 @@ package com.io7m.rocaro.api;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
 import com.io7m.rocaro.api.graph.RCGraphDescriptionBuilderType;
 import com.io7m.rocaro.api.graph.RCGraphDescriptionException;
+import com.io7m.rocaro.api.graph.RCGraphName;
 
 /**
  * A mutable builder used to construct a renderer.
@@ -38,8 +39,25 @@ public interface RendererBuilderType
    */
 
   RCGraphDescriptionBuilderType declareRenderGraph(
-    String name)
+    RCGraphName name)
     throws RCGraphDescriptionException;
+
+  /**
+   * Declare a new render graph. Graph names must be unique within a renderer.
+   *
+   * @param name The name of the graph
+   *
+   * @return A graph builder
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  default RCGraphDescriptionBuilderType declareRenderGraph(
+    final String name)
+    throws RCGraphDescriptionException
+  {
+    return this.declareRenderGraph(new RCGraphName(name));
+  }
 
   /**
    * Set the method used to select a display.

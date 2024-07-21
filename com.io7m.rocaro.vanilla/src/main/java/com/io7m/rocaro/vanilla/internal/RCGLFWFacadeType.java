@@ -88,6 +88,6 @@ public interface RCGLFWFacadeType
    * @return The size of the window
    */
 
-  Vector2I windowSize(
+  Vector2I windowFramebufferSize(
     long address);
 }

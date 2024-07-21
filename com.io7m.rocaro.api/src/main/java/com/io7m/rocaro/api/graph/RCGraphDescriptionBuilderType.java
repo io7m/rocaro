@@ -17,9 +17,18 @@
 
 package com.io7m.rocaro.api.graph;
 
-import com.io7m.rocaro.api.images.RCImageColorFormat;
-import com.io7m.rocaro.api.images.RCImageDepthFormatType;
-import com.io7m.rocaro.api.images.RCImageDescriptionType;
+import com.io7m.rocaro.api.RCUnit;
+import com.io7m.rocaro.api.images.RCImageColorBlendableType;
+import com.io7m.rocaro.api.images.RCImageColorRenderableType;
+import com.io7m.rocaro.api.images.RCImageDepthStencilType;
+import com.io7m.rocaro.api.images.RCImageDepthType;
+import com.io7m.rocaro.api.images.RCImageNodeDescriptionType;
+import com.io7m.rocaro.api.images.RCImageParametersBlendable;
+import com.io7m.rocaro.api.images.RCImageParametersDepth;
+import com.io7m.rocaro.api.images.RCImageParametersDepthStencil;
+import com.io7m.rocaro.api.images.RCImageParametersRenderable;
+import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionType;
+import com.io7m.rocaro.api.render_pass.RCRenderPassType;
 
 /**
  * A render graph description builder.
@@ -34,18 +43,18 @@ public interface RCGraphDescriptionBuilderType
    * @param parameters  The parameters
    * @param nodeFactory The node factory
    * @param <P>         The type of parameters
-   * @param <D>         The type of node descriptions
    * @param <N>         The type of nodes
+   * @param <D>         The type of node descriptions
    *
    * @return A node description
    *
    * @throws RCGraphDescriptionException On errors
    */
 
-  <P, N extends RCGNodeType<P>, D extends RCGNodeDescriptionType<P>> D declare(
+  <P, N extends RCGNodeType<P>, D extends RCGNodeDescriptionType<P, N>> D declare(
     RCGNodeName name,
     P parameters,
-    RCGNodeFactoryType<P, N, D> nodeFactory)
+    RCGNodeDescriptionFactoryType<P, N, D> nodeFactory)
     throws RCGraphDescriptionException;
 
   /**
@@ -63,83 +72,258 @@ public interface RCGraphDescriptionBuilderType
    * @throws RCGraphDescriptionException On errors
    */
 
-  default <P, N extends RCGNodeType<P>, D extends RCGNodeDescriptionType<P>> D declare(
+  default <P, N extends RCGNodeType<P>, D extends RCGNodeDescriptionType<P, N>> D declare(
     final String name,
     final P parameters,
-    final RCGNodeFactoryType<P, N, D> nodeFactory)
+    final RCGNodeDescriptionFactoryType<P, N, D> nodeFactory)
     throws RCGraphDescriptionException
   {
     return this.declare(new RCGNodeName(name), parameters, nodeFactory);
   }
 
   /**
-   * Declare a color image node with the given format.
+   * Declare the frame source. There must be exactly one frame source in
+   * every render graph.
    *
-   * @param name   The node name
-   * @param format The format
+   * @param name The node name
    *
-   * @return An image description
+   * @return A node description
    *
    * @throws RCGraphDescriptionException On errors
    */
 
-  RCImageDescriptionType<RCImageColorFormat> declareColorImage(
-    RCGNodeName name,
-    RCImageColorFormat format)
+  RCGFrameNodeSourceDescriptionType declareFrameSource(
+    RCGNodeName name)
     throws RCGraphDescriptionException;
 
   /**
-   * Declare a color image node with the given format.
+   * Declare the frame source. There must be exactly one frame source in
+   * every render graph.
    *
-   * @param name   The node name
-   * @param format The format
+   * @param name The node name
    *
-   * @return An image description
+   * @return A node description
    *
    * @throws RCGraphDescriptionException On errors
    */
 
-  default RCImageDescriptionType<RCImageColorFormat> declareColorImage(
-    final String name,
-    final RCImageColorFormat format)
+  default RCGFrameNodeSourceDescriptionType declareFrameSource(
+    final String name)
     throws RCGraphDescriptionException
   {
-    return this.declareColorImage(new RCGNodeName(name), format);
+    return this.declareFrameSource(new RCGNodeName(name));
   }
 
   /**
-   * Declare a depth image node with the given format.
+   * Declare the frame target. There must be exactly one frame target in
+   * every render graph.
    *
-   * @param name   The node name
-   * @param format The format
+   * @param name The node name
+   *
+   * @return A node description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  RCGFrameNodeTargetDescriptionType declareFrameTarget(
+    RCGNodeName name)
+    throws RCGraphDescriptionException;
+
+  /**
+   * Declare the frame target. There must be exactly one frame target in
+   * every render graph.
+   *
+   * @param name The node name
+   *
+   * @return A node description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  default RCGFrameNodeTargetDescriptionType declareFrameTarget(
+    final String name)
+    throws RCGraphDescriptionException
+  {
+    return this.declareFrameTarget(new RCGNodeName(name));
+  }
+
+  /**
+   * Declare a color renderable image node.
+   *
+   * @param name       The node name
+   * @param parameters The parameters
    *
    * @return An image description
    *
    * @throws RCGraphDescriptionException On errors
    */
 
-  RCImageDescriptionType<RCImageDepthFormatType> declareDepthImage(
+  RCImageNodeDescriptionType<RCImageParametersRenderable, RCImageColorRenderableType>
+  declareColorRenderableImage(
     RCGNodeName name,
-    RCImageDepthFormatType format)
+    RCImageParametersRenderable parameters)
+    throws RCGraphDescriptionException;
+
+  /**
+   * Declare a color renderable image node.
+   *
+   * @param name       The node name
+   * @param parameters The parameters
+   *
+   * @return An image description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  default RCImageNodeDescriptionType<RCImageParametersRenderable, RCImageColorRenderableType>
+  declareColorRenderableImage(
+    final String name,
+    final RCImageParametersRenderable parameters)
+    throws RCGraphDescriptionException
+  {
+    return this.declareColorRenderableImage(new RCGNodeName(name), parameters);
+  }
+
+  /**
+   * Declare a color blendable image node.
+   *
+   * @param name       The node name
+   * @param parameters The parameters
+   *
+   * @return An image description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  RCImageNodeDescriptionType<RCImageParametersBlendable, RCImageColorBlendableType>
+  declareColorBlendableImage(
+    RCGNodeName name,
+    RCImageParametersBlendable parameters)
+    throws RCGraphDescriptionException;
+
+  /**
+   * Declare a color blendable image node.
+   *
+   * @param name       The node name
+   * @param parameters The parameters
+   *
+   * @return An image description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  default RCImageNodeDescriptionType<RCImageParametersBlendable, RCImageColorBlendableType>
+  declareColorBlendableImage(
+    final String name,
+    final RCImageParametersBlendable parameters)
+    throws RCGraphDescriptionException
+  {
+    return this.declareColorBlendableImage(new RCGNodeName(name), parameters);
+  }
+
+  /**
+   * Declare a depth image node.
+   *
+   * @param name       The node name
+   * @param parameters The parameters
+   *
+   * @return An image description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  RCImageNodeDescriptionType<RCImageParametersDepth, RCImageDepthType>
+  declareDepthImage(
+    RCGNodeName name,
+    RCImageParametersDepth parameters)
     throws RCGraphDescriptionException;
 
   /**
    * Declare a depth image node with the given format.
    *
-   * @param name   The node name
-   * @param format The format
+   * @param name       The node name
+   * @param parameters The parameters
    *
    * @return An image description
    *
    * @throws RCGraphDescriptionException On errors
    */
 
-  default RCImageDescriptionType<RCImageDepthFormatType> declareDepthImage(
+  default RCImageNodeDescriptionType<RCImageParametersDepth, RCImageDepthType>
+  declareDepthImage(
     final String name,
-    final RCImageDepthFormatType format)
+    final RCImageParametersDepth parameters)
     throws RCGraphDescriptionException
   {
-    return this.declareDepthImage(new RCGNodeName(name), format);
+    return this.declareDepthImage(new RCGNodeName(name), parameters);
+  }
+
+  /**
+   * Declare a depth+stencil image node.
+   *
+   * @param name       The node name
+   * @param parameters The parameters
+   *
+   * @return An image description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  RCImageNodeDescriptionType<RCImageParametersDepthStencil, RCImageDepthStencilType>
+  declareDepthStencilImage(
+    RCGNodeName name,
+    RCImageParametersDepthStencil parameters)
+    throws RCGraphDescriptionException;
+
+  /**
+   * Declare a depth+stencil image node with the given format.
+   *
+   * @param name       The node name
+   * @param parameters The parameters
+   *
+   * @return An image description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  default RCImageNodeDescriptionType<RCImageParametersDepthStencil, RCImageDepthStencilType>
+  declareDepthStencilImage(
+    final String name,
+    final RCImageParametersDepthStencil parameters)
+    throws RCGraphDescriptionException
+  {
+    return this.declareDepthStencilImage(new RCGNodeName(name), parameters);
+  }
+
+  /**
+   * Declare a render pass that does nothing.
+   *
+   * @param name The node name
+   *
+   * @return A render pass description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  RCRenderPassDescriptionType<RCUnit, RCRenderPassType<RCUnit>> declareEmptyRenderPass(
+    RCGNodeName name)
+    throws RCGraphDescriptionException;
+
+  /**
+   * Declare a render pass that does nothing.
+   *
+   * @param name The node name
+   *
+   * @return A render pass description
+   *
+   * @throws RCGraphDescriptionException On errors
+   */
+
+  default RCRenderPassDescriptionType<RCUnit, RCRenderPassType<RCUnit>> declareEmptyRenderPass(
+    final String name)
+    throws RCGraphDescriptionException
+  {
+    return this.declareEmptyRenderPass(new RCGNodeName(name));
   }
 
   /**

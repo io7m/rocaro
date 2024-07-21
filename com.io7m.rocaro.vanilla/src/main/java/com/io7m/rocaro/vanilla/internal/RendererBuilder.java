@@ -30,14 +30,22 @@ import com.io7m.rocaro.api.displays.RCDisplaySelectionFullscreenPrimary;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
 import com.io7m.rocaro.api.graph.RCGraphDescriptionBuilderType;
 import com.io7m.rocaro.api.graph.RCGraphDescriptionException;
+import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.rocaro.vanilla.internal.graph.RCGraph;
 import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescription;
 import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescriptionBuilder;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRenderer;
+import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.io7m.rocaro.api.RCStandardErrorCodes.DUPLICATE_GRAPH;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_GRAPH_NAME_ALREADY_USED;
@@ -50,7 +58,13 @@ import static com.io7m.rocaro.vanilla.internal.RCStringConstants.GRAPH;
 public final class RendererBuilder
   implements RendererBuilderType
 {
-  private final HashMap<String, RCGraphDescriptionBuilder> graphs;
+  private static final Logger LOG =
+    LoggerFactory.getLogger(RendererBuilder.class);
+
+  private static final AtomicLong INSTANCE_IDS =
+    new AtomicLong(0);
+
+  private final HashMap<RCGraphName, RCGraphDescriptionBuilder> graphs;
   private final RCStrings strings;
   private final RCVersions versions;
   private final RCGLFWFacadeType glfw;
@@ -89,7 +103,7 @@ public final class RendererBuilder
 
   @Override
   public RCGraphDescriptionBuilderType declareRenderGraph(
-    final String name)
+    final RCGraphName name)
     throws RCGraphDescriptionException
   {
     Objects.requireNonNull(name, "name");
@@ -125,16 +139,39 @@ public final class RendererBuilder
   public RendererType start()
     throws RocaroException
   {
-    final var resources =
-      RCResourceCollections.create(this.strings);
+    final var mainExecutor =
+      Executors.newSingleThreadScheduledExecutor(r -> {
+        return Thread.ofPlatform()
+          .name("com.io7m.rocaro[%s]-".formatted(freshID()), 0L)
+          .unstarted(r);
+      });
 
+    try {
+      return RCExecutors.executeAndWait(mainExecutor, () -> {
+        LOG.debug("Starting renderer.");
+        return this.createRenderer(
+          RCResourceCollections.create(this.strings),
+          mainExecutor
+        );
+      });
+    } catch (final Exception e) {
+      mainExecutor.close();
+      throw e;
+    }
+  }
+
+  private Renderer createRenderer(
+    final CloseableCollectionType<RocaroException> resources,
+    final ScheduledExecutorService mainExecutor)
+    throws Throwable
+  {
     final var tracker =
       new ExceptionTracker<RocaroException>();
-    final var builtGraphs =
-      this.buildGraphs(tracker);
+    final var builtGraphDescriptions =
+      this.buildGraphDescriptions(tracker);
 
-    final var requiredDeviceFeatures =
-      builtGraphs.values()
+    final var featuresRequired =
+      builtGraphDescriptions.values()
         .stream()
         .map(RCGraphDescription::requiredDeviceFeatures)
         .reduce(
@@ -142,25 +179,46 @@ public final class RendererBuilder
           VulkanPhysicalDeviceFeaturesFunctions::or
         );
 
-    RCVulkanRenderer vulkanRenderer = null;
+    RCVulkanRendererType vulkanRenderer = null;
     try {
-      vulkanRenderer =
-        this.buildVulkanRenderer(resources, requiredDeviceFeatures);
+      vulkanRenderer = this.buildVulkanRenderer(resources, featuresRequired);
     } catch (final RocaroException e) {
       tracker.addException(e);
     }
 
-    try {
-      tracker.throwIfNecessary();
-    } catch (Exception e) {
-      resources.close();
-      throw e;
-    }
+    final var instantiatedGraphs =
+      this.instantiateGraphs(tracker, builtGraphDescriptions);
 
-    return new Renderer(resources, builtGraphs, vulkanRenderer);
+    tracker.throwIfNecessary();
+    return new Renderer(
+      this.strings,
+      resources,
+      builtGraphDescriptions,
+      instantiatedGraphs,
+      vulkanRenderer,
+      mainExecutor
+    );
   }
 
-  private RCVulkanRenderer buildVulkanRenderer(
+  private Map<RCGraphName, RCGraph> instantiateGraphs(
+    final ExceptionTracker<RocaroException> tracker,
+    final Map<RCGraphName, RCGraphDescription> descriptions)
+  {
+    final var builtGraphs =
+      new HashMap<RCGraphName, RCGraph>();
+
+    for (final var description : descriptions.values()) {
+      builtGraphs.put(description.name(), description.instantiate());
+    }
+    return Map.copyOf(builtGraphs);
+  }
+
+  private static long freshID()
+  {
+    return INSTANCE_IDS.incrementAndGet();
+  }
+
+  private RCVulkanRendererType buildVulkanRenderer(
     final CloseableCollectionType<RocaroException> resources,
     final VulkanPhysicalDeviceFeatures requiredDeviceFeatures)
     throws RocaroException
@@ -176,16 +234,16 @@ public final class RendererBuilder
     );
   }
 
-  private Map<String, RCGraphDescription> buildGraphs(
+  private Map<RCGraphName, RCGraphDescription> buildGraphDescriptions(
     final ExceptionTracker<RocaroException> tracker)
   {
     final var builtGraphs =
-      new HashMap<String, RCGraphDescription>();
+      new HashMap<RCGraphName, RCGraphDescription>();
 
     for (final var graph : this.graphs.values()) {
       try {
         builtGraphs.put(graph.name(), graph.build());
-      } catch (RCGraphDescriptionException e) {
+      } catch (final RCGraphDescriptionException e) {
         tracker.addException(e);
       }
     }
@@ -193,11 +251,11 @@ public final class RendererBuilder
   }
 
   private RCGraphDescriptionException errorGraphAlreadyExists(
-    final String name)
+    final RCGraphName name)
   {
     return new RCGraphDescriptionException(
       this.strings.format(ERROR_GRAPH_NAME_ALREADY_USED),
-      Map.of(this.strings.format(GRAPH), name),
+      Map.of(this.strings.format(GRAPH), name.value()),
       DUPLICATE_GRAPH.codeName(),
       Optional.empty()
     );

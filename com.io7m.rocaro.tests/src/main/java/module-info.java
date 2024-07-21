@@ -34,6 +34,7 @@ open module com.io7m.rocaro.tests
   requires com.io7m.jcoronado.extensions.khr.surface.api;
   requires com.io7m.jcoronado.fake;
   requires com.io7m.jtensors.core;
+  requires com.io7m.junreachable.core;
   requires net.jqwik.api;
   requires net.jqwik.engine;
   requires org.mockito;

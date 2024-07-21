@@ -23,7 +23,7 @@ import java.util.Objects;
  * A consumer port.
  *
  * @param owner          The owner node
- * @param dataConstraint The data constraint
+ * @param dataConstraint The data type constraint
  * @param name           The port name
  * @param <T>            The base port data type
  */
@@ -38,7 +38,7 @@ public record RCGPortConsumer<T>(
    * A consumer port.
    *
    * @param owner          The owner node
-   * @param dataConstraint The data constraint
+   * @param dataConstraint The data type constraint
    * @param name           The port name
    */
 

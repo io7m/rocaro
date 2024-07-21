@@ -30,6 +30,7 @@ module com.io7m.rocaro.vanilla
 
   requires com.io7m.rocaro.api;
 
+  requires com.io7m.jaffirm.core;
   requires com.io7m.jcoronado.allocation.tracker;
   requires com.io7m.jcoronado.api;
   requires com.io7m.jcoronado.extensions.ext_debug_utils.api;
@@ -38,13 +39,13 @@ module com.io7m.rocaro.vanilla
   requires com.io7m.jdeferthrow.core;
   requires com.io7m.jmulticlose.core;
   requires com.io7m.jtensors.core;
+  requires com.io7m.junreachable.core;
   requires com.io7m.jxtrand.api;
   requires com.io7m.jxtrand.vanilla;
   requires com.io7m.verona.core;
   requires org.jgrapht.core;
   requires org.lwjgl.glfw;
   requires org.slf4j;
-  requires com.io7m.junreachable.core;
 
   provides RendererFactoryType
     with Renderers;
@@ -67,4 +68,5 @@ module com.io7m.rocaro.vanilla
   exports com.io7m.rocaro.vanilla.internal.vulkan
     to com.io7m.rocaro.tests;
   opens com.io7m.rocaro.vanilla.internal.vulkan to com.io7m.jxtrand.vanilla;
+  opens com.io7m.rocaro.vanilla.internal.graph to com.io7m.jxtrand.vanilla;
 }

@@ -20,11 +20,14 @@ package com.io7m.rocaro.api.graph;
 /**
  * A resource description.
  *
+ * @param <N> The type of nodes
  * @param <P> The type of parameters
  */
 
-public non-sealed interface RCGResourceDescriptionType<P>
-  extends RCGNodeDescriptionType<P>
+public non-sealed interface RCGResourceDescriptionType<
+  P,
+  N extends RCGNodeType<P>>
+  extends RCGNodeDescriptionType<P, N>
 {
 
 }

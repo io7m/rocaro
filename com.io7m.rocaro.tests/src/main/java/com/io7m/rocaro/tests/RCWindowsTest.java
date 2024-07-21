@@ -144,7 +144,7 @@ public final class RCWindowsTest
       anyLong()))
       .thenReturn(0x1000_0000_0000_0000L);
 
-    when(this.glfw.windowSize(0x1000_0000_0000_0000L))
+    when(this.glfw.windowFramebufferSize(0x1000_0000_0000_0000L))
       .thenReturn(Vector2I.of(600, 400));
 
     when(this.glfw.displays())
@@ -186,7 +186,7 @@ public final class RCWindowsTest
       anyLong()))
       .thenReturn(0x1000_0000_0000_0000L);
 
-    when(this.glfw.windowSize(0x1000_0000_0000_0000L))
+    when(this.glfw.windowFramebufferSize(0x1000_0000_0000_0000L))
       .thenReturn(Vector2I.of(600, 400));
 
     when(this.glfw.displays())
@@ -228,7 +228,7 @@ public final class RCWindowsTest
       anyLong()))
       .thenReturn(0x1000_0000_0000_0000L);
 
-    when(this.glfw.windowSize(0x1000_0000_0000_0000L))
+    when(this.glfw.windowFramebufferSize(0x1000_0000_0000_0000L))
       .thenReturn(Vector2I.of(600, 400));
 
     when(this.glfw.displays())

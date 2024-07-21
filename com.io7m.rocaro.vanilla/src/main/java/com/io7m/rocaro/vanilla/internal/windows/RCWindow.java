@@ -98,7 +98,7 @@ public final class RCWindow
       throw new IllegalStateException("Window is closed.");
     }
 
-    return this.glfw.windowSize(this.address);
+    return this.glfw.windowFramebufferSize(this.address);
   }
 
   /**

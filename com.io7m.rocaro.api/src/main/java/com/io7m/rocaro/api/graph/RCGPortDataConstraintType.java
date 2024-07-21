@@ -18,24 +18,27 @@
 package com.io7m.rocaro.api.graph;
 
 /**
- * A constraint placed upon data that a port can produce or consume.
+ * A constraint on the data produced and/or consumed by ports.
  *
- * @param <T> The base type of data
+ * @param <T> The type of port data
  */
 
 public interface RCGPortDataConstraintType<T>
 {
   /**
-   * @return The base class of data
+   * @return The port data type
    */
 
-  Class<T> constrainedValueType();
+  Class<T> dataType();
 
   /**
-   * Determine if data constrained by this constrained would satisfy the
-   * other given constraint.
+   * Determine if the constraint on this port is satisfied by the constraint
+   * on the other given port. This is typically used such that {@code this}
+   * is the <i>target</i> port and <i>other</i> is the constraint on the
+   * <i>source</i> port; we are asking whether {@code this} port can consume
+   * data produced by the other port.
    *
-   * @param other The other constraint
+   * @param other The constraint on the other port
    *
    * @return {@code true} if the constraint is satisfied
    */
@@ -44,15 +47,7 @@ public interface RCGPortDataConstraintType<T>
     RCGPortDataConstraintType<?> other);
 
   /**
-   * @param value The input value
-   *
-   * @return {@code true} if this constraint is satisfied by the given value
-   */
-
-  boolean isValid(T value);
-
-  /**
-   * @return An explanation of this constraint
+   * @return A humanly-readable explanation of this constraint
    */
 
   String explain();

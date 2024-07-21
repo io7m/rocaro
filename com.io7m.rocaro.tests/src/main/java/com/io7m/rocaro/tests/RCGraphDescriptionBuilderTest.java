@@ -18,6 +18,7 @@
 package com.io7m.rocaro.tests;
 
 import com.io7m.rocaro.api.graph.RCGraphDescriptionBuilderType;
+import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescriptionBuilder;
 
@@ -31,7 +32,7 @@ public final class RCGraphDescriptionBuilderTest
   {
     return new RCGraphDescriptionBuilder(
       new RCStrings(Locale.ROOT),
-      "Test"
+      new RCGraphName("Test")
     );
   }
 }

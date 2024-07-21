@@ -18,132 +18,98 @@
 package com.io7m.rocaro.api.images;
 
 /**
- * The channels present in a color image.
+ * A constraint on the set of channels in a color image.
  */
 
 public enum RCImageColorChannels
 {
   /**
-   * An image with a single red channel.
+   * The image has at least a red channel.
    */
 
-  COLOR_CHANNELS_R {
+  R {
     @Override
-    public boolean isSupersetOf(
+    public boolean isSatisfiedBy(
+      final RCImageColorChannels other)
+    {
+      return true;
+    }
+  },
+
+  /**
+   * The image has at least red and green channels.
+   */
+
+  RG {
+    @Override
+    public boolean isSatisfiedBy(
       final RCImageColorChannels other)
     {
       return switch (other) {
-        case COLOR_CHANNELS_R -> true;
-        case COLOR_CHANNELS_RG -> false;
-        case COLOR_CHANNELS_RGB -> false;
-        case COLOR_CHANNELS_RGBA -> false;
-        case COLOR_CHANNELS_ARGB -> false;
-        case COLOR_CHANNELS_ABGR -> false;
-        case COLOR_CHANNELS_BGRA -> false;
+        case R -> false;
+        case RG -> true;
+        case RGB -> true;
+        case RGBA -> true;
       };
     }
   },
 
   /**
-   * An image with red and green channels.
+   * The image has at least red, green, and blue channels.
    */
 
-  COLOR_CHANNELS_RG {
+  RGB {
     @Override
-    public boolean isSupersetOf(
+    public boolean isSatisfiedBy(
       final RCImageColorChannels other)
     {
       return switch (other) {
-        case COLOR_CHANNELS_R -> true;
-        case COLOR_CHANNELS_RG -> true;
-        case COLOR_CHANNELS_RGB -> false;
-        case COLOR_CHANNELS_RGBA -> false;
-        case COLOR_CHANNELS_ARGB -> false;
-        case COLOR_CHANNELS_ABGR -> false;
-        case COLOR_CHANNELS_BGRA -> false;
+        case R -> false;
+        case RG -> false;
+        case RGB -> true;
+        case RGBA -> true;
       };
     }
   },
 
   /**
-   * An image with red, green, and blue channels.
+   * The image has at least red, green, blue, and alpha channels.
    */
 
-  COLOR_CHANNELS_RGB {
+  RGBA {
     @Override
-    public boolean isSupersetOf(
+    public boolean isSatisfiedBy(
       final RCImageColorChannels other)
     {
       return switch (other) {
-        case COLOR_CHANNELS_R -> true;
-        case COLOR_CHANNELS_RG -> true;
-        case COLOR_CHANNELS_RGB -> true;
-        case COLOR_CHANNELS_RGBA -> false;
-        case COLOR_CHANNELS_ARGB -> false;
-        case COLOR_CHANNELS_ABGR -> false;
-        case COLOR_CHANNELS_BGRA -> false;
+        case R -> false;
+        case RG -> false;
+        case RGB -> false;
+        case RGBA -> true;
       };
-    }
-  },
-
-  /**
-   * An image with red, green, blue, and alpha channels.
-   */
-
-  COLOR_CHANNELS_RGBA {
-    @Override
-    public boolean isSupersetOf(
-      final RCImageColorChannels other)
-    {
-      return true;
-    }
-  },
-
-  /**
-   * An image with red, green, blue, and alpha channels.
-   */
-
-  COLOR_CHANNELS_ARGB {
-    @Override
-    public boolean isSupersetOf(
-      final RCImageColorChannels other)
-    {
-      return true;
-    }
-  },
-
-  /**
-   * An image with red, green, blue, and alpha channels.
-   */
-
-  COLOR_CHANNELS_ABGR {
-    @Override
-    public boolean isSupersetOf(
-      final RCImageColorChannels other)
-    {
-      return true;
-    }
-  },
-
-  /**
-   * An image with red, green, blue, and alpha channels.
-   */
-
-  COLOR_CHANNELS_BGRA {
-    @Override
-    public boolean isSupersetOf(
-      final RCImageColorChannels other)
-    {
-      return true;
     }
   };
 
   /**
+   * Determine if these channels could be satisfied by a set of other channels.
+   * This is a subset operation: If code requires an image with a red channel,
+   * then it can be satisfied by any color image that has at least a red
+   * channel (and may have more channels).
+   *
    * @param other The other channels
    *
-   * @return {@code true} if these channels are a superset of {@code other}
+   * @return {@code true} if this constraint is satisfied by {@code other}
    */
 
-  public abstract boolean isSupersetOf(
+  public abstract boolean isSatisfiedBy(
     RCImageColorChannels other);
+
+  /**
+   * @return The explanation of this channel set
+   */
+
+  public String explain()
+  {
+    return "(channels ⊂ %s)".formatted(this.name());
+  }
 }

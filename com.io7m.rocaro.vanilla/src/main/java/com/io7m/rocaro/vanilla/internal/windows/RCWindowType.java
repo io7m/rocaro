@@ -18,6 +18,7 @@
 package com.io7m.rocaro.vanilla.internal.windows;
 
 import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
+import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RocaroException;
 
 /**
@@ -25,7 +26,7 @@ import com.io7m.rocaro.api.RocaroException;
  */
 
 public sealed interface RCWindowType
-  extends AutoCloseable
+  extends RCCloseableType
   permits RCWindow,
   RCWindowFullscreen,
   RCWindowOffscreen

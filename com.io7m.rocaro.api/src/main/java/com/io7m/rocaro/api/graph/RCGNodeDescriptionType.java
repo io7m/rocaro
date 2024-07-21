@@ -25,13 +25,21 @@ import java.util.Map;
 /**
  * A description of a node in the render graph.
  *
+ * @param <N> The type of nodes
  * @param <P> The type of parameters
  */
 
-public sealed interface RCGNodeDescriptionType<P>
-  permits RCRenderPassDescriptionType,
-  RCGResourceDescriptionType
+public sealed interface RCGNodeDescriptionType<P, N extends RCGNodeType<P>>
+  permits RCGFrameNodeDescriptionType,
+  RCGResourceDescriptionType,
+  RCRenderPassDescriptionType
 {
+  /**
+   * @return A new node
+   */
+
+  N createNode();
+
   /**
    * @return The node parameters
    */

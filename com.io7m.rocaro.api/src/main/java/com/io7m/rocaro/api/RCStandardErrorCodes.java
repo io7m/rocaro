@@ -26,6 +26,36 @@ import java.util.Objects;
 public enum RCStandardErrorCodes
 {
   /**
+   * The graph does not contain a required frame source.
+   */
+
+  NONEXISTENT_FRAME_SOURCE("error-frame-source-nonexistent"),
+
+  /**
+   * The graph does not contain a required frame target.
+   */
+
+  NONEXISTENT_FRAME_TARGET("error-frame-target-nonexistent"),
+
+  /**
+   * The graph already contains a frame source.
+   */
+
+  DUPLICATE_FRAME_SOURCE("error-frame-source-duplicate"),
+
+  /**
+   * The graph already contains a frame target.
+   */
+
+  DUPLICATE_FRAME_TARGET("error-frame-target-duplicate"),
+
+  /**
+   * An attempt was made to access a nonexistent graph.
+   */
+
+  NONEXISTENT_GRAPH("error-nonexistent-graph"),
+
+  /**
    * An attempt was made to create a graph with a non-unique name.
    */
 

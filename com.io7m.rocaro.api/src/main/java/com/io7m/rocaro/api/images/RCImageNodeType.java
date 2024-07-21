@@ -17,7 +17,7 @@
 
 package com.io7m.rocaro.api.images;
 
-import com.io7m.rocaro.api.graph.RCGNodeType;
+import com.io7m.rocaro.api.graph.RCGResourceNodeType;
 
 /**
  * The type of render graph nodes that are images.
@@ -25,8 +25,8 @@ import com.io7m.rocaro.api.graph.RCGNodeType;
  * @param <P> The type of parameters
  */
 
-public interface RCImageNodeType<P>
-  extends RCGNodeType<P>
+public non-sealed interface RCImageNodeType<P>
+  extends RCGResourceNodeType<P>
 {
 
 }

@@ -19,6 +19,7 @@ package com.io7m.rocaro.vanilla.internal.vulkan;
 
 import com.io7m.jcoronado.allocation_tracker.VulkanHostAllocatorTracker;
 import com.io7m.jcoronado.api.VulkanApplicationInfo;
+import com.io7m.jcoronado.api.VulkanCommandPoolType;
 import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanExtensionProperties;
 import com.io7m.jcoronado.api.VulkanExtensions;
@@ -37,12 +38,13 @@ import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsMesseng
 import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsSLF4J;
 import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsType;
 import com.io7m.jcoronado.lwjgl.VulkanLWJGLHostAllocatorJeMalloc;
-import com.io7m.jcoronado.lwjgl.VulkanLWJGLTemporaryAllocator;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
+import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacadeType;
+import com.io7m.rocaro.vanilla.internal.RCObject;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCVersions;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
@@ -54,11 +56,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeoutException;
 
 import static com.io7m.rocaro.api.RCStandardErrorCodes.VULKAN_VERSION_UNSUPPORTED;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_VULKAN_VERSION_UNSUPPORTED;
@@ -71,6 +75,8 @@ import static com.io7m.rocaro.vanilla.internal.RCStringConstants.VERSION_REQUIRE
  */
 
 public final class RCVulkanRenderer
+  extends RCObject
+  implements RCVulkanRendererType
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(RCVulkanRenderer.class);
@@ -82,25 +88,37 @@ public final class RCVulkanRenderer
   private static final String VK_EXT_DEBUG_UTILS =
     "VK_EXT_debug_utils";
 
+  private final RendererVulkanConfiguration configuration;
   private final VulkanInstanceType instance;
   private final RCWindowType window;
+  private final RCWindowWithSurfaceType windowWithSurface;
   private final VulkanPhysicalDeviceType physicalDevice;
   private final RCLogicalDevice logicalDevice;
+  private final Map<RCFrameIndex, RCVulkanFrameStateType> frameStates;
 
   private RCVulkanRenderer(
+    final RendererVulkanConfiguration inConfiguration,
     final VulkanInstanceType inInstance,
     final RCWindowType inWindow,
+    final RCWindowWithSurfaceType inWindowWithSurface,
     final VulkanPhysicalDeviceType inPhysicalDevice,
-    final RCLogicalDevice inLogicalDevice)
+    final RCLogicalDevice inLogicalDevice,
+    final Map<RCFrameIndex, RCVulkanFrameStateType> inFrameStates)
   {
+    this.configuration =
+      Objects.requireNonNull(inConfiguration, "configuration");
     this.instance =
       Objects.requireNonNull(inInstance, "instance");
     this.window =
       Objects.requireNonNull(inWindow, "window");
+    this.windowWithSurface =
+      Objects.requireNonNull(inWindowWithSurface, "windowWithSurface");
     this.physicalDevice =
       Objects.requireNonNull(inPhysicalDevice, "physicalDevice");
     this.logicalDevice =
       Objects.requireNonNull(inLogicalDevice, "logicalDevice");
+    this.frameStates =
+      Objects.requireNonNull(inFrameStates, "frameStates");
   }
 
   /**
@@ -119,7 +137,7 @@ public final class RCVulkanRenderer
    * @throws RocaroException On errors
    */
 
-  public static RCVulkanRenderer create(
+  public static RCVulkanRendererType create(
     final RCStrings strings,
     final RCVersions versions,
     final RCGLFWFacadeType glfw,
@@ -142,12 +160,11 @@ public final class RCVulkanRenderer
       resources.add(RCWindows.create(strings, glfw, displaySelection));
     LOG.debug("Created window {}", window);
 
+    LOG.debug("Creating Vulkan instance.");
     final var hostAllocatorMain =
       new VulkanLWJGLHostAllocatorJeMalloc();
     final var hostAllocatorTracker =
       new VulkanHostAllocatorTracker(hostAllocatorMain);
-    final var allocator =
-      VulkanLWJGLTemporaryAllocator.create();
     final var instances =
       configuration.instanceProvider();
 
@@ -164,7 +181,12 @@ public final class RCVulkanRenderer
      */
 
     final var enableExtensions =
-      configureInstanceExtensions(strings, instances, glfw, window, configuration);
+      configureInstanceExtensions(
+        strings,
+        instances,
+        glfw,
+        window,
+        configuration);
     final var enableLayers =
       configureInstanceLayers(strings, instances, configuration);
 
@@ -186,6 +208,7 @@ public final class RCVulkanRenderer
     } catch (final VulkanException e) {
       throw RCVulkanException.wrap(strings, e);
     }
+    LOG.debug("Created Vulkan instance.");
 
     configureDebugging(strings, resources, instance);
 
@@ -225,11 +248,46 @@ public final class RCVulkanRenderer
         )
       );
 
+    /*
+     * We re-add the window to the resources here because, although the window
+     * was registered as a to-be-closed resource early in the initialization
+     * process, it may have acquired extra resources (such as a swap chain)
+     * that need to be destroyed prior to the logical device being destroyed.
+     */
+
+    resources.add(windowWithSurface);
+
+    /*
+     * Set up the per-frame rendering state.
+     */
+
+    final var maxFrames =
+      windowWithSurface.maximumFramesInFlight();
+    final var frameStates =
+      new HashMap<RCFrameIndex, RCVulkanFrameStateType>(maxFrames);
+
+    for (var index = 0; index < maxFrames; ++index) {
+      final var frameIndex =
+        new RCFrameIndex(index);
+      final var frameState =
+        resources.add(
+          RCVulkanFrameState.create(
+            strings,
+            logicalDevice,
+            frameIndex
+          )
+        );
+      frameStates.put(frameIndex, frameState);
+    }
+
     return new RCVulkanRenderer(
+      configuration,
       instance,
       window,
+      windowWithSurface,
       physicalDevice,
-      logicalDevice
+      logicalDevice,
+      frameStates
     );
   }
 
@@ -487,5 +545,117 @@ public final class RCVulkanRenderer
       VULKAN_VERSION_UNSUPPORTED.codeName(),
       Optional.of(strings.format(ERROR_VULKAN_VERSION_UNSUPPORTED_REMEDIATION))
     );
+  }
+
+  @Override
+  public VulkanInstanceType instance()
+  {
+    return this.instance;
+  }
+
+  @Override
+  public RCLogicalDevice logicalDevice()
+  {
+    return this.logicalDevice;
+  }
+
+  @Override
+  public VulkanPhysicalDeviceType physicalDevice()
+  {
+    return this.physicalDevice;
+  }
+
+  @Override
+  public RCWindowType window()
+  {
+    return this.window;
+  }
+
+  @Override
+  public RCWindowWithSurfaceType windowWithSurface()
+  {
+    return this.windowWithSurface;
+  }
+
+  @Override
+  public RCVulkanFrameContextType acquireFrame(
+    final RCFrameIndex frame)
+    throws RCVulkanException, TimeoutException
+  {
+    Objects.requireNonNull(frame, "frame");
+
+    try {
+      final var windowContext =
+        this.windowWithSurface.acquireFrame(
+          frame,
+          this.configuration.imageAcquisitionTimeout()
+        );
+
+      final var frameState =
+        this.frameStates.get(frame);
+
+      this.logicalDevice.device()
+        .resetCommandPool(frameState.commandPool());
+
+      return new FrameContext(
+        windowContext,
+        this.logicalDevice,
+        frameState
+      );
+    } catch (final VulkanException e) {
+      throw RCVulkanException.wrap(e);
+    }
+  }
+
+  @Override
+  public int maximumFramesInFlight()
+  {
+    return this.windowWithSurface.maximumFramesInFlight();
+  }
+
+  private static final class FrameContext
+    implements RCVulkanFrameContextType
+  {
+    private final RCWindowFrameContextType windowFrameContext;
+    private final RCLogicalDevice logicalDevice;
+    private final RCVulkanFrameStateType frameState;
+
+    private FrameContext(
+      final RCWindowFrameContextType inWindowFrameContext,
+      final RCLogicalDevice inLogicalDevice,
+      final RCVulkanFrameStateType inFrameState)
+    {
+      this.windowFrameContext =
+        Objects.requireNonNull(inWindowFrameContext, "windowFrameContext");
+      this.logicalDevice =
+        Objects.requireNonNull(inLogicalDevice, "logicalDevice");
+      this.frameState =
+        Objects.requireNonNull(inFrameState, "frameState");
+    }
+
+    @Override
+    public RCLogicalDevice device()
+    {
+      return this.logicalDevice;
+    }
+
+    @Override
+    public RCWindowFrameContextType windowFrameContext()
+    {
+      return this.windowFrameContext;
+    }
+
+    @Override
+    public VulkanCommandPoolType commandPool()
+    {
+      return this.frameState.commandPool();
+    }
+
+    @Override
+    public void close()
+      throws RocaroException
+    {
+      this.windowFrameContext.close();
+    }
   }
 }

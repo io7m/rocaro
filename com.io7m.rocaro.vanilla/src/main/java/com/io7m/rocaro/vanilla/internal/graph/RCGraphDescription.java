@@ -20,10 +20,15 @@ package com.io7m.rocaro.vanilla.internal.graph;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
 import com.io7m.rocaro.api.graph.RCGNodeDescriptionType;
 import com.io7m.rocaro.api.graph.RCGNodeName;
+import com.io7m.rocaro.api.graph.RCGNodeType;
 import com.io7m.rocaro.api.graph.RCGPortConnection;
 import com.io7m.rocaro.api.graph.RCGPortType;
+import com.io7m.rocaro.api.graph.RCGraphName;
 import org.jgrapht.graph.DirectedAcyclicGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -33,19 +38,26 @@ import java.util.Objects;
 
 public final class RCGraphDescription
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(RCGraphDescription.class);
+
   private final DirectedAcyclicGraph<RCGPortType<?>, RCGPortConnection> graph;
-  private final Map<RCGNodeName, RCGNodeDescriptionType<?>> graphNodes;
+  private final Map<RCGNodeName, RCGNodeDescriptionType<?, ?>> graphNodeDescriptions;
   private final VulkanPhysicalDeviceFeatures requiredDeviceFeatures;
+  private final RCGraphName name;
 
   RCGraphDescription(
+    final RCGraphName inName,
     final DirectedAcyclicGraph<RCGPortType<?>, RCGPortConnection> inGraph,
-    final Map<RCGNodeName, RCGNodeDescriptionType<?>> inGraphNodes,
+    final Map<RCGNodeName, RCGNodeDescriptionType<?, ?>> inGraphNodeDescriptions,
     final VulkanPhysicalDeviceFeatures inRequiredFeatures)
   {
+    this.name =
+      Objects.requireNonNull(inName, "inName");
     this.graph =
       Objects.requireNonNull(inGraph, "graph");
-    this.graphNodes =
-      Objects.requireNonNull(inGraphNodes, "graphNodes");
+    this.graphNodeDescriptions =
+      Objects.requireNonNull(inGraphNodeDescriptions, "graphNodes");
     this.requiredDeviceFeatures =
       Objects.requireNonNull(inRequiredFeatures, "requiredFeatures");
   }
@@ -56,7 +68,7 @@ public final class RCGraphDescription
 
   public DirectedAcyclicGraph<RCGPortType<?>, RCGPortConnection> graph()
   {
-    return graph;
+    return this.graph;
   }
 
   /**
@@ -65,15 +77,58 @@ public final class RCGraphDescription
 
   public VulkanPhysicalDeviceFeatures requiredDeviceFeatures()
   {
-    return requiredDeviceFeatures;
+    return this.requiredDeviceFeatures;
   }
 
   /**
-   * @return The graph nodes
+   * @return The graph node descriptions
    */
 
-  public Map<RCGNodeName, RCGNodeDescriptionType<?>> graphNodes()
+  public Map<RCGNodeName, RCGNodeDescriptionType<?, ?>> graphNodeDescriptions()
   {
-    return graphNodes;
+    return this.graphNodeDescriptions;
+  }
+
+  /**
+   * @return The graph name
+   */
+
+  public RCGraphName name()
+  {
+    return this.name;
+  }
+
+  /**
+   * Instantiate all nodes in the graph.
+   *
+   * @return The instantiated graph
+   */
+
+  public RCGraph instantiate()
+  {
+    final var nodes =
+      new HashMap<RCGNodeName, RCGNodeType<?>>(
+        this.graphNodeDescriptions.size()
+      );
+
+    if (this.graphNodeDescriptions.isEmpty()) {
+      LOG.warn("Graph '{}' is empty. This is unlikely to work.", this.name);
+    }
+
+    for (final var entry : this.graphNodeDescriptions.entrySet()) {
+      final var nodeName =
+        entry.getKey();
+      final var nodeDescription =
+        entry.getValue();
+      final var node =
+        nodeDescription.createNode();
+
+      Objects.requireNonNull(node, "node");
+      LOG.debug("Instantiate {} -> {}", nodeName, node);
+
+      nodes.put(nodeName, node);
+    }
+
+    return new RCGraph(this, nodes);
   }
 }

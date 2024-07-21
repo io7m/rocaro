@@ -19,6 +19,7 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 
 <properties>
+  <entry key="error_graph_nonexistent">No graph exists with the given name.</entry>
   <entry key="error_graph_name_already_used">A graph already exists with the given name.</entry>
   <entry key="error_graph_node_name_already_used">A node already exists with the given name.</entry>
   <entry key="error_port_constraint_error">
@@ -69,6 +70,12 @@
   <entry key="error_device_queue_presentation_unsupported">
     No device queue could be found that supports presentation.
   </entry>
+  <entry key="error_frame_source_exists">A frame source node already exists in the graph.</entry>
+  <entry key="error_frame_target_exists">A frame target node already exists in the graph.</entry>
+  <entry key="error_frame_source_nonexistent">The render graph is missing a frame source node.</entry>
+  <entry key="error_frame_target_nonexistent">The render graph is missing a frame target node.</entry>
+  <entry key="error_frame_source_nonexistent_remediate">Declare a frame source node.</entry>
+  <entry key="error_frame_target_nonexistent_remediate">Declare a frame target node.</entry>
 
   <entry key="window_width">Window Width</entry>
   <entry key="window_height">Window Height</entry>
@@ -83,6 +90,7 @@
   <entry key="resource">Resource</entry>
   <entry key="graph">Graph</entry>
   <entry key="node">Node</entry>
+  <entry key="node_existing">Node (Existing)</entry>
   <entry key="type">Type</entry>
   <entry key="depth_image">DepthImage</entry>
   <entry key="render_pass">RenderPass</entry>

@@ -21,6 +21,7 @@ import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag;
 import com.io7m.jcoronado.api.VulkanQueueType;
+import com.io7m.rocaro.api.RCCloseableType;
 
 import java.util.Objects;
 
@@ -41,7 +42,7 @@ public record RCLogicalDevice(
   VulkanQueueType graphicsQueue,
   VulkanQueueType transferQueue,
   VulkanQueueType computeQueue)
-  implements AutoCloseable
+  implements RCCloseableType
 {
   /**
    * A logical device.

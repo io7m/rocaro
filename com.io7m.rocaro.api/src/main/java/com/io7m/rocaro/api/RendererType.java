@@ -17,14 +17,49 @@
 
 package com.io7m.rocaro.api;
 
+import com.io7m.rocaro.api.graph.RCGraphName;
+
 /**
  * A renderer.
  */
 
 public interface RendererType
-  extends AutoCloseable
+  extends RCCloseableType
 {
   @Override
   void close()
     throws RocaroException;
+
+  /**
+   * Acquire a frame and populate it with data for execution using the given
+   * render graph.
+   *
+   * @param graphName The graph name
+   * @param f         The frame builder function
+   *
+   * @throws RocaroException On errors
+   */
+
+  void executeFrame(
+    RCGraphName graphName,
+    RendererFrameFunctionType f)
+    throws RocaroException;
+
+  /**
+   * Acquire a frame and populate it with data for execution using the given
+   * render graph.
+   *
+   * @param graphName The graph name
+   * @param f         The frame builder function
+   *
+   * @throws RocaroException On errors
+   */
+
+  default void executeFrame(
+    final String graphName,
+    final RendererFrameFunctionType f)
+    throws RocaroException
+  {
+    this.executeFrame(new RCGraphName(graphName), f);
+  }
 }

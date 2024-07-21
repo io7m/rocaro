@@ -14,9 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.rocaro.tests.arbitraries.RCArbImageColorConstraint;
-import com.io7m.rocaro.tests.arbitraries.RCArbDepthFormat;
-import com.io7m.rocaro.tests.arbitraries.RCArbImageDepthConstraint;
+
 import net.jqwik.api.providers.ArbitraryProvider;
 
 /**
@@ -30,11 +28,11 @@ open module com.io7m.rocaro.tests.arbitraries
 
   requires net.jqwik.api;
   requires com.io7m.rocaro.api;
-
-  exports com.io7m.rocaro.tests.arbitraries;
+  requires com.io7m.jtensors.core;
 
   provides ArbitraryProvider with
-    RCArbImageColorConstraint,
-    RCArbImageDepthConstraint,
-    RCArbDepthFormat;
+    com.io7m.rocaro.tests.arbitraries.RCArbImageConstraint,
+    com.io7m.rocaro.tests.arbitraries.RCArbImageSizeExpression;
+
+  exports com.io7m.rocaro.tests.arbitraries;
 }

@@ -118,6 +118,7 @@ public final class RCPhysicalDevicesTest
       mock(VulkanKHRSurfaceType.class);
     this.window =
       new RCWindowWithSurface(
+        this.strings,
         new RCWindow("X", 0L, this.glfw),
         this.surfaceExt,
         this.surface

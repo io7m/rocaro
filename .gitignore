@@ -1,5 +1,7 @@
 *.dia~
 *.iml
 .idea
+.jqwik-database
+.run
 pom.xml.versionsBackup
 target

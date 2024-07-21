@@ -29,27 +29,27 @@ import com.io7m.rocaro.api.graph.RCGPortSourceType;
 import com.io7m.rocaro.api.graph.RCGPortTargetType;
 import com.io7m.rocaro.api.graph.RCGraphDescriptionBuilderType;
 import com.io7m.rocaro.api.graph.RCGraphDescriptionException;
+import com.io7m.rocaro.api.images.RCImageConstraintDepth;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 import static com.io7m.rocaro.api.RCStandardErrorCodes.DUPLICATE_NODE;
 import static com.io7m.rocaro.api.RCStandardErrorCodes.DUPLICATE_PORT_CONNECTION;
+import static com.io7m.rocaro.api.RCStandardErrorCodes.NONEXISTENT_FRAME_SOURCE;
 import static com.io7m.rocaro.api.RCStandardErrorCodes.PORTS_INCOMPATIBLE;
 import static com.io7m.rocaro.api.RCStandardErrorCodes.PORT_CYCLIC_CONNECTION;
 import static com.io7m.rocaro.api.RCStandardErrorCodes.PORT_NOT_CONNECTED;
-import static com.io7m.rocaro.api.images.RCImageColorChannels.COLOR_CHANNELS_RG;
-import static com.io7m.rocaro.api.images.RCImageColorConstraint.anyColorFormat;
-import static com.io7m.rocaro.api.images.RCImageColorConstraint.anyColorWithCapabilities;
-import static com.io7m.rocaro.api.images.RCImageColorConstraint.anyColorWithChannels;
-import static com.io7m.rocaro.api.images.RCImageColorConstraint.exactColorFormat;
-import static com.io7m.rocaro.api.images.RCImageColorFormat.COLOR_FORMAT_R8_UNSIGNED_INTEGER;
-import static com.io7m.rocaro.api.images.RCImageColorFormat.COLOR_FORMAT_R8_UNSIGNED_NORMALIZED;
-import static com.io7m.rocaro.api.images.RCImageDepthConstraint.anyDepthImage;
-import static com.io7m.rocaro.api.images.RCImageDepthConstraint.exactDepth;
-import static com.io7m.rocaro.api.images.RCImageDepthOnlyFormat.DEPTH_16_UNSIGNED_NORMALIZED;
-import static com.io7m.rocaro.api.images.RCImageDepthOnlyFormat.DEPTH_32_FLOATING_POINT;
-import static com.io7m.rocaro.api.images.RCImageFormatCapability.RENDERING_BLENDING;
+import static com.io7m.rocaro.api.images.RCImageConstraintColorBlendable.requireBlendableWindowSizedRGBA;
+import static com.io7m.rocaro.api.images.RCImageConstraintColorRenderable.requireRenderableWindowSizedRGBA;
+import static com.io7m.rocaro.api.images.RCImageConstraintDepth.requireWindowSizedDepth;
+import static com.io7m.rocaro.api.images.RCImageParametersBlendable.blendableWindowSizedR;
+import static com.io7m.rocaro.api.images.RCImageParametersBlendable.blendableWindowSizedRGBA;
+import static com.io7m.rocaro.api.images.RCImageParametersDepth.windowSizedDepth;
+import static com.io7m.rocaro.api.images.RCImageParametersRenderable.renderableWindowSizedR;
+import static com.io7m.rocaro.api.images.RCImageSizeExpressions.windowSizedHalf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -74,7 +74,7 @@ public abstract class RCGraphDescriptionBuilderContract
   }
 
   /**
-   * Empty graphs validate.
+   * Empty graphs do not validate.
    *
    * @throws Exception On errors
    */
@@ -84,7 +84,11 @@ public abstract class RCGraphDescriptionBuilderContract
     throws Exception
   {
     final var b = this.create();
-    b.validate();
+
+    final var ex =
+      assertThrows(RCGraphDescriptionException.class, b::validate);
+
+    assertEquals(NONEXISTENT_FRAME_SOURCE.codeName(), ex.errorCode());
   }
 
   /**
@@ -99,11 +103,11 @@ public abstract class RCGraphDescriptionBuilderContract
   {
     final var b = this.create();
 
-    b.declareColorImage("Image0", COLOR_FORMAT_R8_UNSIGNED_NORMALIZED);
+    b.declareColorBlendableImage("Image0", blendableWindowSizedR());
 
     final var ex =
       assertThrows(RCGraphDescriptionException.class, () -> {
-        b.declareColorImage("Image0", COLOR_FORMAT_R8_UNSIGNED_NORMALIZED);
+        b.declareColorBlendableImage("Image0", blendableWindowSizedR());
       });
 
     assertEquals(DUPLICATE_NODE.codeName(), ex.errorCode());
@@ -123,11 +127,12 @@ public abstract class RCGraphDescriptionBuilderContract
       this.create();
 
     final var image0 =
-      b.declareColorImage("Image0", COLOR_FORMAT_R8_UNSIGNED_NORMALIZED);
+      b.declareColorBlendableImage("Image0", blendableWindowSizedR());
+
     final var pass0 =
       b.declare("Fake0", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortConsumer<>(p, PORT_P, anyDepthImage())
+        p -> new RCGPortConsumer<>(p, PORT_P, requireWindowSizedDepth())
       ));
 
     {
@@ -158,11 +163,18 @@ public abstract class RCGraphDescriptionBuilderContract
       this.create();
 
     final var image0 =
-      b.declareDepthImage("Image0", DEPTH_32_FLOATING_POINT);
+      b.declareDepthImage("Image0", windowSizedDepth());
+
     final var pass0 =
       b.declare("Fake0", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortConsumer<>(p, PORT_P, exactDepth(DEPTH_16_UNSIGNED_NORMALIZED))
+        p -> {
+          return new RCGPortConsumer<>(
+            p,
+            PORT_P,
+            new RCImageConstraintDepth(Optional.of(windowSizedHalf()))
+          );
+        }
       ));
 
     {
@@ -193,11 +205,12 @@ public abstract class RCGraphDescriptionBuilderContract
       this.create();
 
     final var image0 =
-      b.declareColorImage("Image0", COLOR_FORMAT_R8_UNSIGNED_INTEGER);
+      b.declareColorRenderableImage("Image0", renderableWindowSizedR());
+
     final var pass0 =
       b.declare("Fake0", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortConsumer<>(p, PORT_P, anyColorWithCapabilities(RENDERING_BLENDING))
+        p -> new RCGPortConsumer<>(p, PORT_P, requireBlendableWindowSizedRGBA())
       ));
 
     {
@@ -228,11 +241,12 @@ public abstract class RCGraphDescriptionBuilderContract
       this.create();
 
     final var image0 =
-      b.declareDepthImage("Image0", DEPTH_16_UNSIGNED_NORMALIZED);
+      b.declareDepthImage("Image0", windowSizedDepth());
+
     final var pass0 =
       b.declare("Fake", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortConsumer<>(p, PORT_P, anyColorFormat())
+        p -> new RCGPortConsumer<>(p, PORT_P, requireRenderableWindowSizedRGBA())
       ));
 
     {
@@ -263,11 +277,12 @@ public abstract class RCGraphDescriptionBuilderContract
       this.create();
 
     final var image0 =
-      b.declareColorImage("Image0", COLOR_FORMAT_R8_UNSIGNED_NORMALIZED);
+      b.declareColorBlendableImage("Image0", blendableWindowSizedR());
+
     final var pass0 =
       b.declare("Fake", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortConsumer<>(p, PORT_P, anyColorWithChannels(COLOR_CHANNELS_RG))
+        p -> new RCGPortConsumer<>(p, PORT_P, requireRenderableWindowSizedRGBA())
       ));
 
     {
@@ -298,11 +313,12 @@ public abstract class RCGraphDescriptionBuilderContract
       this.create();
 
     final var image0 =
-      b.declareColorImage("Image0", COLOR_FORMAT_R8_UNSIGNED_NORMALIZED);
+      b.declareColorBlendableImage("Image0", blendableWindowSizedR());
+
     final var pass0 =
       b.declare("Fake0", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortConsumer<>(p, PORT_P, anyDepthImage())
+        p -> new RCGPortConsumer<>(p, PORT_P, requireWindowSizedDepth())
       ));
 
     {
@@ -333,11 +349,12 @@ public abstract class RCGraphDescriptionBuilderContract
       this.create();
 
     final var image0 =
-      b.declareColorImage("Image0", COLOR_FORMAT_R8_UNSIGNED_NORMALIZED);
+      b.declareColorBlendableImage("Image0", blendableWindowSizedRGBA());
+
     final var pass0 =
       b.declare("Fake", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortConsumer<>(p, PORT_P, anyColorFormat())
+        p -> new RCGPortConsumer<>(p, PORT_P, requireBlendableWindowSizedRGBA())
       ));
 
     b.connect(
@@ -373,12 +390,16 @@ public abstract class RCGraphDescriptionBuilderContract
       this.create();
 
     final var image0 =
-      b.declareColorImage("Image0", COLOR_FORMAT_R8_UNSIGNED_NORMALIZED);
+      b.declareColorBlendableImage("Image0", blendableWindowSizedR());
+
     final var pass0 =
       b.declare("Fake", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortConsumer<>(p, PORT_P, anyColorFormat())
+        p -> new RCGPortConsumer<>(p, PORT_P, requireRenderableWindowSizedRGBA())
       ));
+
+    b.declareFrameSource("FrameSource");
+    b.declareFrameTarget("FrameTarget");
 
     {
       final var ex =
@@ -405,13 +426,13 @@ public abstract class RCGraphDescriptionBuilderContract
     final var pass0 =
       b.declare("Fake0", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortModifier<>(p, PORT_P, exactColorFormat(COLOR_FORMAT_R8_UNSIGNED_NORMALIZED))
+        p -> new RCGPortModifier<>(p, PORT_P, requireRenderableWindowSizedRGBA())
       ));
 
     final var pass1 =
       b.declare("Fake1", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortModifier<>(p, PORT_P, exactColorFormat(COLOR_FORMAT_R8_UNSIGNED_NORMALIZED))
+        p -> new RCGPortModifier<>(p, PORT_P, requireRenderableWindowSizedRGBA())
       ));
 
     b.connect(
@@ -449,7 +470,7 @@ public abstract class RCGraphDescriptionBuilderContract
     final var pass0 =
       b.declare("Fake0", 0, RCFakeRenderPass.of(
         noFeaturesRequired(),
-        p -> new RCGPortModifier<>(p, PORT_P, exactColorFormat(COLOR_FORMAT_R8_UNSIGNED_NORMALIZED))
+        p -> new RCGPortModifier<>(p, PORT_P, requireRenderableWindowSizedRGBA())
       ));
 
     {

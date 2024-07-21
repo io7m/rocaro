@@ -245,13 +245,13 @@ public final class RCGLFWFacade implements RCGLFWFacadeType
   }
 
   @Override
-  public Vector2I windowSize(
+  public Vector2I windowFramebufferSize(
     final long address)
   {
     final var width = new int[1];
     final var height = new int[1];
 
-    GLFW.glfwGetWindowSize(address, width, height);
+    GLFW.glfwGetFramebufferSize(address, width, height);
     return Vector2I.of(width[0], height[0]);
   }
 }

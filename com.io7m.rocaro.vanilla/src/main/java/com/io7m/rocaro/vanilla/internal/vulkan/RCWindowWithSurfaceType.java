@@ -17,16 +17,23 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
+import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
+import com.io7m.jcoronado.api.VulkanQueueType;
+import com.io7m.rocaro.api.RCCloseableType;
+import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
+
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The type of windows that may have attached rendering surfaces.
  */
 
 public sealed interface RCWindowWithSurfaceType
-  extends AutoCloseable
+  extends RCCloseableType
   permits RCWindowWithSurface,
   RCWindowWithoutSurface
 {
@@ -48,7 +55,46 @@ public sealed interface RCWindowWithSurfaceType
     VulkanPhysicalDeviceType device)
     throws RocaroException;
 
+  /**
+   * Configure the window for the given logical device.
+   *
+   * @param device            The device
+   * @param graphicsQueue     The graphics queue
+   * @param presentationQueue The presentation queue
+   *
+   * @throws RocaroException On errors
+   */
+
+  void configureForLogicalDevice(
+    VulkanLogicalDeviceType device,
+    VulkanQueueType graphicsQueue,
+    VulkanQueueType presentationQueue)
+    throws RocaroException;
+
   @Override
   void close()
     throws RocaroException;
+
+  /**
+   * Acquire a frame for rendering.
+   *
+   * @param frame   The frame index
+   * @param timeout The timeout value
+   *
+   * @return The frame context
+   *
+   * @throws RCVulkanException On errors
+   * @throws TimeoutException  If a frame cannot be acquired within a timeout
+   */
+
+  RCWindowFrameContextType acquireFrame(
+    RCFrameIndex frame,
+    Duration timeout)
+    throws RCVulkanException, TimeoutException;
+
+  /**
+   * @return The maximum number of frames in flight
+   */
+
+  int maximumFramesInFlight();
 }

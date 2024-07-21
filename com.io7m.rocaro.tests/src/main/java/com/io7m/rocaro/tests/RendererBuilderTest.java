@@ -145,6 +145,8 @@ public final class RendererBuilderTest
       )
     );
 
+    fakeLogicalDevice.setEnabledExtensions(extensions);
+
     this.vulkanConfiguration =
       RendererVulkanConfiguration.builder()
         .setInstanceProvider(this.instances)

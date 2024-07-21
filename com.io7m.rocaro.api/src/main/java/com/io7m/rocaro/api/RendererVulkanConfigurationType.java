@@ -24,6 +24,8 @@ import com.io7m.rocaro.api.devices.RCDeviceSelectionType;
 import com.io7m.verona.core.Version;
 import org.immutables.value.Value;
 
+import java.time.Duration;
+
 /**
  * Configuration information for Vulkan.
  */
@@ -47,6 +49,23 @@ public interface RendererVulkanConfigurationType
   default RCDeviceSelectionType deviceSelection()
   {
     return new RCDeviceSelectionAny();
+  }
+
+  /**
+   * When attempting to acquire an image from a window system for rendering,
+   * this is the maximum amount of time to wait for an image. This value is
+   * intended to prevent deadlocks, but should otherwise be set to a value
+   * high enough such that a timeout should not be seen in normal operation.
+   * <p>
+   * The default value is one second.
+   *
+   * @return The maximum time to wait for an image
+   */
+
+  @Value.Default
+  default Duration imageAcquisitionTimeout()
+  {
+    return Duration.ofSeconds(1L);
   }
 
   /**

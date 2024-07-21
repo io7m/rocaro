@@ -48,4 +48,10 @@ public record RCGNodeName(
       );
     }
   }
+
+  @Override
+  public String toString()
+  {
+    return this.value;
+  }
 }

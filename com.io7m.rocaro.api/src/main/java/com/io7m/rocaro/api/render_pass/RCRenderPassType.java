@@ -24,7 +24,7 @@ import com.io7m.rocaro.api.graph.RCGNodeType;
  * @param <P> The type of parameters
  */
 
-public interface RCRenderPassType<P>
+public non-sealed interface RCRenderPassType<P>
   extends RCGNodeType<P>
 {
 

@@ -17,14 +17,18 @@
 
 package com.io7m.rocaro.api.images;
 
+import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
+
 /**
- * The base type of color images.
+ * The base type of 2D color images.
  */
 
-public sealed interface RCImageColorType
+public non-sealed interface RCImageColorType
   extends RCImageType
-  permits RCImageColor2DType
 {
-  @Override
-  RCImageColorFormat format();
+  /**
+   * @return The size of the image
+   */
+
+  Vector2I size();
 }

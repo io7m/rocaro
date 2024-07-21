@@ -17,14 +17,18 @@
 
 package com.io7m.rocaro.api.images;
 
+import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
+
 /**
- * The base type of depth images.
+ * The base type of 2D depth images.
  */
 
-public sealed interface RCImageDepthType
+public non-sealed interface RCImageDepthType
   extends RCImageType
-  permits RCImageDepth2DType
 {
-  @Override
-  RCImageDepthFormatType format();
+  /**
+   * @return The size of the image
+   */
+
+  Vector2I size();
 }

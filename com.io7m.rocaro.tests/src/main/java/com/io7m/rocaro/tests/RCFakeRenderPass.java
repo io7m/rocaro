@@ -18,11 +18,12 @@
 package com.io7m.rocaro.tests;
 
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
+import com.io7m.junreachable.UnimplementedCodeException;
 import com.io7m.rocaro.api.graph.RCGNodeName;
 import com.io7m.rocaro.api.graph.RCGPortName;
 import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionType;
-import com.io7m.rocaro.api.render_pass.RCRenderPassFactoryType;
+import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionFactoryType;
 import com.io7m.rocaro.api.render_pass.RCRenderPassType;
 
 import java.util.HashMap;
@@ -32,10 +33,10 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public final class RCFakeRenderPass
-  implements RCRenderPassFactoryType<
-  Integer,
-  RCRenderPassType<Integer>,
-  RCRenderPassDescriptionType<Integer>>
+  implements RCRenderPassDescriptionFactoryType<
+    Integer,
+    RCRenderPassType<Integer>,
+    RCRenderPassDescriptionType<Integer, RCRenderPassType<Integer>>>
 {
   private final VulkanPhysicalDeviceFeatures features;
   private final List<Function<RCGNodeName, RCGPortType<?>>> ports;
@@ -59,7 +60,7 @@ public final class RCFakeRenderPass
   }
 
   @Override
-  public RCRenderPassDescriptionType<Integer> createDescription(
+  public RCRenderPassDescriptionType<Integer, RCRenderPassType<Integer>> createDescription(
     final Integer parameters,
     final RCGNodeName name)
   {
@@ -77,13 +78,6 @@ public final class RCFakeRenderPass
   }
 
   @Override
-  public RCRenderPassType<Integer> create(
-    final RCRenderPassDescriptionType<Integer> description)
-  {
-    throw new IllegalStateException("Unimplemented code!");
-  }
-
-  @Override
   public String type()
   {
     return "Render Pass";
@@ -94,8 +88,13 @@ public final class RCFakeRenderPass
     RCGNodeName name,
     Map<RCGPortName, RCGPortType<?>> ports,
     VulkanPhysicalDeviceFeatures requiredDeviceFeatures)
-    implements RCRenderPassDescriptionType<Integer>
+    implements RCRenderPassDescriptionType<Integer, RCRenderPassType<Integer>>
   {
 
+    @Override
+    public RCRenderPassType<Integer> createNode()
+    {
+      throw new UnimplementedCodeException();
+    }
   }
 }

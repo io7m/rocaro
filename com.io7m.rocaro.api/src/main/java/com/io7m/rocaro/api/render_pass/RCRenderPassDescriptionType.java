@@ -23,10 +23,13 @@ import com.io7m.rocaro.api.graph.RCGNodeDescriptionType;
  * A render pass description.
  *
  * @param <P> The type of parameters
+ * @param <N> The type of render pass nodes
  */
 
-public non-sealed interface RCRenderPassDescriptionType<P>
-  extends RCGNodeDescriptionType<P>
+public non-sealed interface RCRenderPassDescriptionType<
+  P,
+  N extends RCRenderPassType<P>>
+  extends RCGNodeDescriptionType<P, N>
 {
 
 }

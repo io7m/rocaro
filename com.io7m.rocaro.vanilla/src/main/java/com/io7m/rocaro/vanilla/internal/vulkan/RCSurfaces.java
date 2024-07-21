@@ -71,7 +71,12 @@ public final class RCSurfaces
           final var surface =
             khrSurfaceExt.surfaceFromWindow(instance, windowed.address());
 
-          yield new RCWindowWithSurface(windowed, khrSurfaceExt, surface);
+          yield new RCWindowWithSurface(
+            strings,
+            windowed,
+            khrSurfaceExt,
+            surface
+          );
         }
 
         case final RCWindowFullscreen fullscreen -> {
@@ -80,7 +85,12 @@ public final class RCSurfaces
           final var surface =
             khrSurfaceExt.surfaceFromWindow(instance, fullscreen.address());
 
-          yield new RCWindowWithSurface(fullscreen, khrSurfaceExt, surface);
+          yield new RCWindowWithSurface(
+            strings,
+            fullscreen,
+            khrSurfaceExt,
+            surface
+          );
         }
 
         case final RCWindowOffscreen _ -> {

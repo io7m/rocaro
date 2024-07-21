@@ -27,6 +27,7 @@ import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
 import com.io7m.jcoronado.api.VulkanQueueFamilyProperties;
 import com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag;
 import com.io7m.junreachable.UnreachableCodeException;
+import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,7 @@ public final class RCLogicalDevices
     final VulkanPhysicalDeviceType physicalDevice,
     final RCWindowWithSurfaceType window,
     final VulkanPhysicalDeviceFeatures requiredDeviceFeatures)
-    throws RCVulkanException
+    throws RocaroException
   {
     Objects.requireNonNull(strings, "strings");
     Objects.requireNonNull(physicalDevice, "physicalDevice");
@@ -200,7 +201,7 @@ public final class RCLogicalDevices
     final VulkanQueueFamilyIndex transferFamily,
     final VulkanQueueFamilyIndex computeFamily,
     final Optional<VulkanQueueFamilyIndex> presentationFamilyOpt)
-    throws VulkanException
+    throws VulkanException, RocaroException
   {
     final var graphicsQueue =
       logicalDevice.queues()
@@ -255,7 +256,11 @@ public final class RCLogicalDevices
 
       switch (window) {
         case final RCWindowWithSurface withSurface -> {
-          withSurface.setPresentationQueue(presentationQueue);
+          withSurface.configureForLogicalDevice(
+            logicalDevice,
+            graphicsQueue,
+            presentationQueue
+          );
         }
         case final RCWindowWithoutSurface _ -> {
           throw new UnreachableCodeException();

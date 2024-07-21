@@ -92,7 +92,7 @@ public final class RCWindowFullscreen
       throw new IllegalStateException("Window is closed.");
     }
 
-    return this.glfw.windowSize(this.address);
+    return this.glfw.windowFramebufferSize(this.address);
   }
 
   @Override
