@@ -34,7 +34,9 @@ module com.io7m.rocaro.vanilla
   requires com.io7m.jcoronado.allocation.tracker;
   requires com.io7m.jcoronado.api;
   requires com.io7m.jcoronado.extensions.ext_debug_utils.api;
+  requires com.io7m.jcoronado.extensions.ext_layer_settings.api;
   requires com.io7m.jcoronado.extensions.khr.surface.api;
+  requires com.io7m.jcoronado.layers.khronos_validation.api;
   requires com.io7m.jcoronado.lwjgl;
   requires com.io7m.jdeferthrow.core;
   requires com.io7m.jmulticlose.core;

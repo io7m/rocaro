@@ -26,6 +26,7 @@ module com.io7m.rocaro.api
   requires static org.osgi.annotation.versioning;
 
   requires com.io7m.jcoronado.api;
+  requires com.io7m.jcoronado.layers.khronos_validation.api;
   requires com.io7m.jtensors.core;
   requires com.io7m.seltzer.api;
   requires com.io7m.verona.core;

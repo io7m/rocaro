@@ -41,10 +41,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.io7m.jcoronado.api.VulkanAccessFlag.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 import static com.io7m.jcoronado.api.VulkanCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 import static com.io7m.jcoronado.api.VulkanCommandBufferUsageFlag.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
 /**
  * The frame target.
@@ -119,6 +120,8 @@ public final class RCFrameTarget
 
       final var imageBarrier =
         VulkanImageMemoryBarrier.builder()
+          .setSourceAccessMask(Set.of(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
+          .setTargetAccessMask(Set.of())
           .setOldLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_UNDEFINED)
           .setNewLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
           .setSourceQueueFamilyIndex(device.graphicsQueue().queueFamilyIndex())
@@ -136,7 +139,7 @@ public final class RCFrameTarget
       commands.beginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
       commands.pipelineBarrier(
         Set.of(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT),
-        Set.of(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT),
+        Set.of(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT),
         Set.of(),
         List.of(),
         List.of(),

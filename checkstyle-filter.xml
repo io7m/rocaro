@@ -9,4 +9,8 @@
             checks="IllegalThrows"/>
   <suppress files="RCExecutors.java"
             checks="IllegalThrows"/>
+  <suppress files="RCImageConstraintColorBlendable.java"
+            checks="RedundantModifier"/>
+  <suppress files=".*"
+            checks="RedundantModifier"/>
 </suppressions>

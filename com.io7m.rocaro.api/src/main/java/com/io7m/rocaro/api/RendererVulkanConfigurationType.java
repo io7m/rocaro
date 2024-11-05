@@ -19,12 +19,14 @@ package com.io7m.rocaro.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import com.io7m.jcoronado.api.VulkanInstanceProviderType;
+import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationSettingType;
 import com.io7m.rocaro.api.devices.RCDeviceSelectionAny;
 import com.io7m.rocaro.api.devices.RCDeviceSelectionType;
 import com.io7m.verona.core.Version;
 import org.immutables.value.Value;
 
 import java.time.Duration;
+import java.util.Set;
 
 /**
  * Configuration information for Vulkan.
@@ -74,11 +76,7 @@ public interface RendererVulkanConfigurationType
    * @see "https://docs.vulkan.org/guide/latest/validation_overview.html"
    */
 
-  @Value.Default
-  default boolean enableValidation()
-  {
-    return false;
-  }
+  Set<VulkanValidationSettingType> enableValidation();
 
   /**
    * @return The application name

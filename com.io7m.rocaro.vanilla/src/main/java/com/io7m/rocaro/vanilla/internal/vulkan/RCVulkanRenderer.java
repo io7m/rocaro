@@ -37,6 +37,8 @@ import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsMessage
 import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsMessengerCreateInfoEXT;
 import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsSLF4J;
 import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsType;
+import com.io7m.jcoronado.extensions.ext_layer_settings.api.VulkanLayerSettingsCreateInfo;
+import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationSettingType;
 import com.io7m.jcoronado.lwjgl.VulkanLWJGLHostAllocatorJeMalloc;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RCFrameIndex;
@@ -366,12 +368,27 @@ public final class RCVulkanRenderer
         .setVulkanAPIVersion(VULKAN_API_VERSION)
         .build();
 
-    final var instanceCreateInfo =
+    final var instanceCreateInfoBuilder =
       VulkanInstanceCreateInfo.builder()
         .setApplicationInfo(applicationInfo)
         .setEnabledExtensions(enableExtensions)
-        .setEnabledLayers(enableLayers)
-        .build();
+        .setEnabledLayers(enableLayers);
+
+    final var validationSettings =
+      configuration.enableValidation();
+
+    if (!validationSettings.isEmpty()) {
+      instanceCreateInfoBuilder.addExtensionInfo(
+        new VulkanLayerSettingsCreateInfo(
+          validationSettings.stream()
+            .map(VulkanValidationSettingType::toSetting)
+            .toList()
+        )
+      );
+    }
+
+    final var instanceCreateInfo =
+      instanceCreateInfoBuilder.build();
 
     return resources.add(
       instances.createInstance(
@@ -418,7 +435,7 @@ public final class RCVulkanRenderer
       final var required =
         new TreeSet<String>();
 
-      if (configuration.enableValidation()) {
+      if (!configuration.enableValidation().isEmpty()) {
         required.add(VK_LAYER_KHRONOS_VALIDATION);
       }
 

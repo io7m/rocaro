@@ -28,9 +28,12 @@ module com.io7m.rocaro.demo
 
   requires com.io7m.rocaro.api;
   requires com.io7m.rocaro.vanilla;
+
+  requires com.io7m.jcoronado.extensions.ext_layer_settings.api;
+  requires com.io7m.jcoronado.layers.khronos_validation.api;
   requires com.io7m.jcoronado.lwjgl;
-  requires org.slf4j;
   requires com.io7m.jtensors.core;
+  requires org.slf4j;
 
   uses RendererFactoryType;
   uses RCDisplayServiceType;

@@ -33,6 +33,10 @@
       <groupId>com.io7m.jcoronado</groupId>
       <artifactId>com.io7m.jcoronado.api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.io7m.jcoronado</groupId>
+      <artifactId>com.io7m.jcoronado.layers.khronos_validation.api</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.osgi</groupId>

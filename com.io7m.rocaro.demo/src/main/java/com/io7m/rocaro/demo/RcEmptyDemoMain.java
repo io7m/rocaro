@@ -17,6 +17,11 @@
 
 package com.io7m.rocaro.demo;
 
+import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateBestPractices;
+import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateBestPracticesAMD;
+import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateBestPracticesNVIDIA;
+import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateCore;
+import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateSync;
 import com.io7m.jcoronado.lwjgl.VulkanLWJGLInstanceProvider;
 import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
 import com.io7m.rocaro.api.RendererFactoryType;
@@ -74,12 +79,21 @@ public final class RcEmptyDemoMain
     builder.setVulkanConfiguration(
       RendererVulkanConfiguration.builder()
         .setInstanceProvider(VulkanLWJGLInstanceProvider.create())
-        .setEnableValidation(true)
+        .addEnableValidation(
+          new VulkanValidationValidateCore(true))
+        .addEnableValidation(
+          new VulkanValidationValidateSync(true))
+        .addEnableValidation(
+          new VulkanValidationValidateBestPractices(true))
+        .addEnableValidation(
+          new VulkanValidationValidateBestPracticesAMD(true))
+        .addEnableValidation(
+          new VulkanValidationValidateBestPracticesNVIDIA(true))
         .build()
     );
 
     try (var renderer = builder.start()) {
-      for (int index = 0; index < 600; ++index) {
+      for (int index = 0; index < 60000; ++index) {
         renderer.executeFrame("Empty", _ -> {
 
         });
