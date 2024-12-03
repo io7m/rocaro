@@ -19,10 +19,12 @@ package com.io7m.rocaro.tests.integration;
 
 import com.io7m.rocaro.vanilla.Renderers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
+@Tag("Real-Vulkan-Integration")
 public final class RendererBuilderIntegrationTest
 {
   private Renderers renderers;

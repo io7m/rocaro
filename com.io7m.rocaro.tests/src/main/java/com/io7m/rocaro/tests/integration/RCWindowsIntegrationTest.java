@@ -26,6 +26,7 @@ import com.io7m.rocaro.vanilla.internal.RCGLFWFacadeType;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindows;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
@@ -33,6 +34,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Tag("Real-Vulkan-Integration")
 public final class RCWindowsIntegrationTest
 {
   private RCGLFWFacadeType glfw;

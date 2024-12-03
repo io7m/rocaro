@@ -66,7 +66,7 @@ public final class RCVulkanFrameState
 
   public static RCVulkanFrameStateType create(
     final RCStrings strings,
-    final RCLogicalDevice logicalDevice,
+    final RCDevice logicalDevice,
     final RCFrameIndex inFrameIndex)
     throws RCVulkanException
   {
@@ -90,6 +90,9 @@ public final class RCVulkanFrameState
               .build()
           )
         );
+
+      device.debugging()
+        .setObjectName(commandPool, "CommandPool[FrameGraphics]");
 
       return new RCVulkanFrameState(
         inFrameIndex,

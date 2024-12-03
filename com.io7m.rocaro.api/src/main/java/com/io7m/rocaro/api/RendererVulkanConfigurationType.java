@@ -20,6 +20,7 @@ package com.io7m.rocaro.api;
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import com.io7m.jcoronado.api.VulkanInstanceProviderType;
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationSettingType;
+import com.io7m.jcoronado.vma.VMAAllocatorProviderType;
 import com.io7m.rocaro.api.devices.RCDeviceSelectionAny;
 import com.io7m.rocaro.api.devices.RCDeviceSelectionType;
 import com.io7m.verona.core.Version;
@@ -37,10 +38,25 @@ import java.util.Set;
 public interface RendererVulkanConfigurationType
 {
   /**
+   * @return Whether RenderDoc support should be enabled if available
+   */
+
+  @Value.Default
+  default boolean enableRenderDocSupport()
+  {
+    return false;
+  }
+
+  /**
+   * @return A provider of VMA allocators
+   */
+
+  VMAAllocatorProviderType vmaAllocators();
+
+  /**
    * @return The Vulkan instance provider
    */
 
-  @Value.Parameter
   VulkanInstanceProviderType instanceProvider();
 
   /**
@@ -77,6 +93,12 @@ public interface RendererVulkanConfigurationType
    */
 
   Set<VulkanValidationSettingType> enableValidation();
+
+  /**
+   * @return The optional layers to enable if they are present
+   */
+
+  Set<String> enableOptionalLayers();
 
   /**
    * @return The application name

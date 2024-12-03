@@ -19,6 +19,7 @@ package com.io7m.rocaro.vanilla.internal;
 
 import com.io7m.jxtrand.api.JXTStringConstantType;
 import com.io7m.jxtrand.vanilla.JXTAbstractStrings;
+import com.io7m.repetoir.core.RPServiceType;
 
 import java.util.Locale;
 
@@ -28,6 +29,7 @@ import java.util.Locale;
 
 public final class RCStrings
   extends JXTAbstractStrings
+  implements RPServiceType
 {
   /**
    * The string resources.
@@ -69,5 +71,11 @@ public final class RCStrings
       this.getClass().getSimpleName(),
       Long.toUnsignedString(this.hashCode(), 16)
     );
+  }
+
+  @Override
+  public String description()
+  {
+    return "String service.";
   }
 }

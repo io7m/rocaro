@@ -26,6 +26,48 @@ import java.util.Objects;
 public enum RCStandardErrorCodes
 {
   /**
+   * A specified asset does not exist.
+   */
+
+  NONEXISTENT_ASSET("error-nonexistent-asset"),
+
+  /**
+   * An I/O error occurred.
+   */
+
+  IO("error-io"),
+
+  /**
+   * A loader is not registered for the given asset class.
+   */
+
+  NONEXISTENT_ASSET_LOADER("error-nonexistent-asset-loader"),
+
+  /**
+   * A loader is already registered for the given asset class.
+   */
+
+  DUPLICATE_ASSET_LOADER("error-duplicate-asset-loader"),
+
+  /**
+   * The specified graph is not ready to be evaluated.
+   */
+
+  GRAPH_NOT_READY("error-graph-not-ready"),
+
+  /**
+   * A named port does not exist.
+   */
+
+  NONEXISTENT_PORT("error-port-nonexistent"),
+
+  /**
+   * A source port was provided where a target port was required, or vice versa.
+   */
+
+  INCORRECT_PORT_KIND("error-port-kind"),
+
+  /**
    * The graph does not contain a required frame source.
    */
 

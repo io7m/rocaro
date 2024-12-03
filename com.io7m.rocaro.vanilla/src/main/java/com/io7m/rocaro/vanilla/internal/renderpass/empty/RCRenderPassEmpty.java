@@ -19,35 +19,37 @@ package com.io7m.rocaro.vanilla.internal.renderpass.empty;
 
 import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.graph.RCGNodeName;
-import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionFactoryType;
-import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionType;
+import com.io7m.rocaro.api.graph.RCGNodePreparationContextType;
+import com.io7m.rocaro.api.graph.RCGNodeRenderContextType;
+import com.io7m.rocaro.api.graph.RCGNodeRenderPassAbstract;
+import com.io7m.rocaro.api.graph.RCGPortName;
+import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.render_pass.RCRenderPassType;
 
-import java.util.Objects;
+import java.util.Map;
 
-/**
- * The empty render pass.
- */
-
-public enum RCRenderPassEmpty
-  implements RCRenderPassDescriptionFactoryType<
-    RCUnit,
-    RCRenderPassType<RCUnit>,
-    RCRenderPassDescriptionType<RCUnit, RCRenderPassType<RCUnit>>>
+final class RCRenderPassEmpty
+  extends RCGNodeRenderPassAbstract<RCUnit>
+  implements RCRenderPassType<RCUnit>
 {
-  /**
-   * The empty render pass.
-   */
-
-  RENDER_PASS_EMPTY;
+  RCRenderPassEmpty(
+    final RCGNodeName inName,
+    final Map<RCGPortName, RCGPortType<?>> inPorts)
+  {
+    super(inName, RCUnit.UNIT, inPorts);
+  }
 
   @Override
-  public RCRenderPassDescriptionType<RCUnit, RCRenderPassType<RCUnit>> createDescription(
-    final RCUnit parameters,
-    final RCGNodeName name)
+  public void prepare(
+    final RCGNodePreparationContextType context)
   {
-    Objects.requireNonNull(parameters, "parameters");
-    Objects.requireNonNull(name, "name");
-    return new RCRenderPassEmptyDescription(parameters, name);
+
+  }
+
+  @Override
+  public void evaluate(
+    final RCGNodeRenderContextType context)
+  {
+
   }
 }

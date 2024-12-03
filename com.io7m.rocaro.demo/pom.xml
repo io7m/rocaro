@@ -46,6 +46,15 @@
     </dependency>
 
     <dependency>
+      <groupId>com.io7m.quarrel</groupId>
+      <artifactId>com.io7m.quarrel.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.quarrel</groupId>
+      <artifactId>com.io7m.quarrel.ext.logback</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.lwjgl</groupId>
       <artifactId>lwjgl</artifactId>
     </dependency>
@@ -127,5 +136,243 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.io7m.stmp</groupId>
+        <artifactId>string-template-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-version</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>renderTemplate</goal>
+            </goals>
+            <configuration>
+              <template>
+                <inputFile>src/main/string-template/RCDVersion.st</inputFile>
+                <name>RCDVersion</name>
+                <outputFile>
+                  ${project.build.directory}/generated-sources/string-template/com/io7m/rocaro/demo/RCDVersion.java
+                </outputFile>
+                <properties>
+                  <appVersion>${project.version}</appVersion>
+                  <appBuild>${buildNumber}</appBuild>
+                </properties>
+              </template>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-sources</id>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <phase>
+              generate-sources
+            </phase>
+            <configuration>
+              <sources>
+                <source>
+                  ${project.build.directory}/generated-sources/string-template
+                </source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.io7m.montarre</groupId>
+        <artifactId>com.io7m.montarre.maven_plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-distribution</id>
+            <goals>
+              <goal>package</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <validationWarningsAreErrors>true</validationWarningsAreErrors>
+
+              <applicationKind>CONSOLE</applicationKind>
+
+              <categories>
+                <category>Development</category>
+                <category>Graphics</category>
+              </categories>
+
+              <copyright>Copyright © 2024 Mark Raynsford &lt;code@io7m.com> https://www.io7m.com</copyright>
+
+              <humanName>Rocaro Demo</humanName>
+              <packageName>com.io7m.rocaro.demo</packageName>
+              <shortName>rocaro-demo</shortName>
+
+              <description>3D Renderer (Demos)</description>
+
+              <version>
+                <number>${project.version}</number>
+                <date>2024-11-23</date>
+              </version>
+
+              <vendor>
+                <id>com.io7m</id>
+                <name>io7m</name>
+              </vendor>
+
+              <mainModule>com.io7m.rocaro.demo/com.io7m.rocaro.demo.RCDemoMain</mainModule>
+
+              <requiredJDKVersion>${io7m.java.targetJavaVersion}</requiredJDKVersion>
+
+              <libraries>
+                <excludes>
+                  <exclude>com\.io7m\.immutables-style-.*\.jar</exclude>
+                  <exclude>lwjgl-.*-natives-linux\.jar</exclude>
+                  <exclude>lwjgl-.*-natives-windows\.jar</exclude>
+                  <exclude>lwjgl-glfw-.*-natives-linux\.jar</exclude>
+                  <exclude>lwjgl-glfw-.*-natives-windows\.jar</exclude>
+                  <exclude>lwjgl-jemalloc-.*-natives-linux\.jar</exclude>
+                  <exclude>lwjgl-jemalloc-.*-natives-windows\.jar</exclude>
+                  <exclude>lwjgl-vma-.*-natives-linux\.jar</exclude>
+                  <exclude>lwjgl-vma-.*-natives-windows\.jar</exclude>
+                  <exclude>org\.osgi\.annotation\.bundle-.*\.jar</exclude>
+                  <exclude>org\.osgi\.annotation\.versioning-.*\.jar</exclude>
+                  <exclude>value-.*\.jar</exclude>
+                </excludes>
+              </libraries>
+
+              <platformLibraries>
+                <platformLibrary>
+                  <architecture>x86_64</architecture>
+                  <operatingSystem>linux</operatingSystem>
+                  <includes>
+                    <include>lwjgl-.*-natives-linux\.jar</include>
+                  </includes>
+                </platformLibrary>
+                <platformLibrary>
+                  <architecture>x86_64</architecture>
+                  <operatingSystem>windows</operatingSystem>
+                  <includes>
+                    <include>lwjgl-.*-natives-windows\.jar</include>
+                  </includes>
+                </platformLibrary>
+
+                <platformLibrary>
+                  <architecture>x86_64</architecture>
+                  <operatingSystem>linux</operatingSystem>
+                  <includes>
+                    <include>lwjgl-jemalloc-.*-natives-linux\.jar</include>
+                  </includes>
+                </platformLibrary>
+                <platformLibrary>
+                  <architecture>x86_64</architecture>
+                  <operatingSystem>windows</operatingSystem>
+                  <includes>
+                    <include>lwjgl-jemalloc-.*-natives-windows\.jar</include>
+                  </includes>
+                </platformLibrary>
+
+                <platformLibrary>
+                  <architecture>x86_64</architecture>
+                  <operatingSystem>linux</operatingSystem>
+                  <includes>
+                    <include>lwjgl-glfw-.*-natives-linux\.jar</include>
+                  </includes>
+                </platformLibrary>
+                <platformLibrary>
+                  <architecture>x86_64</architecture>
+                  <operatingSystem>windows</operatingSystem>
+                  <includes>
+                    <include>lwjgl-glfw-.*-natives-windows\.jar</include>
+                  </includes>
+                </platformLibrary>
+
+                <platformLibrary>
+                  <architecture>x86_64</architecture>
+                  <operatingSystem>linux</operatingSystem>
+                  <includes>
+                    <include>lwjgl-vma-.*-natives-linux\.jar</include>
+                  </includes>
+                </platformLibrary>
+                <platformLibrary>
+                  <architecture>x86_64</architecture>
+                  <operatingSystem>windows</operatingSystem>
+                  <includes>
+                    <include>lwjgl-vma-.*-natives-windows\.jar</include>
+                  </includes>
+                </platformLibrary>
+              </platformLibraries>
+
+              <resources>
+                <resource>
+                  <role>BOM</role>
+                  <file>${project.build.directory}/bom.xml</file>
+                  <entryName>bom.xml</entryName>
+                </resource>
+                <resource>
+                  <role>ICON_16</role>
+                  <file>${project.basedir}/src/main/meta/icon16.png</file>
+                  <entryName>icon16.png</entryName>
+                </resource>
+                <resource>
+                  <role>ICON_24</role>
+                  <file>${project.basedir}/src/main/meta/icon24.png</file>
+                  <entryName>icon24.png</entryName>
+                </resource>
+                <resource>
+                  <role>ICON_32</role>
+                  <file>${project.basedir}/src/main/meta/icon32.png</file>
+                  <entryName>icon32.png</entryName>
+                </resource>
+                <resource>
+                  <role>ICON_48</role>
+                  <file>${project.basedir}/src/main/meta/icon48.png</file>
+                  <entryName>icon48.png</entryName>
+                </resource>
+                <resource>
+                  <role>ICON_64</role>
+                  <file>${project.basedir}/src/main/meta/icon64.png</file>
+                  <entryName>icon64.png</entryName>
+                </resource>
+                <resource>
+                  <role>ICON_128</role>
+                  <file>${project.basedir}/src/main/meta/icon128.png</file>
+                  <entryName>icon128.png</entryName>
+                </resource>
+                <resource>
+                  <role>SCREENSHOT</role>
+                  <file>${project.basedir}/src/main/meta/screenshot.png</file>
+                  <entryName>screenshot.png</entryName>
+                  <captions>
+                    <caption>
+                      <language>en</language>
+                      <text>The main command-line entry point.</text>
+                    </caption>
+                  </captions>
+                </resource>
+                <resource>
+                  <role>ICO_WINDOWS</role>
+                  <file>${project.basedir}/src/main/meta/icon.ico</file>
+                  <entryName>icon.ico</entryName>
+                </resource>
+                <resource>
+                  <role>LICENSE</role>
+                  <file>${project.basedir}/../README-LICENSE.txt</file>
+                  <entryName>license.txt</entryName>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

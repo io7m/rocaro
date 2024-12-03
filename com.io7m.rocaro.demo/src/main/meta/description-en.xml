@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<LongDescription xmlns="urn:com.io7m.montarre.package:1"
+                 Language="en">
+  <Paragraph>
+    The Rocaro Demo package provides demos for the Rocaro renderer.
+  </Paragraph>
+
+  <Feature>
+    A command-line demo environment.
+  </Feature>
+
+</LongDescription>

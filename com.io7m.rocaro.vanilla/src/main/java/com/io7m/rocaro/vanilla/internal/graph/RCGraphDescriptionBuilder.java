@@ -95,7 +95,7 @@ import static com.io7m.rocaro.vanilla.internal.images.RCImageNodeColorBlendable.
 import static com.io7m.rocaro.vanilla.internal.images.RCImageNodeColorRenderable.IMAGE_NODE_COLOR_RENDERABLE;
 import static com.io7m.rocaro.vanilla.internal.images.RCImageNodeDepth.IMAGE_NODE_DEPTH;
 import static com.io7m.rocaro.vanilla.internal.images.RCImageNodeDepthStencil.IMAGE_NODE_DEPTH_STENCIL;
-import static com.io7m.rocaro.vanilla.internal.renderpass.empty.RCRenderPassEmpty.RENDER_PASS_EMPTY;
+import static com.io7m.rocaro.vanilla.internal.renderpass.empty.RCRenderPassEmpties.RENDER_PASS_EMPTY;
 
 /**
  * A render graph builder.

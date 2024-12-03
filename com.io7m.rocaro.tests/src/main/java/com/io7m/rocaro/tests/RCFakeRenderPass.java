@@ -22,8 +22,8 @@ import com.io7m.junreachable.UnimplementedCodeException;
 import com.io7m.rocaro.api.graph.RCGNodeName;
 import com.io7m.rocaro.api.graph.RCGPortName;
 import com.io7m.rocaro.api.graph.RCGPortType;
-import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionType;
 import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionFactoryType;
+import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionType;
 import com.io7m.rocaro.api.render_pass.RCRenderPassType;
 
 import java.util.HashMap;
@@ -90,7 +90,6 @@ public final class RCFakeRenderPass
     VulkanPhysicalDeviceFeatures requiredDeviceFeatures)
     implements RCRenderPassDescriptionType<Integer, RCRenderPassType<Integer>>
   {
-
     @Override
     public RCRenderPassType<Integer> createNode()
     {

@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.tests;
 
+import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanQueueIndex;
 import com.io7m.jcoronado.fake.VFakeExtKHRSurface;
 import com.io7m.jcoronado.fake.VFakeExtKHRSwapChain;
@@ -24,6 +25,8 @@ import com.io7m.jcoronado.fake.VFakeInstance;
 import com.io7m.jcoronado.fake.VFakeInstances;
 import com.io7m.jcoronado.fake.VFakeLogicalDevice;
 import com.io7m.jcoronado.fake.VFakeQueue;
+import com.io7m.jcoronado.vma.VMAAllocatorProviderType;
+import com.io7m.jcoronado.vma.VMAAllocatorType;
 import com.io7m.jtensors.core.unparameterized.vectors.Vector2D;
 import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
 import com.io7m.jtensors.core.unparameterized.vectors.Vector3I;
@@ -80,13 +83,24 @@ public final class RendererBuilderTest
 
   private RCGLFWFacadeType glfw;
   private VFakeInstances instances;
+  private VMAAllocatorProviderType vmaProvider;
+  private VMAAllocatorType vma;
   private RendererVulkanConfiguration vulkanConfiguration;
 
   @BeforeEach
   public void setup()
+    throws Exception
   {
     this.glfw =
       Mockito.mock(RCGLFWFacadeType.class);
+    this.vmaProvider =
+      Mockito.mock(VMAAllocatorProviderType.class);
+    this.vma =
+      Mockito.mock(VMAAllocatorType.class);
+
+    Mockito.when(this.vmaProvider.createAllocator(Mockito.any()))
+      .thenReturn(this.vma);
+
     this.instances =
       RCFakeVulkan.fake();
 
@@ -150,6 +164,7 @@ public final class RendererBuilderTest
     this.vulkanConfiguration =
       RendererVulkanConfiguration.builder()
         .setInstanceProvider(this.instances)
+        .setVmaAllocators(this.vmaProvider)
         .build();
   }
 
@@ -166,7 +181,8 @@ public final class RendererBuilderTest
     when(this.glfw.displays())
       .thenReturn(List.of());
 
-    final var b = new RendererBuilder(STRINGS, VERSIONS, this.glfw);
+    final var b =
+      new RendererBuilder(Locale.ROOT, STRINGS, VERSIONS, this.glfw);
     b.setVulkanConfiguration(this.vulkanConfiguration);
 
     final var ex =
@@ -194,7 +210,8 @@ public final class RendererBuilderTest
     when(this.glfw.windowCreateFullscreen(anyInt(), anyInt(), any(), anyLong()))
       .thenReturn(0L);
 
-    final var b = new RendererBuilder(STRINGS, VERSIONS, this.glfw);
+    final var b =
+      new RendererBuilder(Locale.ROOT, STRINGS, VERSIONS, this.glfw);
     b.setVulkanConfiguration(this.vulkanConfiguration);
 
     final var ex =
@@ -230,7 +247,8 @@ public final class RendererBuilderTest
     when(this.glfw.windowCreateWindowed(anyInt(), anyInt(), any()))
       .thenReturn(0L);
 
-    final var b = new RendererBuilder(STRINGS, VERSIONS, this.glfw);
+    final var b =
+      new RendererBuilder(Locale.ROOT, STRINGS, VERSIONS, this.glfw);
     b.setVulkanConfiguration(this.vulkanConfiguration);
 
     b.setDisplaySelection(
@@ -268,7 +286,8 @@ public final class RendererBuilderTest
     when(this.glfw.windowCreateFullscreen(anyInt(), anyInt(), any(), anyLong()))
       .thenReturn(0x30405060L);
 
-    final var b = new RendererBuilder(STRINGS, VERSIONS, this.glfw);
+    final var b =
+      new RendererBuilder(Locale.ROOT, STRINGS, VERSIONS, this.glfw);
     b.setVulkanConfiguration(this.vulkanConfiguration);
 
     try (final var r = b.start()) {
@@ -299,7 +318,8 @@ public final class RendererBuilderTest
     when(this.glfw.windowCreateWindowed(anyInt(), anyInt(), any()))
       .thenReturn(0x30405060L);
 
-    final var b = new RendererBuilder(STRINGS, VERSIONS, this.glfw);
+    final var b =
+      new RendererBuilder(Locale.ROOT, STRINGS, VERSIONS, this.glfw);
     b.setVulkanConfiguration(this.vulkanConfiguration);
 
     b.setDisplaySelection(

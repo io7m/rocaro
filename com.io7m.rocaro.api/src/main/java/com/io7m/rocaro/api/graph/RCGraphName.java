@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.api.graph;
 
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -28,6 +29,7 @@ import java.util.regex.Pattern;
 
 public record RCGraphName(
   String value)
+  implements Comparable<RCGraphName>
 {
   private static final Pattern VALID_NAME =
     Pattern.compile("[A-Za-z0-9_]{1,128}");
@@ -53,5 +55,13 @@ public record RCGraphName(
   public String toString()
   {
     return this.value;
+  }
+
+  @Override
+  public int compareTo(
+    final RCGraphName other)
+  {
+    return Comparator.comparing(RCGraphName::value)
+      .compare(this, other);
   }
 }

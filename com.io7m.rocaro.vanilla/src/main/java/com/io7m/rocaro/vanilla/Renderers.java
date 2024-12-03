@@ -48,10 +48,26 @@ public final class Renderers implements RendererFactoryType
     throws RocaroException
   {
     final var strings = new RCStrings(locale);
-    return new RendererBuilder(
-      strings,
-      new RCVersions(locale),
-      RCGLFWFacade.get(strings)
+
+    final var builder =
+      new RendererBuilder(
+        locale,
+        strings,
+        new RCVersions(locale),
+        RCGLFWFacade.get(strings)
+      );
+
+    final var graphBuilder =
+      builder.declareRenderGraph("Empty");
+    final var frameSource =
+      graphBuilder.declareFrameSource("FrameSource");
+    final var frameTarget =
+      graphBuilder.declareFrameTarget("FrameTarget");
+
+    graphBuilder.connect(
+      frameSource.imageSource(),
+      frameTarget.imageTarget()
     );
+    return builder;
   }
 }

@@ -14,8 +14,8 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.rocaro.api.displays.RCDisplayServiceType;
 import com.io7m.rocaro.api.RendererFactoryType;
+import com.io7m.rocaro.api.displays.RCDisplayServiceType;
 
 /**
  * 3D rendering system (Demos).
@@ -29,14 +29,18 @@ module com.io7m.rocaro.demo
   requires com.io7m.rocaro.api;
   requires com.io7m.rocaro.vanilla;
 
+  requires com.io7m.jcoronado.api;
   requires com.io7m.jcoronado.extensions.ext_layer_settings.api;
   requires com.io7m.jcoronado.layers.khronos_validation.api;
   requires com.io7m.jcoronado.lwjgl;
   requires com.io7m.jtensors.core;
+  requires com.io7m.lanark.core;
   requires org.slf4j;
+  requires com.io7m.quarrel.core;
 
   uses RendererFactoryType;
   uses RCDisplayServiceType;
 
   exports com.io7m.rocaro.demo;
+  exports com.io7m.rocaro.demo.internal;
 }

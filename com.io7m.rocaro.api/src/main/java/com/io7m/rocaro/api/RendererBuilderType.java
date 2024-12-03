@@ -17,6 +17,8 @@
 
 package com.io7m.rocaro.api;
 
+import com.io7m.rocaro.api.assets.RCAssetLoaderDirectoryType;
+import com.io7m.rocaro.api.assets.RCAssetResolverType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
 import com.io7m.rocaro.api.graph.RCGraphDescriptionBuilderType;
 import com.io7m.rocaro.api.graph.RCGraphDescriptionException;
@@ -58,6 +60,28 @@ public interface RendererBuilderType
   {
     return this.declareRenderGraph(new RCGraphName(name));
   }
+
+  /**
+   * Set the asset resolver.
+   *
+   * @param resolver The resolver
+   *
+   * @return this
+   */
+
+  RendererBuilderType setAssetResolver(
+    RCAssetResolverType resolver);
+
+  /**
+   * Set the asset loader directory.
+   *
+   * @param loaders The loaders
+   *
+   * @return this
+   */
+
+  RendererBuilderType setAssetLoaderDirectory(
+    RCAssetLoaderDirectoryType loaders);
 
   /**
    * Set the method used to select a display.

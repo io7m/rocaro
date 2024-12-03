@@ -49,4 +49,10 @@ public final class RCDisplays
     return RCGLFWFacade.get(new RCStrings(Locale.getDefault()))
       .displays();
   }
+
+  @Override
+  public String description()
+  {
+    return "Display service.";
+  }
 }

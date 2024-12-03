@@ -17,33 +17,14 @@
 
 package com.io7m.rocaro.api.graph;
 
-import com.io7m.rocaro.api.RCFrameInformation;
-
 /**
  * The context provided to each node in a render graph during the
  * rendering of a frame.
  */
 
 public interface RCGNodeRenderContextType
+  extends RCGNodeContextType
 {
-  /**
-   * @return The current frame information
-   */
-
-  RCFrameInformation frameInformation();
-
-  /**
-   * Obtain a reference to a frame-scoped service.
-   *
-   * @param serviceClass The service class
-   * @param <T>          The type of service
-   *
-   * @return A frame-scoped service
-   */
-
-  <T extends RCGFrameScopedServiceType> T frameScopedService(
-    Class<T> serviceClass);
-
   /**
    * Write a value to the given port.
    *

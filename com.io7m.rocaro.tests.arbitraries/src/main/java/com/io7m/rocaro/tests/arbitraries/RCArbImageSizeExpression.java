@@ -18,7 +18,6 @@
 package com.io7m.rocaro.tests.arbitraries;
 
 import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
-import com.io7m.rocaro.api.images.RCImageConstraintType;
 import com.io7m.rocaro.api.images.RCImageSizeExact;
 import com.io7m.rocaro.api.images.RCImageSizeExpressionType;
 import com.io7m.rocaro.api.images.RCImageSizeWindowFraction;

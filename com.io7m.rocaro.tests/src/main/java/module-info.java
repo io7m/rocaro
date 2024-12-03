@@ -14,6 +14,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+import com.io7m.rocaro.api.RendererFactoryType;
+import com.io7m.rocaro.api.displays.RCDisplayServiceType;
+
 /**
  * 3D rendering system (Test suite).
  */
@@ -33,12 +36,19 @@ open module com.io7m.rocaro.tests
   requires com.io7m.jcoronado.api;
   requires com.io7m.jcoronado.extensions.khr.surface.api;
   requires com.io7m.jcoronado.fake;
+  requires com.io7m.jcoronado.layers.khronos_validation.api;
+  requires com.io7m.jcoronado.lwjgl;
+  requires com.io7m.jcoronado.vma;
   requires com.io7m.jtensors.core;
   requires com.io7m.junreachable.core;
+  requires com.io7m.percentpass.extension;
   requires net.jqwik.api;
   requires net.jqwik.engine;
   requires org.mockito;
   requires org.slf4j;
+
+  uses RendererFactoryType;
+  uses RCDisplayServiceType;
 
   exports com.io7m.rocaro.tests;
   exports com.io7m.rocaro.tests.integration;

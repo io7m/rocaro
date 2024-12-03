@@ -41,12 +41,15 @@ import com.io7m.jcoronado.extensions.ext_layer_settings.api.VulkanLayerSettingsC
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationSettingType;
 import com.io7m.jcoronado.lwjgl.VulkanLWJGLHostAllocatorJeMalloc;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
+import com.io7m.repetoir.core.RPServiceDirectoryType;
 import com.io7m.rocaro.api.RCFrameIndex;
+import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacadeType;
-import com.io7m.rocaro.vanilla.internal.RCObject;
+import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCVersions;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
@@ -90,23 +93,29 @@ public final class RCVulkanRenderer
   private static final String VK_EXT_DEBUG_UTILS =
     "VK_EXT_debug_utils";
 
+  private final CloseableCollectionType<RocaroException> resources;
   private final RendererVulkanConfiguration configuration;
   private final VulkanInstanceType instance;
   private final RCWindowType window;
   private final RCWindowWithSurfaceType windowWithSurface;
   private final VulkanPhysicalDeviceType physicalDevice;
-  private final RCLogicalDevice logicalDevice;
+  private final RCDevice logicalDevice;
   private final Map<RCFrameIndex, RCVulkanFrameStateType> frameStates;
+  private final RCRendererID rendererId;
 
   private RCVulkanRenderer(
+    final CloseableCollectionType<RocaroException> inResources,
     final RendererVulkanConfiguration inConfiguration,
     final VulkanInstanceType inInstance,
     final RCWindowType inWindow,
     final RCWindowWithSurfaceType inWindowWithSurface,
     final VulkanPhysicalDeviceType inPhysicalDevice,
-    final RCLogicalDevice inLogicalDevice,
-    final Map<RCFrameIndex, RCVulkanFrameStateType> inFrameStates)
+    final RCDevice inLogicalDevice,
+    final Map<RCFrameIndex, RCVulkanFrameStateType> inFrameStates,
+    final RCRendererID inRendererId)
   {
+    this.resources =
+      Objects.requireNonNull(inResources, "resources");
     this.configuration =
       Objects.requireNonNull(inConfiguration, "configuration");
     this.instance =
@@ -121,18 +130,20 @@ public final class RCVulkanRenderer
       Objects.requireNonNull(inLogicalDevice, "logicalDevice");
     this.frameStates =
       Objects.requireNonNull(inFrameStates, "frameStates");
+    this.rendererId =
+      Objects.requireNonNull(inRendererId, "rendererId");
   }
 
   /**
    * The Vulkan portion of the renderer.
    *
-   * @param strings                The strings
+   * @param services               The service directory
    * @param versions               The versions
    * @param glfw                   The GLFW facade
-   * @param resources              The resources
    * @param configuration          The configuration
    * @param displaySelection       The display selection method
    * @param requiredDeviceFeatures The required device features
+   * @param rendererId             The renderer ID
    *
    * @return The renderer
    *
@@ -140,157 +151,173 @@ public final class RCVulkanRenderer
    */
 
   public static RCVulkanRendererType create(
-    final RCStrings strings,
+    final RPServiceDirectoryType services,
     final RCVersions versions,
     final RCGLFWFacadeType glfw,
-    final CloseableCollectionType<RocaroException> resources,
     final RendererVulkanConfiguration configuration,
     final RCDisplaySelectionType displaySelection,
-    final VulkanPhysicalDeviceFeatures requiredDeviceFeatures)
+    final VulkanPhysicalDeviceFeatures requiredDeviceFeatures,
+    final RCRendererID rendererId)
     throws RocaroException
   {
-    Objects.requireNonNull(strings, "strings");
+    Objects.requireNonNull(services, "services");
     Objects.requireNonNull(glfw, "glfw");
     Objects.requireNonNull(versions, "versions");
-    Objects.requireNonNull(resources, "resources");
     Objects.requireNonNull(configuration, "configuration");
     Objects.requireNonNull(displaySelection, "displaySelection");
     Objects.requireNonNull(requiredDeviceFeatures, "requiredDeviceFeatures");
 
-    LOG.debug("Creating window.");
-    final var window =
-      resources.add(RCWindows.create(strings, glfw, displaySelection));
-    LOG.debug("Created window {}", window);
+    final var strings =
+      services.requireService(RCStrings.class);
+    final var resources =
+      RCResourceCollections.create(strings);
 
-    LOG.debug("Creating Vulkan instance.");
-    final var hostAllocatorMain =
-      new VulkanLWJGLHostAllocatorJeMalloc();
-    final var hostAllocatorTracker =
-      new VulkanHostAllocatorTracker(hostAllocatorMain);
-    final var instances =
-      configuration.instanceProvider();
-
-    LOG.debug(
-      "Instance provider: {} {}",
-      instances.providerName(),
-      instances.providerVersion()
-    );
-
-    checkAcceptableVulkanVersion(strings, instances);
-
-    /*
-     * Configure all the various extensions and layers.
-     */
-
-    final var enableExtensions =
-      configureInstanceExtensions(
-        strings,
-        instances,
-        glfw,
-        window,
-        configuration);
-    final var enableLayers =
-      configureInstanceLayers(strings, instances, configuration);
-
-    /*
-     * Create a new instance.
-     */
-
-    final VulkanInstanceType instance;
     try {
-      instance = createInstance(
-        versions,
-        resources,
-        configuration,
-        enableExtensions,
-        enableLayers,
-        instances,
-        hostAllocatorTracker
+      LOG.debug("Creating window.");
+      final var window =
+        resources.add(RCWindows.create(strings, glfw, displaySelection));
+      LOG.debug("Created window {}", window);
+
+      LOG.debug("Creating Vulkan instance.");
+      final var hostAllocatorMain =
+        new VulkanLWJGLHostAllocatorJeMalloc();
+      final var hostAllocatorTracker =
+        new VulkanHostAllocatorTracker(hostAllocatorMain);
+      final var instances =
+        configuration.instanceProvider();
+
+      LOG.debug(
+        "Instance provider: {} {}",
+        instances.providerName(),
+        instances.providerVersion()
       );
-    } catch (final VulkanException e) {
-      throw RCVulkanException.wrap(strings, e);
-    }
-    LOG.debug("Created Vulkan instance.");
 
-    configureDebugging(strings, resources, instance);
+      checkAcceptableVulkanVersion(strings, instances);
 
-    LOG.debug("Creating rendering surface.");
-    final var windowWithSurface =
-      resources.add(
-        RCSurfaces.createWindowWithSurface(
+      /*
+       * Configure all the various extensions and layers.
+       */
+
+      final var enableExtensions =
+        configureInstanceExtensions(
           strings,
-          instance,
-          window
-        )
-      );
+          instances,
+          glfw,
+          window,
+          configuration
+        );
+      final var enableLayers =
+        configureInstanceLayers(strings, instances, configuration);
 
-    LOG.debug("Creating physical device.");
-    final var physicalDevice =
-      resources.add(
-        RCPhysicalDevices.create(
-          strings,
-          instance,
-          requiredDeviceFeatures,
-          configuration.deviceSelection(),
-          windowWithSurface
-        )
-      );
+      /*
+       * Create a new instance.
+       */
 
-    LOG.debug("Configuring surface for selected physical device.");
-    windowWithSurface.configureForPhysicalDevice(physicalDevice);
+      final VulkanInstanceType instance;
+      try {
+        instance = createInstance(
+          versions,
+          resources,
+          configuration,
+          enableExtensions,
+          enableLayers,
+          instances,
+          hostAllocatorTracker
+        );
+      } catch (final VulkanException e) {
+        throw RCVulkanException.wrap(strings, e);
+      }
+      LOG.debug("Created Vulkan instance.");
 
-    LOG.debug("Creating logical device.");
-    final var logicalDevice =
-      resources.add(
-        RCLogicalDevices.create(
-          strings,
-          physicalDevice,
-          windowWithSurface,
-          requiredDeviceFeatures
-        )
-      );
+      LOG.debug("Configuring debugging.");
+      configureDebugging(strings, resources, instance);
 
-    /*
-     * We re-add the window to the resources here because, although the window
-     * was registered as a to-be-closed resource early in the initialization
-     * process, it may have acquired extra resources (such as a swap chain)
-     * that need to be destroyed prior to the logical device being destroyed.
-     */
-
-    resources.add(windowWithSurface);
-
-    /*
-     * Set up the per-frame rendering state.
-     */
-
-    final var maxFrames =
-      windowWithSurface.maximumFramesInFlight();
-    final var frameStates =
-      new HashMap<RCFrameIndex, RCVulkanFrameStateType>(maxFrames);
-
-    for (var index = 0; index < maxFrames; ++index) {
-      final var frameIndex =
-        new RCFrameIndex(index);
-      final var frameState =
+      LOG.debug("Creating rendering surface.");
+      final var windowWithSurface =
         resources.add(
-          RCVulkanFrameState.create(
+          RCSurfaces.createWindowWithSurface(
             strings,
-            logicalDevice,
-            frameIndex
+            instance,
+            window
           )
         );
-      frameStates.put(frameIndex, frameState);
-    }
 
-    return new RCVulkanRenderer(
-      configuration,
-      instance,
-      window,
-      windowWithSurface,
-      physicalDevice,
-      logicalDevice,
-      frameStates
-    );
+      LOG.debug("Creating physical device.");
+      final var physicalDevice =
+        resources.add(
+          RCPhysicalDevices.create(
+            strings,
+            instance,
+            requiredDeviceFeatures,
+            configuration.deviceSelection(),
+            windowWithSurface
+          )
+        );
+
+      LOG.debug("Configuring surface for selected physical device.");
+      windowWithSurface.configureForPhysicalDevice(physicalDevice);
+
+      LOG.debug("Creating logical device.");
+      final var logicalDevice =
+        resources.add(
+          RCLogicalDevices.create(
+            strings,
+            configuration,
+            physicalDevice,
+            windowWithSurface,
+            requiredDeviceFeatures,
+            rendererId
+          )
+        );
+
+      /*
+       * We re-add the window to the resources here because, although the window
+       * was registered as a to-be-closed resource early in the initialization
+       * process, it may have acquired extra resources (such as a swap chain)
+       * that need to be destroyed prior to the logical device being destroyed.
+       */
+
+      resources.add(windowWithSurface);
+
+      /*
+       * Set up the per-frame rendering state.
+       */
+
+      LOG.debug("Creating per-frame state.");
+      final var maxFrames =
+        windowWithSurface.maximumFramesInFlight();
+      final var frameStates =
+        new HashMap<RCFrameIndex, RCVulkanFrameStateType>(maxFrames);
+
+      for (var index = 0; index < maxFrames; ++index) {
+        final var frameIndex =
+          new RCFrameIndex(index);
+        final var frameState =
+          resources.add(
+            RCVulkanFrameState.create(
+              strings,
+              logicalDevice,
+              frameIndex
+            )
+          );
+        frameStates.put(frameIndex, frameState);
+      }
+
+      return new RCVulkanRenderer(
+        resources,
+        configuration,
+        instance,
+        window,
+        windowWithSurface,
+        physicalDevice,
+        logicalDevice,
+        frameStates,
+        rendererId
+      );
+    } catch (final Throwable e) {
+      resources.close();
+      throw e;
+    }
   }
 
   private static void configureDebugging(
@@ -430,10 +457,10 @@ public final class RCVulkanRenderer
         );
       }
 
-      final var optional =
-        new TreeSet<String>();
       final var required =
         new TreeSet<String>();
+      final var optional =
+        new TreeSet<>(configuration.enableOptionalLayers());
 
       if (!configuration.enableValidation().isEmpty()) {
         required.add(VK_LAYER_KHRONOS_VALIDATION);
@@ -565,13 +592,19 @@ public final class RCVulkanRenderer
   }
 
   @Override
+  public RCRendererID id()
+  {
+    return this.rendererId;
+  }
+
+  @Override
   public VulkanInstanceType instance()
   {
     return this.instance;
   }
 
   @Override
-  public RCLogicalDevice logicalDevice()
+  public RCDevice device()
   {
     return this.logicalDevice;
   }
@@ -630,16 +663,30 @@ public final class RCVulkanRenderer
     return this.windowWithSurface.maximumFramesInFlight();
   }
 
+  @Override
+  public String description()
+  {
+    return "Vulkan renderer service.";
+  }
+
+  @Override
+  public void close()
+    throws RocaroException
+  {
+    LOG.debug("Close");
+    this.resources.close();
+  }
+
   private static final class FrameContext
     implements RCVulkanFrameContextType
   {
     private final RCWindowFrameContextType windowFrameContext;
-    private final RCLogicalDevice logicalDevice;
+    private final RCDevice logicalDevice;
     private final RCVulkanFrameStateType frameState;
 
     private FrameContext(
       final RCWindowFrameContextType inWindowFrameContext,
-      final RCLogicalDevice inLogicalDevice,
+      final RCDevice inLogicalDevice,
       final RCVulkanFrameStateType inFrameState)
     {
       this.windowFrameContext =
@@ -651,7 +698,7 @@ public final class RCVulkanRenderer
     }
 
     @Override
-    public RCLogicalDevice device()
+    public RCDevice device()
     {
       return this.logicalDevice;
     }

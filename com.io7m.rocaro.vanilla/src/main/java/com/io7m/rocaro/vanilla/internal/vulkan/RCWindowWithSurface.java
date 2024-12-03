@@ -46,12 +46,12 @@ import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeKHR;
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainCreateInfo;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RCFrameIndex;
+import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.images.RCImageColorBlendableType;
-import com.io7m.rocaro.vanilla.internal.RCObject;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
-import com.io7m.rocaro.vanilla.internal.images.RCImageBlendable;
+import com.io7m.rocaro.vanilla.internal.images.RCImageColorBlendable;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -375,7 +375,7 @@ public final class RCWindowWithSurface
         this.swapChainImageViews.get(swapIndex);
 
       final var image =
-        new RCImageBlendable(
+        new RCImageColorBlendable(
           this.window.size(),
           imageData,
           imageView,
@@ -471,6 +471,9 @@ public final class RCWindowWithSurface
       Objects.requireNonNull(newPresentationQueue, "presentationQueue");
 
     try {
+      final var debugging =
+        this.device.debugging();
+
       this.khrSwapChainExt =
         newDevice.findEnabledExtension(
             "VK_KHR_swapchain", VulkanExtKHRSwapChainType.class)
@@ -535,23 +538,37 @@ public final class RCWindowWithSurface
 
       for (int index = 0; index < images.size(); ++index) {
         final var fIndex = new RCFrameIndex(index);
+
+        final var imageReadySemaphore =
+          this.device.createSemaphore(
+            VulkanSemaphoreCreateInfo.builder()
+              .build()
+          );
+
+        debugging.setObjectName(
+          imageReadySemaphore,
+          "Semaphore[ImageReady][%d]".formatted(index)
+        );
+
         this.swapChainImageReadySemaphores.put(
           fIndex,
-          this.resourcesPerSwapChain.add(
-            this.device.createSemaphore(
-              VulkanSemaphoreCreateInfo.builder()
-                .build()
-            )
-          )
+          this.resourcesPerSwapChain.add(imageReadySemaphore)
         );
+
+        final var renderingDoneSemaphore =
+          this.device.createSemaphore(
+            VulkanSemaphoreCreateInfo.builder()
+              .build()
+          );
+
+        debugging.setObjectName(
+          renderingDoneSemaphore,
+          "Semaphore[RenderingDone][%d]".formatted(index)
+        );
+
         this.swapChainImageRenderingDoneSemaphores.put(
           fIndex,
-          this.resourcesPerSwapChain.add(
-            this.device.createSemaphore(
-              VulkanSemaphoreCreateInfo.builder()
-                .build()
-            )
-          )
+          this.resourcesPerSwapChain.add(renderingDoneSemaphore)
         );
 
         /*
@@ -562,15 +579,21 @@ public final class RCWindowWithSurface
          * it would wait forever for a fence that will never be signalled.
          */
 
+        final var renderingDoneFence =
+          this.device.createFence(
+            VulkanFenceCreateInfo.builder()
+              .addFlags(VulkanFenceCreateFlag.VK_FENCE_CREATE_SIGNALED_BIT)
+              .build()
+          );
+
+        debugging.setObjectName(
+          renderingDoneFence,
+          "Fence[RenderingDone][%d]".formatted(index)
+        );
+
         this.swapChainImageRenderingDoneFences.put(
           fIndex,
-          this.resourcesPerSwapChain.add(
-            this.device.createFence(
-              VulkanFenceCreateInfo.builder()
-                .addFlags(VulkanFenceCreateFlag.VK_FENCE_CREATE_SIGNALED_BIT)
-                .build()
-            )
-          )
+          this.resourcesPerSwapChain.add(renderingDoneFence)
         );
       }
     } catch (final VulkanException e) {

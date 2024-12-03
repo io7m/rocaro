@@ -14,8 +14,8 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.rocaro.api.displays.RCDisplayServiceType;
 import com.io7m.rocaro.api.RendererFactoryType;
+import com.io7m.rocaro.api.displays.RCDisplayServiceType;
 import com.io7m.rocaro.vanilla.RCDisplays;
 import com.io7m.rocaro.vanilla.Renderers;
 
@@ -31,6 +31,7 @@ module com.io7m.rocaro.vanilla
   requires com.io7m.rocaro.api;
 
   requires com.io7m.jaffirm.core;
+  requires com.io7m.jattribute.core;
   requires com.io7m.jcoronado.allocation.tracker;
   requires com.io7m.jcoronado.api;
   requires com.io7m.jcoronado.extensions.ext_debug_utils.api;
@@ -38,16 +39,21 @@ module com.io7m.rocaro.vanilla
   requires com.io7m.jcoronado.extensions.khr.surface.api;
   requires com.io7m.jcoronado.layers.khronos_validation.api;
   requires com.io7m.jcoronado.lwjgl;
+  requires com.io7m.jcoronado.vma;
   requires com.io7m.jdeferthrow.core;
   requires com.io7m.jmulticlose.core;
   requires com.io7m.jtensors.core;
   requires com.io7m.junreachable.core;
   requires com.io7m.jxtrand.api;
   requires com.io7m.jxtrand.vanilla;
+  requires com.io7m.lanark.core;
+  requires com.io7m.repetoir.core;
   requires com.io7m.verona.core;
+  requires jdk.jfr;
   requires org.jgrapht.core;
   requires org.lwjgl.glfw;
   requires org.slf4j;
+  requires com.io7m.renderdoc_jffm.core;
 
   provides RendererFactoryType
     with Renderers;
@@ -69,6 +75,19 @@ module com.io7m.rocaro.vanilla
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.vulkan
     to com.io7m.rocaro.tests;
-  opens com.io7m.rocaro.vanilla.internal.vulkan to com.io7m.jxtrand.vanilla;
-  opens com.io7m.rocaro.vanilla.internal.graph to com.io7m.jxtrand.vanilla;
+  exports com.io7m.rocaro.vanilla.internal.fences
+    to com.io7m.rocaro.tests;
+  exports com.io7m.rocaro.vanilla.internal.threading
+    to com.io7m.rocaro.tests;
+  exports com.io7m.rocaro.vanilla.internal.renderdoc
+    to com.io7m.rocaro.tests;
+
+  opens com.io7m.rocaro.vanilla.internal.vulkan
+    to com.io7m.jxtrand.vanilla;
+  opens com.io7m.rocaro.vanilla.internal.graph
+    to com.io7m.jxtrand.vanilla;
+  opens com.io7m.rocaro.vanilla
+    to com.io7m.jxtrand.vanilla;
+  opens com.io7m.rocaro.vanilla.internal.threading
+    to com.io7m.jxtrand.vanilla;
 }

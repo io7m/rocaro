@@ -124,7 +124,7 @@ public final class RCGraphDescription
         nodeDescription.createNode();
 
       Objects.requireNonNull(node, "node");
-      LOG.debug("Instantiate {} -> {}", nodeName, node);
+      LOG.debug("[{}] Instantiate {} -> {}", this.name(), nodeName, node);
 
       nodes.put(nodeName, node);
     }

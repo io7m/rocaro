@@ -19,6 +19,17 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 
 <properties>
+  <entry key="error_asset_does_not_exist">
+    The specified asset does not exist.
+  </entry>
+  <entry key="error_loader_already_registered_for_class">
+    A loader factory is already registered for the given asset class.
+  </entry>
+  <entry key="error_loader_not_available_for_class">
+    No loader factory is registered for the given asset class.
+  </entry>
+
+  <entry key="error_graph_not_ready">The given graph is not yet ready for execution.</entry>
   <entry key="error_graph_nonexistent">No graph exists with the given name.</entry>
   <entry key="error_graph_name_already_used">A graph already exists with the given name.</entry>
   <entry key="error_graph_node_name_already_used">A node already exists with the given name.</entry>
@@ -83,23 +94,26 @@
   <entry key="version_required">Version Required</entry>
   <entry key="version_provided">Version Provided</entry>
 
-  <entry key="vulkan_operation">Vulkan Operation</entry>
-  <entry key="vulkan_error">Vulkan Error</entry>
-  <entry key="extension">Extension</entry>
+  <entry key="asset">Asset</entry>
+  <entry key="class">Class</entry>
+  <entry key="depth_image">DepthImage</entry>
   <entry key="device_feature_indexed">Device Feature [{0}]</entry>
-  <entry key="resource">Resource</entry>
+  <entry key="extension">Extension</entry>
+  <entry key="file">File</entry>
   <entry key="graph">Graph</entry>
   <entry key="node">Node</entry>
   <entry key="node_existing">Node (Existing)</entry>
-  <entry key="type">Type</entry>
-  <entry key="depth_image">DepthImage</entry>
   <entry key="render_pass">RenderPass</entry>
+  <entry key="resource">Resource</entry>
   <entry key="source_node">Source Node</entry>
-  <entry key="target_node">Target Node</entry>
   <entry key="source_port">Source Port</entry>
+  <entry key="source_port_provides">Source Port Provides</entry>
+  <entry key="target_node">Target Node</entry>
   <entry key="target_port">Target Port</entry>
   <entry key="target_port_requires">Target Port Requires</entry>
-  <entry key="source_port_provides">Source Port Provides</entry>
+  <entry key="type">Type</entry>
+  <entry key="vulkan_error">Vulkan Error</entry>
+  <entry key="vulkan_operation">Vulkan Operation</entry>
 
   <entry key="depth_constraint_exact">A depth image of format {0}.</entry>
   <entry key="depth_constraint_none">Any depth image.</entry>

@@ -19,6 +19,7 @@ package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeaturesFunctions;
+import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.graph.RCGFrameNodeTargetDescriptionType;
 import com.io7m.rocaro.api.graph.RCGFrameNodeTargetType;
@@ -30,7 +31,6 @@ import com.io7m.rocaro.api.images.RCImageColorBlendableType;
 import com.io7m.rocaro.api.images.RCImageColorChannels;
 import com.io7m.rocaro.api.images.RCImageConstraintColorBlendable;
 import com.io7m.rocaro.api.images.RCImageSizeWindowFraction;
-import com.io7m.rocaro.vanilla.internal.RCObject;
 
 import java.util.Map;
 import java.util.Objects;

@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.api.displays;
 
+import com.io7m.repetoir.core.RPServiceType;
 import com.io7m.rocaro.api.RocaroException;
 
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.List;
  */
 
 public interface RCDisplayServiceType
+  extends RPServiceType
 {
   /**
    * Retrieve the current list of displays.

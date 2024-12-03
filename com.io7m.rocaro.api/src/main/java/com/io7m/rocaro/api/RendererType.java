@@ -17,7 +17,10 @@
 
 package com.io7m.rocaro.api;
 
-import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.repetoir.core.RPServiceException;
+import com.io7m.repetoir.core.RPServiceType;
+
+import java.util.Optional;
 
 /**
  * A renderer.
@@ -31,35 +34,47 @@ public interface RendererType
     throws RocaroException;
 
   /**
-   * Acquire a frame and populate it with data for execution using the given
-   * render graph.
-   *
-   * @param graphName The graph name
-   * @param f         The frame builder function
-   *
-   * @throws RocaroException On errors
+   * @return The renderer ID
    */
 
-  void executeFrame(
-    RCGraphName graphName,
-    RendererFrameFunctionType f)
-    throws RocaroException;
+  RCRendererID id();
 
   /**
-   * Acquire a frame and populate it with data for execution using the given
-   * render graph.
+   * Require a service of the given type.
    *
-   * @param graphName The graph name
-   * @param f         The frame builder function
+   * @param clazz The service type
+   * @param <T>   The service type
+   *
+   * @return The service
+   *
+   * @throws RPServiceException If the service does not exist
+   */
+
+  <T extends RPServiceType> T requireService(
+    Class<T> clazz)
+    throws RPServiceException;
+
+  /**
+   * Get an optional reference to a service of the given type.
+   *
+   * @param clazz The service type
+   * @param <T>   The service type
+   *
+   * @return The service
+   */
+
+  <T extends RPServiceType> Optional<T> optionalService(
+    Class<T> clazz);
+
+  /**
+   * Acquire a frame and execute operations on it.
+   *
+   * @param f The frame builder function
    *
    * @throws RocaroException On errors
    */
 
-  default void executeFrame(
-    final String graphName,
-    final RendererFrameFunctionType f)
-    throws RocaroException
-  {
-    this.executeFrame(new RCGraphName(graphName), f);
-  }
+  void execute(
+    RendererFrameBuilderProcedureType f)
+    throws RocaroException;
 }

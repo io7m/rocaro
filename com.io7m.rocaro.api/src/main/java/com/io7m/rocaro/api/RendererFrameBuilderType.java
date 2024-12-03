@@ -17,6 +17,11 @@
 
 package com.io7m.rocaro.api;
 
+import com.io7m.rocaro.api.graph.RCGStatusType;
+import com.io7m.rocaro.api.graph.RCGraphName;
+
+import java.util.Objects;
+
 /**
  * A frame builder.
  */
@@ -28,4 +33,126 @@ public interface RendererFrameBuilderType
    */
 
   RCFrameInformation frameInformation();
+
+  /**
+   * Prepare the given graph.
+   *
+   * @param graphName The graph name
+   *
+   * @throws RocaroException On errors
+   */
+
+  default void prepare(
+    final String graphName)
+    throws RocaroException
+  {
+    this.prepare(new RCGraphName(graphName));
+  }
+
+  /**
+   * Prepare the given graph.
+   *
+   * @param graphName The graph name
+   *
+   * @throws RocaroException On errors
+   */
+
+  void prepare(
+    RCGraphName graphName)
+    throws RocaroException;
+
+  /**
+   * @param graphName The graph name
+   *
+   * @return The status of the given graph
+   *
+   * @throws RocaroException On errors
+   */
+
+  default RCGStatusType graphStatus(
+    final String graphName)
+    throws RocaroException
+  {
+    return this.graphStatus(new RCGraphName(graphName));
+  }
+
+  /**
+   * @param graphName The graph name
+   *
+   * @return The status of the given graph
+   *
+   * @throws RocaroException On errors
+   */
+
+  RCGStatusType graphStatus(
+    RCGraphName graphName)
+    throws RocaroException;
+
+  /**
+   * Execute the given graph.
+   *
+   * @param graphName The graph name
+   * @param f         The frame function
+   *
+   * @throws RocaroException On errors
+   */
+
+  void executeGraph(
+    RCGraphName graphName,
+    RendererGraphProcedureType f)
+    throws RocaroException;
+
+  /**
+   * Execute the given graph.
+   *
+   * @param graphName The graph name
+   * @param f         The frame function
+   *
+   * @throws RocaroException On errors
+   */
+
+  default void executeGraph(
+    final String graphName,
+    final RendererGraphProcedureType f)
+    throws RocaroException
+  {
+    Objects.requireNonNull(graphName, "graphName");
+    Objects.requireNonNull(f, "f");
+
+    this.executeGraph(new RCGraphName(graphName), f);
+  }
+
+  /**
+   * Execute the given graph.
+   *
+   * @param graphName The graph name
+   *
+   * @throws RocaroException On errors
+   */
+
+  default void executeGraph(
+    final RCGraphName graphName)
+    throws RocaroException
+  {
+    this.executeGraph(graphName, _ -> {
+
+    });
+  }
+
+  /**
+   * Execute the given graph.
+   *
+   * @param graphName The graph name
+   *
+   * @throws RocaroException On errors
+   */
+
+  default void executeGraph(
+    final String graphName)
+    throws RocaroException
+  {
+    this.executeGraph(new RCGraphName(graphName), _ -> {
+
+    });
+  }
 }

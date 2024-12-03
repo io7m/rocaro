@@ -18,9 +18,12 @@
 package com.io7m.rocaro.api.graph;
 
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
+import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeaturesFunctions;
+import com.io7m.rocaro.api.RCStandardErrorCodes;
 import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionType;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A description of a node in the render graph.
@@ -62,5 +65,114 @@ public sealed interface RCGNodeDescriptionType<P, N extends RCGNodeType<P>>
    * @return The physical device features required for this node
    */
 
-  VulkanPhysicalDeviceFeatures requiredDeviceFeatures();
+  default VulkanPhysicalDeviceFeatures requiredDeviceFeatures()
+  {
+    return VulkanPhysicalDeviceFeaturesFunctions.none();
+  }
+
+  /**
+   * Find a target port with the given name.
+   *
+   * @param name The name
+   *
+   * @return The port
+   *
+   * @throws RCGraphDescriptionException If the port does not exist, or is not a target port
+   */
+
+  default RCGPortTargetType<?> targetPort(
+    final String name)
+    throws RCGraphDescriptionException
+  {
+    return this.targetPort(new RCGPortName(name));
+  }
+
+  /**
+   * Find a target port with the given name.
+   *
+   * @param name The name
+   *
+   * @return The port
+   *
+   * @throws RCGraphDescriptionException If the port does not exist, or is not a target port
+   */
+
+  default RCGPortTargetType<?> targetPort(
+    final RCGPortName name)
+    throws RCGraphDescriptionException
+  {
+    final var p = this.ports().get(name);
+    if (p == null) {
+      throw new RCGraphDescriptionException(
+        "A port does not exist with the given name.",
+        Map.of("Port", name.value()),
+        RCStandardErrorCodes.NONEXISTENT_PORT.codeName(),
+        Optional.empty()
+      );
+    }
+
+    if (p instanceof final RCGPortTargetType<?> q) {
+      return q;
+    }
+
+    throw new RCGraphDescriptionException(
+      "The named port is not a target port.",
+      Map.of("Port", name.value()),
+      RCStandardErrorCodes.INCORRECT_PORT_KIND.codeName(),
+      Optional.empty()
+    );
+  }
+
+  /**
+   * Find a source port with the given name.
+   *
+   * @param name The name
+   *
+   * @return The port
+   *
+   * @throws RCGraphDescriptionException If the port does not exist, or is not a target port
+   */
+
+  default RCGPortSourceType<?> sourcePort(
+    final String name)
+    throws RCGraphDescriptionException
+  {
+    return this.sourcePort(new RCGPortName(name));
+  }
+
+  /**
+   * Find a source port with the given name.
+   *
+   * @param name The name
+   *
+   * @return The port
+   *
+   * @throws RCGraphDescriptionException If the port does not exist, or is not a target port
+   */
+
+  default RCGPortSourceType<?> sourcePort(
+    final RCGPortName name)
+    throws RCGraphDescriptionException
+  {
+    final var p = this.ports().get(name);
+    if (p == null) {
+      throw new RCGraphDescriptionException(
+        "A port does not exist with the given name.",
+        Map.of("Port", name.value()),
+        RCStandardErrorCodes.NONEXISTENT_PORT.codeName(),
+        Optional.empty()
+      );
+    }
+
+    if (p instanceof final RCGPortSourceType<?> q) {
+      return q;
+    }
+
+    throw new RCGraphDescriptionException(
+      "The named port is not a source port.",
+      Map.of("Port", name.value()),
+      RCStandardErrorCodes.INCORRECT_PORT_KIND.codeName(),
+      Optional.empty()
+    );
+  }
 }

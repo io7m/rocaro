@@ -17,8 +17,10 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.render_pass.RCRenderPassType;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -28,19 +30,30 @@ import java.util.Objects;
  */
 
 public abstract class RCGNodeRenderPassAbstract<P>
+  extends RCObject
   implements RCRenderPassType<P>
 {
   private final P parameters;
   private final RCGNodeName name;
+  private final Map<RCGPortName, RCGPortType<?>> ports;
 
   protected RCGNodeRenderPassAbstract(
     final RCGNodeName inName,
-    final P inParameters)
+    final P inParameters,
+    final Map<RCGPortName, RCGPortType<?>> inPorts)
   {
     this.name =
       Objects.requireNonNull(inName, "name");
     this.parameters =
       Objects.requireNonNull(inParameters, "parameters");
+    this.ports =
+      Map.copyOf(inPorts);
+  }
+
+  @Override
+  public final Map<RCGPortName, RCGPortType<?>> ports()
+  {
+    return this.ports;
   }
 
   @Override

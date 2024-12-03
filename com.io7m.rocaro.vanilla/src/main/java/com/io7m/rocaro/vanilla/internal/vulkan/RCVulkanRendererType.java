@@ -19,7 +19,11 @@ package com.io7m.rocaro.vanilla.internal.vulkan;
 
 import com.io7m.jcoronado.api.VulkanInstanceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
+import com.io7m.repetoir.core.RPServiceType;
+import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCFrameIndex;
+import com.io7m.rocaro.api.RCRendererID;
+import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 
 import java.util.concurrent.TimeoutException;
@@ -29,7 +33,14 @@ import java.util.concurrent.TimeoutException;
  */
 
 public interface RCVulkanRendererType
+  extends RPServiceType, RCCloseableType
 {
+  /**
+   * @return The renderer ID
+   */
+
+  RCRendererID id();
+
   /**
    * @return The instance
    */
@@ -37,10 +48,10 @@ public interface RCVulkanRendererType
   VulkanInstanceType instance();
 
   /**
-   * @return The logical device
+   * @return The device
    */
 
-  RCLogicalDevice logicalDevice();
+  RCDeviceType device();
 
   /**
    * @return The physical device
@@ -63,7 +74,7 @@ public interface RCVulkanRendererType
   /**
    * Acquire a frame for rendering.
    *
-   * @param frame   The frame index
+   * @param frame The frame index
    *
    * @return The frame context
    *

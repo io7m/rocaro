@@ -17,8 +17,7 @@
 
 package com.io7m.rocaro.vanilla.internal.renderpass.empty;
 
-import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
-import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeaturesFunctions;
+import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.graph.RCGNodeName;
 import com.io7m.rocaro.api.graph.RCGPortModifier;
@@ -30,7 +29,6 @@ import com.io7m.rocaro.api.images.RCImageConstraintColorBlendable;
 import com.io7m.rocaro.api.images.RCImageSizeWindowFraction;
 import com.io7m.rocaro.api.render_pass.RCRenderPassDescriptionType;
 import com.io7m.rocaro.api.render_pass.RCRenderPassType;
-import com.io7m.rocaro.vanilla.internal.RCObject;
 
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +40,7 @@ final class RCRenderPassEmptyDescription
   private final RCUnit parameters;
   private final RCGNodeName name;
   private final RCGPortModifier<RCImageColorBlendableType> port;
+  private final Map<RCGPortName, RCGPortType<?>> ports;
 
   RCRenderPassEmptyDescription(
     final RCUnit inParameters,
@@ -60,24 +59,21 @@ final class RCRenderPassEmptyDescription
           RCImageColorChannels.RGBA
         )
       );
+
+    this.ports =
+      Map.ofEntries(Map.entry(this.port.name(), this.port));
   }
 
   @Override
   public Map<RCGPortName, RCGPortType<?>> ports()
   {
-    return Map.ofEntries(Map.entry(this.port.name(), this.port));
-  }
-
-  @Override
-  public VulkanPhysicalDeviceFeatures requiredDeviceFeatures()
-  {
-    return VulkanPhysicalDeviceFeaturesFunctions.none();
+    return this.ports;
   }
 
   @Override
   public RCRenderPassType<RCUnit> createNode()
   {
-    return new RCRenderPassEmptyInstance(this.name);
+    return new RCRenderPassEmpty(this.name, this.ports);
   }
 
   @Override

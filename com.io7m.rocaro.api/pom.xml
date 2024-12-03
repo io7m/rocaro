@@ -30,12 +30,29 @@
       <artifactId>com.io7m.jtensors.core</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.io7m.lanark</groupId>
+      <artifactId>com.io7m.lanark.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.repetoir</groupId>
+      <artifactId>com.io7m.repetoir.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jaffirm</groupId>
+      <artifactId>com.io7m.jaffirm.core</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.io7m.jcoronado</groupId>
       <artifactId>com.io7m.jcoronado.api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.io7m.jcoronado</groupId>
       <artifactId>com.io7m.jcoronado.layers.khronos_validation.api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jcoronado</groupId>
+      <artifactId>com.io7m.jcoronado.vma</artifactId>
     </dependency>
 
     <dependency>

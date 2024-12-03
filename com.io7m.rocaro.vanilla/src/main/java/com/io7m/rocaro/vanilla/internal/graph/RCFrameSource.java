@@ -17,15 +17,16 @@
 
 package com.io7m.rocaro.vanilla.internal.graph;
 
+import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.graph.RCGFrameNodeSourceType;
 import com.io7m.rocaro.api.graph.RCGNodeName;
+import com.io7m.rocaro.api.graph.RCGNodePreparationContextType;
 import com.io7m.rocaro.api.graph.RCGNodeRenderContextType;
 import com.io7m.rocaro.api.graph.RCGPortName;
 import com.io7m.rocaro.api.graph.RCGPortProducer;
 import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.images.RCImageColorBlendableType;
-import com.io7m.rocaro.vanilla.internal.RCObject;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameContextType;
 
 import java.util.Map;
@@ -80,6 +81,13 @@ public final class RCFrameSource
   public Map<RCGPortName, RCGPortType<?>> ports()
   {
     return this.ports;
+  }
+
+  @Override
+  public void prepare(
+    final RCGNodePreparationContextType context)
+  {
+
   }
 
   @Override

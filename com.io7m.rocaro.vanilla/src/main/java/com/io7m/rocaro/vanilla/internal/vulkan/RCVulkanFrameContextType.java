@@ -32,7 +32,7 @@ public interface RCVulkanFrameContextType
    * @return The logical device
    */
 
-  RCLogicalDevice device();
+  RCDevice device();
 
   /**
    * @return The window frame context

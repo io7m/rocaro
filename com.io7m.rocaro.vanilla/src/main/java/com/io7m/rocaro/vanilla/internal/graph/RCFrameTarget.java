@@ -23,15 +23,16 @@ import com.io7m.jcoronado.api.VulkanImageLayout;
 import com.io7m.jcoronado.api.VulkanImageMemoryBarrier;
 import com.io7m.jcoronado.api.VulkanImageSubresourceRange;
 import com.io7m.jcoronado.api.VulkanSubmitInfo;
+import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.graph.RCGFrameNodeTargetType;
 import com.io7m.rocaro.api.graph.RCGNodeName;
+import com.io7m.rocaro.api.graph.RCGNodePreparationContextType;
 import com.io7m.rocaro.api.graph.RCGNodeRenderContextType;
 import com.io7m.rocaro.api.graph.RCGPortConsumer;
 import com.io7m.rocaro.api.graph.RCGPortName;
 import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.images.RCImageColorBlendableType;
-import com.io7m.rocaro.vanilla.internal.RCObject;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameContextType;
 
@@ -99,6 +100,13 @@ public final class RCFrameTarget
   }
 
   @Override
+  public void prepare(
+    final RCGNodePreparationContextType context)
+  {
+
+  }
+
+  @Override
   public void evaluate(
     final RCGNodeRenderContextType context)
     throws RCVulkanException
@@ -110,42 +118,50 @@ public final class RCFrameTarget
         vulkanContext.windowFrameContext();
       final var device =
         vulkanContext.device();
+      final var vulkanDevice =
+        device.device();
+      final var debugging =
+        vulkanDevice.debugging();
 
       final var commands =
-        device.device()
-          .createCommandBuffer(
-            vulkanContext.commandPool(),
-            VK_COMMAND_BUFFER_LEVEL_PRIMARY
-          );
+        vulkanDevice.createCommandBuffer(
+          vulkanContext.commandPool(),
+          VK_COMMAND_BUFFER_LEVEL_PRIMARY
+        );
 
-      final var imageBarrier =
-        VulkanImageMemoryBarrier.builder()
-          .setSourceAccessMask(Set.of(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
-          .setTargetAccessMask(Set.of())
-          .setOldLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_UNDEFINED)
-          .setNewLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-          .setSourceQueueFamilyIndex(device.graphicsQueue().queueFamilyIndex())
-          .setTargetQueueFamilyIndex(device.graphicsQueue().queueFamilyIndex())
-          .setImage(windowContext.image().data())
-          .setSubresourceRange(VulkanImageSubresourceRange.of(
-            Set.of(VulkanImageAspectFlag.VK_IMAGE_ASPECT_COLOR_BIT),
-            0,
-            1,
-            0,
-            1
-          ))
-          .build();
+      debugging.setObjectName(commands, "FrameTargetShowImage");
 
-      commands.beginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-      commands.pipelineBarrier(
-        Set.of(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT),
-        Set.of(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT),
-        Set.of(),
-        List.of(),
-        List.of(),
-        List.of(imageBarrier)
-      );
-      commands.endCommandBuffer();
+      try (final var _ =
+             debugging.begin(commands, "FramePresentation")) {
+        final var imageBarrier =
+          VulkanImageMemoryBarrier.builder()
+            .setSourceAccessMask(Set.of(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
+            .setTargetAccessMask(Set.of())
+            .setOldLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_UNDEFINED)
+            .setNewLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+            .setSourceQueueFamilyIndex(device.graphicsQueue().queueFamilyIndex())
+            .setTargetQueueFamilyIndex(device.graphicsQueue().queueFamilyIndex())
+            .setImage(windowContext.image().data())
+            .setSubresourceRange(VulkanImageSubresourceRange.of(
+              Set.of(VulkanImageAspectFlag.VK_IMAGE_ASPECT_COLOR_BIT),
+              0,
+              1,
+              0,
+              1
+            ))
+            .build();
+
+        commands.beginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        commands.pipelineBarrier(
+          Set.of(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT),
+          Set.of(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT),
+          Set.of(),
+          List.of(),
+          List.of(),
+          List.of(imageBarrier)
+        );
+        commands.endCommandBuffer();
+      }
 
       device.graphicsQueue()
         .submit(List.of(

@@ -81,6 +81,18 @@ public sealed interface RCGNodeType<P>
   }
 
   /**
+   * Prepare the node for evaluation.
+   *
+   * @param context The context
+   *
+   * @throws RocaroException On errors
+   */
+
+  void prepare(
+    RCGNodePreparationContextType context)
+    throws RocaroException;
+
+  /**
    * Evaluate the node.
    *
    * @param context The context
