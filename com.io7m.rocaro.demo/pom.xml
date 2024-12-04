@@ -233,6 +233,7 @@
 
               <libraries>
                 <excludes>
+                  <exclude>.*-sources\.jar</exclude>
                   <exclude>com\.io7m\.immutables-style-.*\.jar</exclude>
                   <exclude>lwjgl-.*-natives-linux\.jar</exclude>
                   <exclude>lwjgl-.*-natives-windows\.jar</exclude>
