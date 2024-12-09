@@ -17,7 +17,6 @@
 
 package com.io7m.rocaro.vanilla.internal.transfers;
 
-import com.io7m.jcoronado.api.VulkanAccessFlag;
 import com.io7m.jcoronado.api.VulkanBufferCreateInfo;
 import com.io7m.jcoronado.api.VulkanBufferImageCopy;
 import com.io7m.jcoronado.api.VulkanBufferType;
@@ -40,7 +39,6 @@ import com.io7m.jcoronado.api.VulkanImageViewKind;
 import com.io7m.jcoronado.api.VulkanImageViewType;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanOffset3D;
-import com.io7m.jcoronado.api.VulkanPipelineStageFlag;
 import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
 import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.jcoronado.api.VulkanSemaphoreSubmitInfo;
@@ -83,6 +81,7 @@ import static com.io7m.jcoronado.api.VulkanImageUsageFlag.VK_IMAGE_USAGE_SAMPLED
 import static com.io7m.jcoronado.api.VulkanImageUsageFlag.VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 import static com.io7m.jcoronado.api.VulkanMemoryPropertyFlag.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 import static com.io7m.jcoronado.api.VulkanMemoryPropertyFlag.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_COPY_BIT;
 import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_TRANSFER_BIT;
 import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
 import static com.io7m.jcoronado.api.VulkanSampleCountFlag.VK_SAMPLE_COUNT_1_BIT;
@@ -405,23 +404,14 @@ final class RCTransferImageColorBasicTask
        */
 
       {
-        final var srcStageMask =
-          Set.<VulkanPipelineStageFlag>of();
-        final var srcAccessMask =
-          Set.<VulkanAccessFlag>of();
-        final var dstStageMask =
-          Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT);
-        final var dstAccessMask =
-          Set.of(VK_ACCESS_TRANSFER_WRITE_BIT);
-
         final var preCopyTransitionBarrier =
           VulkanImageMemoryBarrier.builder()
-            .setSrcAccessMask(srcAccessMask)
+            .setSrcStageMask(Set.of())
+            .setSrcAccessMask(Set.of())
             .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
-            .setSrcStageMask(srcStageMask)
-            .setDstAccessMask(dstAccessMask)
+            .setDstStageMask(Set.of(VK_PIPELINE_STAGE_COPY_BIT))
+            .setDstAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
             .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
-            .setDstStageMask(dstStageMask)
             .setImage(gpuImageResult.result())
             .setOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
             .setNewLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
@@ -469,23 +459,14 @@ final class RCTransferImageColorBasicTask
        */
 
       {
-        final var srcAccessMask =
-          Set.of(VK_ACCESS_TRANSFER_WRITE_BIT);
-        final var srcStageMask =
-          Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT);
-        final var dstAccessMask =
-          Set.<VulkanAccessFlag>of();
-        final var dstStageMask =
-          Set.<VulkanPipelineStageFlag>of();
-
         final var postCopyTransitionBarrier0 =
           VulkanImageMemoryBarrier.builder()
-            .setSrcAccessMask(srcAccessMask)
+            .setSrcStageMask(Set.of(VK_PIPELINE_STAGE_COPY_BIT))
+            .setSrcAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
             .setSrcQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
-            .setSrcStageMask(srcStageMask)
-            .setDstAccessMask(dstAccessMask)
+            .setDstStageMask(Set.of())
+            .setDstAccessMask(Set.of())
             .setDstQueueFamilyIndex(this.targetQueue.queueFamilyIndex())
-            .setDstStageMask(dstStageMask)
             .setImage(gpuImageResult.result())
             .setOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
             .setNewLayout(finalLayout)
@@ -509,8 +490,8 @@ final class RCTransferImageColorBasicTask
 
     final var transferSemaphoreSubmission =
       VulkanSemaphoreSubmitInfo.builder()
+        .addStageMask(VK_PIPELINE_STAGE_COPY_BIT)
         .setSemaphore(semaphore)
-        .addStageMask(VK_PIPELINE_STAGE_TRANSFER_BIT)
         .build();
 
     final var transferCommandSubmission =
@@ -534,15 +515,15 @@ final class RCTransferImageColorBasicTask
 
       final var postCopyTransitionBarrier1 =
         VulkanImageMemoryBarrier.builder()
-          .setSrcStageMask(Set.of())
-          .setSrcAccessMask(Set.of())
+          .setSrcStageMask(Set.of(VK_PIPELINE_STAGE_COPY_BIT))
+          .setSrcAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
           .setSrcQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
           .setDstStageMask(Set.of(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT))
           .setDstAccessMask(Set.of(VK_ACCESS_SHADER_READ_BIT))
           .setDstQueueFamilyIndex(this.targetQueue.queueFamilyIndex())
           .setImage(gpuImageResult.result())
           .setSubresourceRange(this.imageSubresourceRange)
-          .setOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+          .setOldLayout(finalLayout)
           .setNewLayout(finalLayout)
           .build();
 
@@ -570,6 +551,7 @@ final class RCTransferImageColorBasicTask
 
     final var graphicsSemaphoreSubmission =
       VulkanSemaphoreSubmitInfo.builder()
+        .addStageMask(VK_PIPELINE_STAGE_COPY_BIT)
         .setSemaphore(semaphore)
         .build();
 
@@ -630,12 +612,12 @@ final class RCTransferImageColorBasicTask
 
       final var preCopyTransitionBarrier =
         VulkanImageMemoryBarrier.builder()
-          .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
           .setSrcStageMask(Set.of())
           .setSrcAccessMask(Set.of())
-          .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
-          .setDstAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
+          .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
           .setDstStageMask(Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT))
+          .setDstAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
+          .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
           .setImage(gpuImageResult.result())
           .setSubresourceRange(this.imageSubresourceRange)
           .setOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
@@ -683,12 +665,12 @@ final class RCTransferImageColorBasicTask
 
       final var postCopyTransitionBarrier =
         VulkanImageMemoryBarrier.builder()
-          .setSrcAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
           .setSrcStageMask(Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT))
+          .setSrcAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
           .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
-          .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+          .setDstStageMask(Set.of(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT))
           .setDstAccessMask(Set.of(VK_ACCESS_SHADER_READ_BIT))
-          .setDstStageMask(Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT))
+          .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
           .setImage(gpuImageResult.result())
           .setSubresourceRange(this.imageSubresourceRange)
           .setOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)

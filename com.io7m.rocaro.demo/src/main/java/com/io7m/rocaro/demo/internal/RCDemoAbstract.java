@@ -79,7 +79,7 @@ public abstract class RCDemoAbstract implements QCommandType
       "--vulkan-validation-best-practice",
       List.of(),
       new QConstant("Enable/disable Vulkan best practices validation."),
-      Optional.of(Boolean.TRUE),
+      Optional.of(Boolean.FALSE),
       Boolean.class
     );
 
@@ -88,7 +88,7 @@ public abstract class RCDemoAbstract implements QCommandType
       "--vulkan-validation-best-practice-nvidia",
       List.of(),
       new QConstant("Enable/disable Vulkan (NVIDIA) best practices validation."),
-      Optional.of(Boolean.TRUE),
+      Optional.of(Boolean.FALSE),
       Boolean.class
     );
 
@@ -97,7 +97,7 @@ public abstract class RCDemoAbstract implements QCommandType
       "--vulkan-validation-best-practice-amd",
       List.of(),
       new QConstant("Enable/disable Vulkan (AMD) best practices validation."),
-      Optional.of(Boolean.TRUE),
+      Optional.of(Boolean.FALSE),
       Boolean.class
     );
 
