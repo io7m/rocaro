@@ -17,12 +17,12 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
-import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
 import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 
 import java.time.Duration;
@@ -66,7 +66,7 @@ public sealed interface RCWindowWithSurfaceType
    */
 
   void configureForLogicalDevice(
-    VulkanLogicalDeviceType device,
+    RCDeviceType device,
     VulkanQueueType graphicsQueue,
     VulkanQueueType presentationQueue)
     throws RocaroException;

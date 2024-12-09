@@ -15,13 +15,24 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.transfers;
+package com.io7m.rocaro.vanilla.internal.threading;
 
-import com.io7m.rocaro.api.RCCloseableGPUType;
+/**
+ * The type of partial functions.
+ *
+ * @param <T> The type of returned values
+ */
 
-interface RCTransferTaskType<V>
-  extends RCCloseableGPUType
+public interface RCPartialFunctionType<T>
 {
-  V execute()
+  /**
+   * Execute the function.
+   *
+   * @return The result
+   *
+   * @throws Exception On errors
+   */
+
+  T execute()
     throws Exception;
 }

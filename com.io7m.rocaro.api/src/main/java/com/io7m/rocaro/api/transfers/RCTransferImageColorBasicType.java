@@ -20,8 +20,8 @@ package com.io7m.rocaro.api.transfers;
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import com.io7m.jcoronado.api.VulkanFormat;
 import com.io7m.jcoronado.api.VulkanImageLayout;
-import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
+import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.images.RCImageColorBasicType;
 import com.io7m.rocaro.api.images.RCImageFormatPreconditions;
 import org.immutables.value.Value;
@@ -78,7 +78,7 @@ public non-sealed interface RCTransferImageColorBasicType
    * @return The queue that will own the image when the operation is completed
    */
 
-  VulkanQueueType targetQueue();
+  RCDeviceQueueCategory targetQueue();
 
   /**
    * Check preconditions for the image.

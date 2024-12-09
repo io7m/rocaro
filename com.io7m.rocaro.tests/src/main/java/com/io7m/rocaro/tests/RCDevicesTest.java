@@ -34,6 +34,7 @@ import com.io7m.jcoronado.api.VulkanQueueFamilyProperties;
 import com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag;
 import com.io7m.jcoronado.api.VulkanQueueIndex;
 import com.io7m.jcoronado.api.VulkanQueueType;
+import com.io7m.jcoronado.api.VulkanSemaphoreBinaryType;
 import com.io7m.jcoronado.api.VulkanSemaphoreType;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType.VulkanKHRSurfaceType;
@@ -47,6 +48,7 @@ import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacadeType;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
+import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCLogicalDevices;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCWindowWithSurface;
@@ -92,13 +94,14 @@ public final class RCDevicesTest
   private VulkanKHRSwapChainType swapChain;
   private VulkanImageType swapChainImage;
   private VulkanImageViewType swapChainImageView;
-  private VulkanSemaphoreType imageReadySemaphore;
-  private VulkanSemaphoreType imageRenderDoneSemaphore;
+  private VulkanSemaphoreBinaryType imageReadySemaphore;
+  private VulkanSemaphoreBinaryType imageRenderDoneSemaphore;
   private VulkanFenceType imageRenderDoneFence;
   private RendererVulkanConfiguration vulkanConfiguration;
   private VMAAllocatorProviderType allocators;
   private VMAAllocatorType allocator;
   private VulkanDebuggingType debugging;
+  private RCStandardExecutors executors;
 
   @BeforeEach
   public void setup()
@@ -134,9 +137,9 @@ public final class RCDevicesTest
       mock(VulkanExtKHRSwapChainType.VulkanKHRSwapChainType.class);
 
     this.imageReadySemaphore =
-      mock(VulkanSemaphoreType.class);
+      mock(VulkanSemaphoreBinaryType.class);
     this.imageRenderDoneSemaphore =
-      mock(VulkanSemaphoreType.class);
+      mock(VulkanSemaphoreBinaryType.class);
     this.imageRenderDoneFence =
       mock(VulkanFenceType.class);
 
@@ -195,7 +198,7 @@ public final class RCDevicesTest
       .thenReturn(Optional.of(this.swapchainExt));
     when(this.logicalDevice.createImageView(any()))
       .thenReturn(this.swapChainImageView);
-    when(this.logicalDevice.createSemaphore(any()))
+    when(this.logicalDevice.createBinarySemaphore())
       .thenReturn(this.imageReadySemaphore)
       .thenReturn(this.imageRenderDoneSemaphore);
     when(this.logicalDevice.createFence(any()))
@@ -213,6 +216,12 @@ public final class RCDevicesTest
         new RCWindow("X", 0L, this.glfw),
         this.surfaceExt,
         this.surface
+      );
+
+    this.executors =
+      RCStandardExecutors.create(
+        this.strings,
+        new RCRendererID(0L)
       );
 
     this.window.configureForPhysicalDevice(this.physicalDevice);
@@ -252,6 +261,7 @@ public final class RCDevicesTest
     final var device =
       RCLogicalDevices.create(
         this.strings,
+        this.executors,
         this.vulkanConfiguration,
         this.physicalDevice,
         this.window,
@@ -334,6 +344,7 @@ public final class RCDevicesTest
     final var device =
       RCLogicalDevices.create(
         this.strings,
+        this.executors,
         this.vulkanConfiguration, this.physicalDevice,
         this.window,
         VulkanPhysicalDeviceFeaturesFunctions.none(),
@@ -456,7 +467,9 @@ public final class RCDevicesTest
     final var device =
       RCLogicalDevices.create(
         this.strings,
-        this.vulkanConfiguration, this.physicalDevice,
+        this.executors,
+        this.vulkanConfiguration,
+        this.physicalDevice,
         this.window,
         VulkanPhysicalDeviceFeaturesFunctions.none(),
         new RCRendererID(0L)
@@ -586,7 +599,9 @@ public final class RCDevicesTest
     final var device =
       RCLogicalDevices.create(
         this.strings,
-        this.vulkanConfiguration, this.physicalDevice,
+        this.executors,
+        this.vulkanConfiguration,
+        this.physicalDevice,
         this.window,
         VulkanPhysicalDeviceFeaturesFunctions.none(),
         new RCRendererID(0L)
@@ -662,7 +677,9 @@ public final class RCDevicesTest
       assertThrows(RCVulkanException.class, () -> {
         RCLogicalDevices.create(
           this.strings,
-          this.vulkanConfiguration, this.physicalDevice,
+          this.executors,
+          this.vulkanConfiguration,
+          this.physicalDevice,
           this.window,
           VulkanPhysicalDeviceFeaturesFunctions.none(),
           new RCRendererID(0L)
@@ -753,7 +770,9 @@ public final class RCDevicesTest
     final var device =
       RCLogicalDevices.create(
         this.strings,
-        this.vulkanConfiguration, this.physicalDevice,
+        this.executors,
+        this.vulkanConfiguration,
+        this.physicalDevice,
         this.window,
         VulkanPhysicalDeviceFeaturesFunctions.none(),
         new RCRendererID(0L)
@@ -819,7 +838,9 @@ public final class RCDevicesTest
       assertThrows(IllegalStateException.class, () -> {
         RCLogicalDevices.create(
           this.strings,
-          this.vulkanConfiguration, this.physicalDevice,
+          this.executors,
+          this.vulkanConfiguration,
+          this.physicalDevice,
           this.window,
           VulkanPhysicalDeviceFeaturesFunctions.none(),
           new RCRendererID(0L)
@@ -878,7 +899,9 @@ public final class RCDevicesTest
       assertThrows(IllegalStateException.class, () -> {
         RCLogicalDevices.create(
           this.strings,
-          this.vulkanConfiguration, this.physicalDevice,
+          this.executors,
+          this.vulkanConfiguration,
+          this.physicalDevice,
           this.window,
           VulkanPhysicalDeviceFeaturesFunctions.none(),
           new RCRendererID(0L)
@@ -952,7 +975,9 @@ public final class RCDevicesTest
       assertThrows(IllegalStateException.class, () -> {
         RCLogicalDevices.create(
           this.strings,
-          this.vulkanConfiguration, this.physicalDevice,
+          this.executors,
+          this.vulkanConfiguration,
+          this.physicalDevice,
           this.window,
           VulkanPhysicalDeviceFeaturesFunctions.none(),
           new RCRendererID(0L)

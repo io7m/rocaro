@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.vanilla.internal.fences;
 
+import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.repetoir.core.RPServiceDirectoryType;
@@ -30,7 +31,7 @@ import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCServiceException;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameServiceType;
-import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
+import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 import static com.io7m.jcoronado.api.VulkanLogicalDeviceType.VulkanFenceStatus.VK_FENCE_SIGNALLED;
 import static com.io7m.rocaro.api.RCUnit.UNIT;
@@ -175,8 +175,7 @@ public final class RCFenceService
     Objects.requireNonNull(fence, "fence");
 
     final var future = new CompletableFuture<RCUnit>();
-    final var exec = this.device.graphicsExecutor();
-    this.fencesGraphics.add(new Fence(this.device, exec, future, fence));
+    this.fencesGraphics.add(new Fence(this.device, future, fence));
     return future;
   }
 
@@ -187,8 +186,7 @@ public final class RCFenceService
     Objects.requireNonNull(fence, "fence");
 
     final var future = new CompletableFuture<RCUnit>();
-    final var exec = this.device.computeExecutor();
-    this.fencesCompute.add(new Fence(this.device, exec, future, fence));
+    this.fencesCompute.add(new Fence(this.device, future, fence));
     return future;
   }
 
@@ -199,8 +197,7 @@ public final class RCFenceService
     Objects.requireNonNull(fence, "fence");
 
     final var future = new CompletableFuture<RCUnit>();
-    final var exec = this.device.transferExecutor();
-    this.fencesTransfer.add(new Fence(this.device, exec, future, fence));
+    this.fencesTransfer.add(new Fence(this.device, future, fence));
     return future;
   }
 
@@ -209,18 +206,14 @@ public final class RCFenceService
     private final CompletableFuture<RCUnit> future;
     private final VulkanFenceType fence;
     private final RCDeviceType device;
-    private final ExecutorService executor;
 
     Fence(
       final RCDeviceType inDevice,
-      final ExecutorService inExecutor,
       final CompletableFuture<RCUnit> inFuture,
       final VulkanFenceType inFence)
     {
       this.device =
         Objects.requireNonNull(inDevice, "device");
-      this.executor =
-        Objects.requireNonNull(inExecutor, "executor");
       this.future =
         Objects.requireNonNull(inFuture, "future");
       this.fence =
@@ -230,11 +223,13 @@ public final class RCFenceService
     boolean isSignalled()
       throws RocaroException
     {
-      return RCExecutors.executeAndWait(this.executor, () -> {
+      try {
         final var status =
           this.device.device().getFenceStatus(this.fence);
         return status == VK_FENCE_SIGNALLED;
-      });
+      } catch (final VulkanException e) {
+        throw RCVulkanException.wrap(e);
+      }
     }
   }
 }

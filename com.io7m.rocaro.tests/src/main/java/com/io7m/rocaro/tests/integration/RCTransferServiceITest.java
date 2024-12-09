@@ -31,6 +31,7 @@ import com.io7m.rocaro.api.RendererFactoryType;
 import com.io7m.rocaro.api.RendererType;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
 import com.io7m.rocaro.api.transfers.RCTransferImageColorBasic;
@@ -47,7 +48,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
@@ -142,7 +142,7 @@ public final class RCTransferServiceITest
           .setFinalLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
           .setFormat(VulkanFormat.VK_FORMAT_R8_UNORM)
           .setSize(Vector2I.of(8, 8))
-          .setTargetQueue(this.device.graphicsQueue())
+          .setTargetQueue(RCDeviceQueueCategory.GRAPHICS)
           .setName("Example")
           .setDataCopier(target -> {
             target.fill((byte) 0x7f);
@@ -155,9 +155,10 @@ public final class RCTransferServiceITest
     LOG.debug("Waiting for transfer...");
     final var r = (RCImageColorBasic)
       future.get(5L, TimeUnit.SECONDS);
+    LOG.debug("Transferred: {}", r);
 
-    this.device.registerTransferResource(r.data());
-    this.device.registerTransferResource(r.view());
+    this.device.registerResource(r.data());
+    this.device.registerResource(r.view());
   }
 
   private void executeWaitingFrames()
@@ -169,7 +170,7 @@ public final class RCTransferServiceITest
      */
 
     for (int index = 0; index < 10; ++index) {
-      this.renderer.execute(c -> c.executeGraph("Empty"));
+      this.renderer.executeFrame(c -> c.executeGraph("Empty"));
       Thread.sleep(100L);
     }
   }
@@ -184,7 +185,7 @@ public final class RCTransferServiceITest
           .setFinalLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
           .setFormat(VulkanFormat.VK_FORMAT_R8_UNORM)
           .setSize(Vector2I.of(8, 8))
-          .setTargetQueue(this.device.transferQueue())
+          .setTargetQueue(RCDeviceQueueCategory.TRANSFER)
           .setName("Example")
           .setDataCopier(target -> {
             target.fill((byte) 0x7f);
@@ -197,8 +198,9 @@ public final class RCTransferServiceITest
     LOG.debug("Waiting for transfer...");
     final var r = (RCImageColorBasic)
       future.get(5L, TimeUnit.SECONDS);
+    LOG.debug("Transferred: {}", r);
 
-    this.device.registerTransferResource(r.data());
-    this.device.registerTransferResource(r.view());
+    this.device.registerResource(r.data());
+    this.device.registerResource(r.view());
   }
 }

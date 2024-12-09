@@ -25,6 +25,7 @@ import com.io7m.quarrel.core.QStringType;
 import com.io7m.rocaro.demo.internal.RCDemoDisplays;
 import com.io7m.rocaro.demo.internal.RCDemoEmpty;
 import com.io7m.rocaro.demo.internal.RCDemoStartup;
+import com.io7m.rocaro.demo.internal.RCDemoTransferImage;
 import com.io7m.rocaro.demo.internal.triangle.RCDemoTriangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,7 @@ public final class RCDemoMain implements Runnable
       g.addCommand(new RCDemoEmpty());
       g.addCommand(new RCDemoStartup());
       g.addCommand(new RCDemoTriangle());
+      g.addCommand(new RCDemoTransferImage());
     }
 
     builder.allowAtSyntax(true);

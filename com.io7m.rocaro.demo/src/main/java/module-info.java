@@ -37,6 +37,8 @@ module com.io7m.rocaro.demo
   requires com.io7m.lanark.core;
   requires org.slf4j;
   requires com.io7m.quarrel.core;
+  requires java.logging;
+  requires com.io7m.quarrel.ext.logback;
 
   uses RendererFactoryType;
   uses RCDisplayServiceType;

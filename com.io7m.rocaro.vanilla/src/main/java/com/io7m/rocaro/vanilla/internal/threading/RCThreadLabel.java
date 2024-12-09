@@ -33,22 +33,10 @@ package com.io7m.rocaro.vanilla.internal.threading;
 public enum RCThreadLabel
 {
   /**
-   * The thread responsible for submitting graphics work.
+   * The thread responsible for submitting GPU work.
    */
 
-  GPU_GRAPHICS(0b00000000_00000000_00000000_00000001),
-
-  /**
-   * The thread responsible for submitting compute work.
-   */
-
-  GPU_COMPUTE(0b00000000_00000000_00000000_00000010),
-
-  /**
-   * The thread responsible for submitting transfer work.
-   */
-
-  GPU_TRANSFER(0b00000000_00000000_00000000_00000100),
+  GPU(0b00000000_00000000_00000000_00000100),
 
   /**
    * The thread responsible for performing I/O to prepare for transfer work.

@@ -63,7 +63,7 @@ public final class RCDemoTriangle
   }
 
   @Override
-  public QCommandStatus onExecute(
+  public QCommandStatus onExecuteDemo(
     final QCommandContextType context)
     throws Exception
   {
@@ -112,19 +112,9 @@ public final class RCDemoTriangle
 
     builder.setVulkanConfiguration(this.vulkanConfiguration(context));
 
-    final var frameLimit =
-      this.frameCountLimit(context);
-
     try (final var renderer = builder.start()) {
-      if (frameLimit.isPresent()) {
-        final var limit = frameLimit.get();
-        for (int index = 0; index < limit; ++index) {
-          runOneFrame(renderer);
-        }
-      } else {
-        while (true) {
-          runOneFrame(renderer);
-        }
+      for (int index = 0; index < this.frameCount(); ++index) {
+        runOneFrame(renderer);
       }
     }
 
@@ -135,7 +125,7 @@ public final class RCDemoTriangle
     final RendererType renderer)
     throws RocaroException
   {
-    renderer.execute(c -> {
+    renderer.executeFrame(c -> {
       c.prepare("TriangleDemo");
 
       switch (c.graphStatus("TriangleDemo")) {

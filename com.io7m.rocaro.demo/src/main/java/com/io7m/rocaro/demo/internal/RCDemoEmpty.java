@@ -50,7 +50,7 @@ public final class RCDemoEmpty
   }
 
   @Override
-  public QCommandStatus onExecute(
+  public QCommandStatus onExecuteDemo(
     final QCommandContextType context)
     throws Exception
   {
@@ -66,8 +66,8 @@ public final class RCDemoEmpty
     builder.setVulkanConfiguration(this.vulkanConfiguration(context));
 
     try (final var renderer = builder.start()) {
-      for (int index = 0; index < 60000; ++index) {
-        renderer.execute(c -> {
+      for (int index = 0; index < this.frameCount(); ++index) {
+        renderer.executeFrame(c -> {
           c.executeGraph("Empty", _ -> {
 
           });

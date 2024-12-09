@@ -54,6 +54,7 @@ module com.io7m.rocaro.vanilla
   requires org.lwjgl.glfw;
   requires org.slf4j;
   requires com.io7m.renderdoc_jffm.core;
+  requires com.io7m.seltzer.api;
 
   provides RendererFactoryType
     with Renderers;
@@ -81,13 +82,6 @@ module com.io7m.rocaro.vanilla
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.renderdoc
     to com.io7m.rocaro.tests;
-
-  opens com.io7m.rocaro.vanilla.internal.vulkan
-    to com.io7m.jxtrand.vanilla;
-  opens com.io7m.rocaro.vanilla.internal.graph
-    to com.io7m.jxtrand.vanilla;
-  opens com.io7m.rocaro.vanilla
-    to com.io7m.jxtrand.vanilla;
-  opens com.io7m.rocaro.vanilla.internal.threading
-    to com.io7m.jxtrand.vanilla;
+  exports com.io7m.rocaro.vanilla.internal.frames
+    to com.io7m.rocaro.tests, com.io7m.rocaro.demo;
 }

@@ -26,12 +26,16 @@ import com.io7m.jcoronado.lwjgl.VMALWJGLAllocatorProvider;
 import com.io7m.jcoronado.lwjgl.VulkanLWJGLInstanceProvider;
 import com.io7m.quarrel.core.QCommandContextType;
 import com.io7m.quarrel.core.QCommandMetadata;
+import com.io7m.quarrel.core.QCommandStatus;
 import com.io7m.quarrel.core.QCommandType;
 import com.io7m.quarrel.core.QParameterNamed01;
 import com.io7m.quarrel.core.QParameterNamed1;
 import com.io7m.quarrel.core.QParameterNamedType;
 import com.io7m.quarrel.core.QStringType.QConstant;
+import com.io7m.quarrel.ext.logback.QLogback;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +111,17 @@ public abstract class RCDemoAbstract implements QCommandType
     );
 
   private final QCommandMetadata metadata;
+  private final Logger logger;
+  private int frameCount;
+
+  /**
+   * @return The demo logger
+   */
+
+  protected final Logger logger()
+  {
+    return this.logger;
+  }
 
   protected RCDemoAbstract(
     final String name,
@@ -118,12 +133,16 @@ public abstract class RCDemoAbstract implements QCommandType
         new QConstant(description),
         Optional.empty()
       );
+
+    this.logger =
+      LoggerFactory.getLogger(this.getClass());
   }
 
   @Override
   public final List<QParameterNamedType<?>> onListNamedParameters()
   {
     final var parameters = new ArrayList<QParameterNamedType<?>>();
+    parameters.addAll(QLogback.parameters());
     parameters.addAll(this.vulkanParameters());
     parameters.addAll(this.extraParameters());
     return List.copyOf(parameters);
@@ -149,6 +168,23 @@ public abstract class RCDemoAbstract implements QCommandType
   {
     return context.parameterValue(FRAME_COUNT_LIMIT);
   }
+
+  @Override
+  public final QCommandStatus onExecute(
+    final QCommandContextType context)
+    throws Exception
+  {
+    QLogback.configure(context);
+
+    this.frameCount =
+      this.frameCountLimit(context).orElse(Integer.MAX_VALUE);
+
+    return this.onExecuteDemo(context);
+  }
+
+  protected abstract QCommandStatus onExecuteDemo(
+    QCommandContextType context)
+    throws Exception;
 
   protected final RendererVulkanConfiguration vulkanConfiguration(
     final QCommandContextType context)
@@ -195,5 +231,30 @@ public abstract class RCDemoAbstract implements QCommandType
   public final QCommandMetadata metadata()
   {
     return this.metadata;
+  }
+
+  protected final void framePause()
+  {
+    try {
+      Thread.sleep(16L * 2);
+    } catch (final InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  protected final void longPause()
+  {
+    try {
+      this.logger.trace("Performing long pause…");
+      this.logger.trace("-".repeat(256));
+      Thread.sleep(1000L);
+    } catch (final InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  protected final int frameCount()
+  {
+    return this.frameCount;
   }
 }

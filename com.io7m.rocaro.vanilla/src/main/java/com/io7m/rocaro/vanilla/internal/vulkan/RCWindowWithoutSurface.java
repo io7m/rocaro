@@ -17,16 +17,20 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
-import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
 import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.junreachable.UnimplementedCodeException;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.api.devices.RCDeviceType;
+import com.io7m.rocaro.vanilla.internal.threading.RCThread;
+import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 
 import java.time.Duration;
 import java.util.Objects;
+
+import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
 
 /**
  * A window that does not have an associated surface (because one is not required).
@@ -51,10 +55,12 @@ public record RCWindowWithoutSurface(
     }
   }
 
+  @RCThread(GPU)
   @Override
   public void close()
     throws RocaroException
   {
+    RCThreadLabels.checkThreadLabelsAny(GPU);
     this.window.close();
   }
 
@@ -83,7 +89,7 @@ public record RCWindowWithoutSurface(
 
   @Override
   public void configureForLogicalDevice(
-    final VulkanLogicalDeviceType device,
+    final RCDeviceType device,
     final VulkanQueueType graphicsQueue,
     final VulkanQueueType presentationQueue)
   {

@@ -15,13 +15,35 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.transfers;
+package com.io7m.rocaro.vanilla.internal.threading;
 
-import com.io7m.rocaro.api.RCCloseableGPUType;
+import com.io7m.rocaro.api.RocaroException;
 
-interface RCTransferTaskType<V>
-  extends RCCloseableGPUType
+import java.util.concurrent.Executor;
+
+/**
+ * An extension of the standard Executor interface.
+ */
+
+public interface RCExecutorType
+  extends Executor, AutoCloseable
 {
-  V execute()
+  @Override
+  void close()
     throws Exception;
+
+  /**
+   * Execute a function on this executor and wait for the result.
+   *
+   * @param runnable The function
+   * @param <T>      The type of results
+   *
+   * @return The function result
+   *
+   * @throws RocaroException On errors
+   */
+
+  <T> T executeAndWait(
+    RCPartialFunctionType<T> runnable)
+    throws RocaroException;
 }

@@ -15,13 +15,15 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.transfers;
+package com.io7m.rocaro.api.devices;
 
-import com.io7m.rocaro.api.RCCloseableGPUType;
+/**
+ * The type of JFR events.
+ */
 
-interface RCTransferTaskType<V>
-  extends RCCloseableGPUType
+public sealed interface RCDeviceJFREventType
+  permits RCDeviceJFREventQueueSubmit,
+  RCDeviceJFREventWaitIdle
 {
-  V execute()
-    throws Exception;
+
 }

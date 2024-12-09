@@ -15,13 +15,33 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.transfers;
+package com.io7m.rocaro.api.devices;
 
-import com.io7m.rocaro.api.RCCloseableGPUType;
+import jdk.jfr.Category;
+import jdk.jfr.Description;
+import jdk.jfr.Event;
+import jdk.jfr.Label;
+import jdk.jfr.StackTrace;
 
-interface RCTransferTaskType<V>
-  extends RCCloseableGPUType
+/**
+ * An event that denotes the submission of work to a device queue.
+ */
+
+@Label("QueueSubmit")
+@Category("Rocaro.Device")
+@Description("Work was submitted to a device queue.")
+@StackTrace(value = false)
+public final class RCDeviceJFREventQueueSubmit
+  extends Event
+  implements RCDeviceJFREventType
 {
-  V execute()
-    throws Exception;
+  // CHECKSTYLE:OFF
+
+  @Label("Queue")
+  public String queue;
+
+  public RCDeviceJFREventQueueSubmit()
+  {
+
+  }
 }

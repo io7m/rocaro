@@ -17,7 +17,7 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
-import com.io7m.jcoronado.api.VulkanCommandBufferType;
+import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag;
@@ -26,23 +26,29 @@ import com.io7m.jcoronado.api.VulkanSubmitInfo;
 import com.io7m.jcoronado.vma.VMAAllocatorType;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.api.devices.RCDeviceJFREventQueueSubmit;
+import com.io7m.rocaro.api.devices.RCDeviceJFREventWaitIdle;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
-import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
+import com.io7m.rocaro.vanilla.internal.threading.RCExecutorType;
+import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 import static com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag.VK_QUEUE_COMPUTE_BIT;
 import static com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag.VK_QUEUE_GRAPHICS_BIT;
 import static com.io7m.rocaro.api.RCUnit.UNIT;
+import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
 
 /**
  * A device.
@@ -55,56 +61,42 @@ public final class RCDevice
   private static final Logger LOG =
     LoggerFactory.getLogger(RCDevice.class);
 
-  private final VulkanLogicalDeviceType device;
-  private final VMAAllocatorType allocator;
-  private final VulkanQueueType graphicsQueue;
-  private final ExecutorService graphicsExecutor;
-  private final VulkanQueueType transferQueue;
-  private final ExecutorService transferExecutor;
-  private final VulkanQueueType computeQueue;
-  private final ExecutorService computeExecutor;
-  private final CloseableCollectionType<RocaroException> graphicsResources;
-  private final CloseableCollectionType<RocaroException> transferResources;
-  private final CloseableCollectionType<RocaroException> computeResources;
   private final CloseableCollectionType<RocaroException> allResources;
+  private final RCExecutorType executor;
+  private final VMAAllocatorType allocator;
+  private final VulkanLogicalDeviceType device;
+  private final VulkanQueueType computeQueue;
+  private final VulkanQueueType graphicsQueue;
+  private final VulkanQueueType transferQueue;
+  private final CloseableCollectionType<RocaroException> gpuResources;
 
   RCDevice(
     final RCStrings strings,
     final VulkanLogicalDeviceType inDevice,
     final VMAAllocatorType inAllocator,
+    final RCExecutorType inExecutor,
     final VulkanQueueType inGraphicsQueue,
-    final ExecutorService inGraphicsExecutor,
     final VulkanQueueType inTransferQueue,
-    final ExecutorService inTransferExecutor,
-    final VulkanQueueType inComputeQueue,
-    final ExecutorService inComputeExecutor)
+    final VulkanQueueType inComputeQueue)
   {
     this.device =
       Objects.requireNonNull(inDevice, "device");
     this.allocator =
       Objects.requireNonNull(inAllocator, "allocator");
+    this.executor =
+      Objects.requireNonNull(inExecutor, "inExecutor");
     this.graphicsQueue =
       Objects.requireNonNull(inGraphicsQueue, "graphicsQueue");
-    this.graphicsExecutor =
-      Objects.requireNonNull(inGraphicsExecutor, "graphicsExecutor");
     this.transferQueue =
       Objects.requireNonNull(inTransferQueue, "transferQueue");
-    this.transferExecutor =
-      Objects.requireNonNull(inTransferExecutor, "transferExecutor");
     this.computeQueue =
       Objects.requireNonNull(inComputeQueue, "computeQueue");
-    this.computeExecutor =
-      Objects.requireNonNull(inComputeExecutor, "computeExecutor");
 
     queueCheck(inGraphicsQueue, VK_QUEUE_GRAPHICS_BIT);
     queueCheck(inComputeQueue, VK_QUEUE_COMPUTE_BIT);
     queueCheckTransfer(inTransferQueue);
 
-    this.graphicsResources =
-      RCResourceCollections.create(strings);
-    this.transferResources =
-      RCResourceCollections.create(strings);
-    this.computeResources =
+    this.gpuResources =
       RCResourceCollections.create(strings);
     this.allResources =
       RCResourceCollections.create(strings);
@@ -116,38 +108,33 @@ public final class RCDevice
 
     this.allResources.add(this.device);
     this.allResources.add(this.allocator);
-    this.allResources.add(this.graphicsExecutor);
-    this.allResources.add(this.transferExecutor);
-    this.allResources.add(this.computeExecutor);
+    this.allResources.add(this.executor);
 
     this.allResources.add(() -> {
-      RCExecutors.executeAndWait(this.graphicsExecutor, () -> {
-        LOG.debug("Closing graphics resources…");
-        this.graphicsResources.close();
-        return UNIT;
-      });
+      LOG.debug("Closing GPU resources…");
+      this.gpuResources.close();
     });
 
-    this.allResources.add(() -> {
-      RCExecutors.executeAndWait(this.transferExecutor, () -> {
-        LOG.debug("Closing transfer resources…");
-        this.transferResources.close();
-        return UNIT;
-      });
-    });
+    this.allResources.add(this::waitUntilIdle);
+  }
 
-    this.allResources.add(() -> {
-      RCExecutors.executeAndWait(this.computeExecutor, () -> {
-        LOG.debug("Closing compute resources…");
-        this.computeResources.close();
-        return UNIT;
-      });
-    });
+  @Override
+  public void waitUntilIdle()
+    throws RCVulkanException
+  {
+    LOG.debug("Waiting for device to idle…");
 
-    this.allResources.add(() -> {
-      LOG.debug("Waiting for device to idle…");
+    final var ev = new RCDeviceJFREventWaitIdle();
+    ev.begin();
+
+    try {
       this.device.waitIdle();
-    });
+    } catch (final VulkanException e) {
+      throw RCVulkanException.wrap(e);
+    } finally {
+      ev.end();
+      ev.commit();
+    }
   }
 
   private static void queueCheckTransfer(
@@ -185,28 +172,14 @@ public final class RCDevice
     throws RocaroException
   {
     LOG.debug("Close");
+    RCThreadLabels.checkThreadLabelsAny(GPU);
     this.allResources.close();
   }
 
   @Override
-  public ExecutorService executorForQueue(
-    final VulkanQueueType queue)
-    throws IllegalArgumentException
+  public RCExecutorType gpuExecutor()
   {
-    Objects.requireNonNull(queue, "queue");
-
-    if (Objects.equals(queue, this.graphicsQueue)) {
-      return this.graphicsExecutor;
-    }
-    if (Objects.equals(queue, this.computeQueue)) {
-      return this.computeExecutor;
-    }
-    if (Objects.equals(queue, this.transferQueue)) {
-      return this.transferExecutor;
-    }
-    throw new IllegalArgumentException(
-      "Unrecognized queue: %s".formatted(queue)
-    );
+    return this.executor;
   }
 
   @Override
@@ -243,21 +216,9 @@ public final class RCDevice
   }
 
   @Override
-  public ExecutorService graphicsExecutor()
-  {
-    return this.graphicsExecutor;
-  }
-
-  @Override
   public VulkanQueueType transferQueue()
   {
     return this.transferQueue;
-  }
-
-  @Override
-  public ExecutorService transferExecutor()
-  {
-    return this.transferExecutor;
   }
 
   @Override
@@ -267,30 +228,11 @@ public final class RCDevice
   }
 
   @Override
-  public ExecutorService computeExecutor()
-  {
-    return this.computeExecutor;
-  }
-
-  @Override
-  public <T extends AutoCloseable> T registerGraphicsResource(
+  public <T extends AutoCloseable> T registerResource(
     final T closeable)
   {
-    return this.graphicsResources.add(closeable);
-  }
-
-  @Override
-  public <T extends AutoCloseable> T registerTransferResource(
-    final T closeable)
-  {
-    return this.transferResources.add(closeable);
-  }
-
-  @Override
-  public <T extends AutoCloseable> T registerComputeResource(
-    final T closeable)
-  {
-    return this.computeResources.add(closeable);
+    this.gpuResources.add(closeable);
+    return closeable;
   }
 
   @Override
@@ -300,43 +242,79 @@ public final class RCDevice
   }
 
   @Override
-  public void submitWithFence(
-    final RCDeviceQueueCategory category,
-    final VulkanFenceType fence,
-    final VulkanCommandBufferType... commandBuffers)
-    throws RocaroException
+  public CompletableFuture<RCUnit> submit(
+    final VulkanQueueType queue,
+    final List<VulkanSubmitInfo> submission,
+    final Optional<VulkanFenceType> fence)
   {
-    Objects.requireNonNull(category, "category");
+    Objects.requireNonNull(queue, "queue");
     Objects.requireNonNull(fence, "fence");
-    Objects.requireNonNull(commandBuffers, "commandBuffers");
+    Objects.requireNonNull(submission, "submission");
 
-    final var queue =
-      switch (category) {
-        case COMPUTE -> this.computeQueue;
-        case GRAPHICS -> this.graphicsQueue;
-        case TRANSFER -> this.transferQueue;
-      };
-
-    final var executor =
-      switch (category) {
-        case COMPUTE -> this.computeExecutor;
-        case GRAPHICS -> this.graphicsExecutor;
-        case TRANSFER -> this.transferExecutor;
-      };
-
-    RCExecutors.executeAndWait(
-      executor,
-      () -> {
-        queue.submit(
-          List.of(
-            VulkanSubmitInfo.builder()
-              .addCommandBuffers(commandBuffers)
-              .build()
-          ),
-          Optional.of(fence)
-        );
-        return UNIT;
+    return this.execute(() -> {
+      if (LOG.isTraceEnabled()) {
+        logSubmission(queue, submission, fence);
       }
-    );
+
+      final var ev = new RCDeviceJFREventQueueSubmit();
+      ev.queue = queue.toString();
+      ev.begin();
+
+      try {
+        queue.submit(submission, fence);
+      } finally {
+        ev.end();
+        ev.commit();
+      }
+      return UNIT;
+    });
+  }
+
+  @Override
+  public <T> CompletableFuture<T> execute(
+    final Callable<T> operation)
+  {
+    Objects.requireNonNull(operation, "operation");
+
+    final var future = new CompletableFuture<T>();
+    this.executor.execute(() -> {
+      try {
+        future.complete(operation.call());
+      } catch (final Throwable e) {
+        future.completeExceptionally(e);
+      }
+    });
+    return future;
+  }
+
+  private static void logSubmission(
+    final VulkanQueueType queue,
+    final List<VulkanSubmitInfo> submission,
+    final Optional<VulkanFenceType> fence)
+  {
+    final var text = new StringBuilder(256);
+    text.append("%nBegin Submission%n".formatted());
+    text.append("  * Queue:            %s%n".formatted(queue));
+
+    for (final var sub : submission) {
+      for (final var buffer : sub.commandBuffers()) {
+        text.append("  * Command Buffer:   %s%n".formatted(buffer.commandBuffer()));
+      }
+      for (final var semaphore : sub.waitSemaphores()) {
+        text.append(
+          "  * Wait Semaphore:   %s (%s)%n"
+            .formatted(semaphore.semaphore(), semaphore.stageMask())
+        );
+      }
+      for (final var semaphore : sub.signalSemaphores()) {
+        text.append(
+          "  * Signal Semaphore: %s (%s)%n"
+            .formatted(semaphore.semaphore(), semaphore.stageMask())
+        );
+      }
+      text.append("  * Fence:            %s%n".formatted(fence));
+    }
+    text.append("End Submission");
+    LOG.trace("{}", text);
   }
 }

@@ -49,7 +49,7 @@ public final class RCDemoDisplays
   }
 
   @Override
-  public QCommandStatus onExecute(
+  public QCommandStatus onExecuteDemo(
     final QCommandContextType context)
     throws Exception
   {

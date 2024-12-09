@@ -32,7 +32,6 @@ import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
 import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
 import com.io7m.jcoronado.api.VulkanQueueType;
-import com.io7m.jcoronado.api.VulkanSemaphoreCreateInfo;
 import com.io7m.jcoronado.api.VulkanSemaphoreType;
 import com.io7m.jcoronado.api.VulkanSharingMode;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType;
@@ -47,11 +46,15 @@ import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainCreateInfo
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.images.RCImageColorBlendableType;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.images.RCImageColorBlendable;
+import com.io7m.rocaro.vanilla.internal.threading.RCThread;
+import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +87,7 @@ import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeK
 import static com.io7m.rocaro.api.RCStandardErrorCodes.VULKAN_EXTENSION_MISSING;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_VULKAN_EXTENSION_MISSING;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.EXTENSION;
+import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
 
 /**
  * A window along with the surface needed to render to it, and the
@@ -114,10 +118,11 @@ public final class RCWindowWithSurface
   private VulkanSurfaceFormatKHR surfaceFormat;
   private VulkanExtent2D surfaceExtent;
   private VulkanQueueType presentationQueue;
-  private VulkanLogicalDeviceType device;
+  private RCDeviceType device;
   private VulkanQueueType graphicsQueue;
   private VulkanExtKHRSwapChainType khrSwapChainExt;
   private VulkanKHRSwapChainType swapChain;
+  private VulkanLogicalDeviceType vkDevice;
 
   /**
    * Construct a window.
@@ -194,17 +199,15 @@ public final class RCWindowWithSurface
     }
   }
 
+  @RCThread(GPU)
   @Override
   public void close()
     throws RocaroException
   {
+    RCThreadLabels.checkThreadLabelsAny(GPU);
+
     if (this.closed.compareAndSet(false, true)) {
-      try {
-        LOG.debug("Waiting for device to become idle...");
-        this.device.waitIdle();
-      } catch (final VulkanException e) {
-        throw RCVulkanException.wrap(e);
-      }
+      this.device.waitUntilIdle();
 
       try {
         this.resourcesPerSwapChain.close();
@@ -281,26 +284,28 @@ public final class RCWindowWithSurface
 
     @Override
     public void present()
-      throws RCVulkanException
     {
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Presenting.");
-      }
+      this.windowWithSurface.device.execute(() -> {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Presenting.");
+        }
 
-      try {
-        final var presentationInfo =
-          VulkanPresentInfoKHR.builder()
-            .addImageIndices(this.index.index)
-            .addSwapChains(this.windowWithSurface.swapChain)
-            .addWaitSemaphores(this.imageRenderingIsFinishedSemaphore)
-            .build();
+        try {
+          final var presentationInfo =
+            VulkanPresentInfoKHR.builder()
+              .addImageIndices(this.index.index)
+              .addSwapChains(this.windowWithSurface.swapChain)
+              .addWaitSemaphores(this.imageRenderingIsFinishedSemaphore)
+              .build();
 
-        this.windowWithSurface.khrSwapChainExt.queuePresent(
-          this.windowWithSurface.presentationQueue, presentationInfo
-        );
-      } catch (final VulkanException e) {
-        throw RCVulkanException.wrap(e);
-      }
+          this.windowWithSurface.khrSwapChainExt.queuePresent(
+            this.windowWithSurface.presentationQueue, presentationInfo
+          );
+        } catch (final VulkanException e) {
+          throw RCVulkanException.wrap(e);
+        }
+        return RCUnit.UNIT;
+      });
     }
 
     @Override
@@ -336,7 +341,7 @@ public final class RCWindowWithSurface
       Objects.requireNonNull(renderDoneFence, "renderDoneFence");
 
       final var waitStatus =
-        this.device.waitForFence(
+        this.vkDevice.waitForFence(
           renderDoneFence,
           timeout.toNanos()
         );
@@ -350,7 +355,7 @@ public final class RCWindowWithSurface
         }
       }
 
-      this.device.resetFences(List.of(renderDoneFence));
+      this.vkDevice.resetFences(List.of(renderDoneFence));
 
       final var acquisition =
         this.swapChain.acquireImageWithSemaphore(
@@ -458,7 +463,7 @@ public final class RCWindowWithSurface
 
   @Override
   public void configureForLogicalDevice(
-    final VulkanLogicalDeviceType newDevice,
+    final RCDeviceType newDevice,
     final VulkanQueueType newGraphicsQueue,
     final VulkanQueueType newPresentationQueue)
     throws RocaroException
@@ -469,13 +474,15 @@ public final class RCWindowWithSurface
       Objects.requireNonNull(newGraphicsQueue, "graphicsQueue");
     this.presentationQueue =
       Objects.requireNonNull(newPresentationQueue, "presentationQueue");
+    this.vkDevice =
+      this.device.device();
 
     try {
       final var debugging =
-        this.device.debugging();
+        this.vkDevice.debugging();
 
       this.khrSwapChainExt =
-        newDevice.findEnabledExtension(
+        this.vkDevice.findEnabledExtension(
             "VK_KHR_swapchain", VulkanExtKHRSwapChainType.class)
           .orElseThrow(() -> {
             return this.errorMissingRequiredException("VK_KHR_swapchain");
@@ -518,18 +525,33 @@ public final class RCWindowWithSurface
 
       this.swapChain =
         this.resourcesPerSwapChain.add(
-          this.khrSwapChainExt.swapChainCreate(newDevice, swapChainCreateInfo)
+          this.khrSwapChainExt.swapChainCreate(
+            this.vkDevice,
+            swapChainCreateInfo
+          )
         );
+      debugging.setObjectName(this.swapChain, "MainSwapChain");
 
       this.swapChainImages.clear();
       final var images = this.swapChain.images();
       for (int index = 0; index < images.size(); ++index) {
         final var swIndex = new SwapChainIndex(index);
         final var image = images.get(index);
+        debugging.setObjectName(
+          image,
+          "SwapChainImage[%d]".formatted(index)
+        );
+
         this.swapChainImages.put(swIndex, image);
+        final var imageView = this.createImageView(image);
+        debugging.setObjectName(
+          imageView,
+          "SwapChainImageView[%d]".formatted(index)
+        );
+
         this.swapChainImageViews.put(
           swIndex,
-          this.resourcesPerSwapChain.add(this.createImageView(image))
+          this.resourcesPerSwapChain.add(imageView)
         );
       }
 
@@ -540,10 +562,7 @@ public final class RCWindowWithSurface
         final var fIndex = new RCFrameIndex(index);
 
         final var imageReadySemaphore =
-          this.device.createSemaphore(
-            VulkanSemaphoreCreateInfo.builder()
-              .build()
-          );
+          this.vkDevice.createBinarySemaphore();
 
         debugging.setObjectName(
           imageReadySemaphore,
@@ -556,10 +575,7 @@ public final class RCWindowWithSurface
         );
 
         final var renderingDoneSemaphore =
-          this.device.createSemaphore(
-            VulkanSemaphoreCreateInfo.builder()
-              .build()
-          );
+          this.vkDevice.createBinarySemaphore();
 
         debugging.setObjectName(
           renderingDoneSemaphore,
@@ -580,7 +596,7 @@ public final class RCWindowWithSurface
          */
 
         final var renderingDoneFence =
-          this.device.createFence(
+          this.vkDevice.createFence(
             VulkanFenceCreateInfo.builder()
               .addFlags(VulkanFenceCreateFlag.VK_FENCE_CREATE_SIGNALED_BIT)
               .build()
@@ -614,7 +630,7 @@ public final class RCWindowWithSurface
         1);
 
     final Set<VulkanImageViewCreateFlag> flags = Set.of();
-    return this.device.createImageView(
+    return this.vkDevice.createImageView(
       VulkanImageViewCreateInfo.of(
         flags,
         image,

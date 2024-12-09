@@ -33,7 +33,7 @@ import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
-import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
+import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,16 +47,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.concurrent.ExecutorService;
 
 import static com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag.VK_QUEUE_COMPUTE_BIT;
 import static com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag.VK_QUEUE_GRAPHICS_BIT;
 import static com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag.VK_QUEUE_TRANSFER_BIT;
 import static com.io7m.rocaro.api.RCStandardErrorCodes.VULKAN_QUEUE_MISSING;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_DEVICE_QUEUE_PRESENTATION_UNSUPPORTED;
-import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU_COMPUTE;
-import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU_GRAPHICS;
-import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU_TRANSFER;
 
 /**
  * Functions to create logical devices.
@@ -76,6 +72,7 @@ public final class RCLogicalDevices
    * Create a logical device.
    *
    * @param strings                The string resources
+   * @param executors              The executors
    * @param vulkanConfiguration    The Vulkan configuration
    * @param physicalDevice         The physical device
    * @param window                 The window
@@ -89,6 +86,7 @@ public final class RCLogicalDevices
 
   public static RCDevice create(
     final RCStrings strings,
+    final RCStandardExecutors executors,
     final RendererVulkanConfiguration vulkanConfiguration,
     final VulkanPhysicalDeviceType physicalDevice,
     final RCWindowWithSurfaceType window,
@@ -167,6 +165,7 @@ public final class RCLogicalDevices
 
       return findCreatedQueues(
         strings,
+        executors,
         window,
         logicalDevice,
         graphicsFamily,
@@ -174,11 +173,10 @@ public final class RCLogicalDevices
         computeFamily,
         presentationFamilyOpt,
         window.maximumFramesInFlight(),
-        rendererId,
         vulkanConfiguration
       );
     } catch (final VulkanException e) {
-      throw RCVulkanException.wrap(strings, e);
+      throw RCVulkanException.wrap(e);
     }
   }
 
@@ -212,6 +210,7 @@ public final class RCLogicalDevices
 
   private static RCDevice findCreatedQueues(
     final RCStrings strings,
+    final RCStandardExecutors executors,
     final RCWindowWithSurfaceType window,
     final VulkanLogicalDeviceType logicalDevice,
     final VulkanQueueFamilyIndex graphicsFamily,
@@ -219,7 +218,6 @@ public final class RCLogicalDevices
     final VulkanQueueFamilyIndex computeFamily,
     final Optional<VulkanQueueFamilyIndex> presentationFamilyOpt,
     final int maxFrames,
-    final RCRendererID rendererId,
     final RendererVulkanConfiguration configuration)
     throws VulkanException, RocaroException
   {
@@ -256,6 +254,50 @@ public final class RCLogicalDevices
           return new IllegalStateException("Missing created compute queue!");
         });
 
+    final var debugging = logicalDevice.debugging();
+    if (Objects.equals(graphicsQueue, transferQueue)) {
+      if (Objects.equals(transferQueue, computeQueue)) {
+        LOG.debug("Platform queues: [graphics+transfer+compute]");
+        debugging.setObjectName(
+          graphicsQueue,
+          "Queue[Graphics+Transfer+Compute]");
+      } else {
+        LOG.debug("Platform queues: [graphics+transfer] [compute]");
+        debugging.setObjectName(graphicsQueue, "Queue[Graphics+Transfer]");
+        debugging.setObjectName(computeQueue, "Queue[Compute]");
+      }
+    } else {
+      if (Objects.equals(transferQueue, computeQueue)) {
+        LOG.debug("Platform queues: [graphics] [transfer+compute]");
+        debugging.setObjectName(graphicsQueue, "Queue[Graphics]");
+        debugging.setObjectName(computeQueue, "Queue[Transfer+Compute]");
+      } else {
+        LOG.debug("Platform queues: [graphics] [transfer] [compute]");
+        debugging.setObjectName(graphicsQueue, "Queue[Graphics]");
+        debugging.setObjectName(transferQueue, "Queue[Transfer]");
+        debugging.setObjectName(computeQueue, "Queue[Compute]");
+      }
+    }
+
+    /*
+     * Set up the allocator.
+     */
+
+    LOG.debug("Creating VMA allocator.");
+    final var vmaAllocator =
+      createVMAAllocator(logicalDevice, maxFrames, configuration);
+
+    final var rcDevice =
+      new RCDevice(
+        strings,
+        logicalDevice,
+        vmaAllocator,
+        executors.gpuExecutor(),
+        graphicsQueue,
+        transferQueue,
+        computeQueue
+      );
+
     if (presentationFamilyOpt.isPresent()) {
       final var presentationFamily =
         presentationFamilyOpt.get();
@@ -277,7 +319,7 @@ public final class RCLogicalDevices
       switch (window) {
         case final RCWindowWithSurface withSurface -> {
           withSurface.configureForLogicalDevice(
-            logicalDevice,
+            rcDevice,
             graphicsQueue,
             presentationQueue
           );
@@ -288,112 +330,7 @@ public final class RCLogicalDevices
       }
     }
 
-    final ExecutorService graphicsExecutor;
-    final ExecutorService transferExecutor;
-    final ExecutorService computeExecutor;
-    final var debugging = logicalDevice.debugging();
-    if (Objects.equals(graphicsQueue, transferQueue)) {
-      if (Objects.equals(transferQueue, computeQueue)) {
-        LOG.debug("Platform queues: [graphics+transfer+compute]");
-        debugging.setObjectName(graphicsQueue, "Queue[Graphics+Transfer+Compute]");
-
-        graphicsExecutor =
-          RCExecutors.createPlatformExecutor(
-            "graphics+transfer+compute",
-            rendererId,
-            GPU_GRAPHICS,
-            GPU_TRANSFER,
-            GPU_COMPUTE
-          );
-        transferExecutor = graphicsExecutor;
-        computeExecutor = graphicsExecutor;
-      } else {
-        LOG.debug("Platform queues: [graphics+transfer] [compute]");
-        graphicsExecutor =
-          RCExecutors.createPlatformExecutor(
-            "graphics+transfer",
-            rendererId,
-            GPU_GRAPHICS,
-            GPU_TRANSFER
-          );
-        transferExecutor = graphicsExecutor;
-        computeExecutor =
-          RCExecutors.createPlatformExecutor(
-            "compute",
-            rendererId,
-            GPU_COMPUTE
-          );
-
-        debugging.setObjectName(graphicsQueue, "Queue[Graphics+Transfer]");
-        debugging.setObjectName(computeQueue, "Queue[Compute]");
-      }
-    } else {
-      if (Objects.equals(transferQueue, computeQueue)) {
-        LOG.debug("Platform queues: [graphics] [transfer+compute]");
-        graphicsExecutor =
-          RCExecutors.createPlatformExecutor(
-            "graphics",
-            rendererId,
-            GPU_GRAPHICS
-          );
-        transferExecutor =
-          RCExecutors.createPlatformExecutor(
-            "transfer+compute",
-            rendererId,
-            GPU_TRANSFER,
-            GPU_COMPUTE
-          );
-        computeExecutor = transferExecutor;
-
-        debugging.setObjectName(graphicsQueue, "Queue[Graphics]");
-        debugging.setObjectName(computeQueue, "Queue[Transfer+Compute]");
-
-      } else {
-        LOG.debug("Platform queues: [graphics] [transfer] [compute]");
-        graphicsExecutor =
-          RCExecutors.createPlatformExecutor(
-            "graphics",
-            rendererId,
-            GPU_GRAPHICS
-          );
-        transferExecutor =
-          RCExecutors.createPlatformExecutor(
-            "transfer",
-            rendererId,
-            GPU_TRANSFER
-          );
-        computeExecutor =
-          RCExecutors.createPlatformExecutor(
-            "compute",
-            rendererId,
-            GPU_COMPUTE
-          );
-
-        debugging.setObjectName(graphicsQueue, "Queue[Graphics]");
-        debugging.setObjectName(transferQueue, "Queue[Transfer]");
-        debugging.setObjectName(computeQueue, "Queue[Compute]");
-      }
-    }
-
-    /*
-     * Set up the allocator.
-     */
-
-    LOG.debug("Creating VMA allocator.");
-    final var vmaAllocator =
-      createVMAAllocator(logicalDevice, maxFrames, configuration);
-
-    return new RCDevice(
-      strings,
-      logicalDevice,
-      vmaAllocator,
-      graphicsQueue,
-      graphicsExecutor,
-      transferQueue,
-      transferExecutor,
-      computeQueue,
-      computeExecutor
-    );
+    return rcDevice;
   }
 
   private static VMAAllocatorType createVMAAllocator(

@@ -20,7 +20,7 @@ package com.io7m.rocaro.vanilla.internal.vulkan;
 import com.io7m.jcoronado.api.VulkanInstanceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
 import com.io7m.repetoir.core.RPServiceType;
-import com.io7m.rocaro.api.RCCloseableType;
+import com.io7m.rocaro.api.RCCloseableGPUType;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.devices.RCDeviceType;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeoutException;
  */
 
 public interface RCVulkanRendererType
-  extends RPServiceType, RCCloseableType
+  extends RPServiceType, RCCloseableGPUType
 {
   /**
    * @return The renderer ID

@@ -17,19 +17,11 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
-import com.io7m.jcoronado.api.VulkanCallFailedException;
-import com.io7m.jcoronado.api.VulkanErrorCodes;
-import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.rocaro.api.RocaroException;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
+import com.io7m.seltzer.api.SStructuredErrorType;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.io7m.rocaro.api.RCStandardErrorCodes.VULKAN;
-import static com.io7m.rocaro.vanilla.internal.RCStringConstants.VULKAN_ERROR;
-import static com.io7m.rocaro.vanilla.internal.RCStringConstants.VULKAN_OPERATION;
 
 /**
  * The type of exceptions related to Vulkan.
@@ -75,7 +67,7 @@ public final class RCVulkanException
   }
 
   /**
-   * Wrap a Vulkan exception.
+   * Wrap an exception.
    *
    * @param e The exception
    *
@@ -83,46 +75,21 @@ public final class RCVulkanException
    */
 
   public static RCVulkanException wrap(
-    final VulkanException e)
+    final Exception e)
   {
-    return new RCVulkanException(
-      e,
-      Map.of(),
-      VULKAN.codeName(),
-      Optional.empty()
-    );
-  }
-
-  /**
-   * Wrap a Vulkan exception.
-   *
-   * @param strings The string resources
-   * @param e         The exception
-   *
-   * @return A wrapped exception
-   */
-
-  public static RCVulkanException wrap(
-    final RCStrings strings,
-    final VulkanException e)
-  {
-    final var attributes = new HashMap<String, String>();
-    if (e instanceof final VulkanCallFailedException call) {
-      attributes.put(
-        strings.format(VULKAN_OPERATION),
-        call.function()
-      );
-      attributes.put(
-        strings.format(VULKAN_ERROR),
-        VulkanErrorCodes.errorName(call.errorCode())
-          .orElse(Integer.toUnsignedString(call.errorCode()))
+    if (e instanceof final SStructuredErrorType<?> x) {
+      return new RCVulkanException(
+        e,
+        x.attributes(),
+        x.errorCode().toString(),
+        x.remediatingAction()
       );
     }
 
     return new RCVulkanException(
       e,
-      attributes,
-      VULKAN.codeName(),
+      Map.of(),
+      "error-exception",
       Optional.empty()
     );
   }

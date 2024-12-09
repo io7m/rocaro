@@ -20,6 +20,7 @@ package com.io7m.rocaro.vanilla.internal.transfers;
 import com.io7m.jcoronado.api.VulkanCommandBufferType;
 import com.io7m.jcoronado.api.VulkanCommandPoolCreateInfo;
 import com.io7m.jcoronado.api.VulkanCommandPoolType;
+import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.jcoronado.vma.VMAAllocatorType;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
@@ -37,6 +38,8 @@ import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.fences.RCFenceServiceType;
 import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
+import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
+import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +50,6 @@ import java.util.concurrent.ExecutorService;
 
 import static com.io7m.jcoronado.api.VulkanCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 import static com.io7m.rocaro.api.RCUnit.UNIT;
-import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU_TRANSFER;
 import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.TRANSFER_IO;
 
 /**
@@ -65,8 +67,6 @@ public final class RCTransferService
   private final RCDeviceType device;
   private final VMAAllocatorType allocator;
   private final ExecutorService taskExecutor;
-
-  @RCThread(GPU_TRANSFER)
   private final VulkanCommandPoolType transferCommandPool;
   private final VulkanCommandPoolType graphicsCommandPool;
   private final VulkanCommandPoolType computeCommandPool;
@@ -133,8 +133,6 @@ public final class RCTransferService
         renderer.device();
       final var allocator =
         device.allocator();
-      final var debugging =
-        device.device().debugging();
 
       final var taskExecutor =
         resources.add(
@@ -146,65 +144,29 @@ public final class RCTransferService
         );
 
       final var transferCommandPool =
-        device.registerTransferResource(
-          RCExecutors.executeAndWait(
-            device.transferExecutor(),
-            () -> {
-              final var poolInfo =
-                VulkanCommandPoolCreateInfo.builder()
-                  .setQueueFamilyIndex(device.transferQueue().queueFamilyIndex())
-                  .build();
-
-              final var commandPool =
-                device.device().createCommandPool(poolInfo);
-
-              debugging.setObjectName(
-                commandPool,
-                "TransferCommandPool[Transfer]");
-              return commandPool;
-            }
+        device.registerResource(
+          createCommandPool(
+            device,
+            device.transferQueue(),
+            "TransferCommandPool[Transfer]"
           )
         );
 
       final var graphicsCommandPool =
-        device.registerGraphicsResource(
-          RCExecutors.executeAndWait(
-            device.graphicsExecutor(),
-            () -> {
-              final var poolInfo =
-                VulkanCommandPoolCreateInfo.builder()
-                  .setQueueFamilyIndex(device.graphicsQueue().queueFamilyIndex())
-                  .build();
-
-              final var commandPool =
-                device.device().createCommandPool(poolInfo);
-
-              debugging.setObjectName(
-                commandPool,
-                "TransferCommandPool[Graphics]");
-              return commandPool;
-            }
+        device.registerResource(
+          createCommandPool(
+            device,
+            device.graphicsQueue(),
+            "TransferCommandPool[Graphics]"
           )
         );
 
       final var computeCommandPool =
-        device.registerComputeResource(
-          RCExecutors.executeAndWait(
-            device.graphicsExecutor(),
-            () -> {
-              final var poolInfo =
-                VulkanCommandPoolCreateInfo.builder()
-                  .setQueueFamilyIndex(device.computeQueue().queueFamilyIndex())
-                  .build();
-
-              final var commandPool =
-                device.device().createCommandPool(poolInfo);
-
-              debugging.setObjectName(
-                commandPool,
-                "TransferCommandPool[Compute]");
-              return commandPool;
-            }
+        device.registerResource(
+          createCommandPool(
+            device,
+            device.computeQueue(),
+            "TransferCommandPool[Compute]"
           )
         );
 
@@ -226,6 +188,31 @@ public final class RCTransferService
     }
   }
 
+  private static VulkanCommandPoolType createCommandPool(
+    final RCDeviceType device,
+    final VulkanQueueType queue,
+    final String name)
+    throws RCVulkanException
+  {
+    try {
+      final var debugging =
+        device.device().debugging();
+
+      final var poolInfo =
+        VulkanCommandPoolCreateInfo.builder()
+          .setQueueFamilyIndex(queue.queueFamilyIndex())
+          .build();
+
+      final var commandPool =
+        device.device().createCommandPool(poolInfo);
+
+      debugging.setObjectName(commandPool, name);
+      return commandPool;
+    } catch (final VulkanException e) {
+      throw RCVulkanException.wrap(e);
+    }
+  }
+
   private <T> CompletableFuture<T> executeOp(
     final RCTransferOperationType<T> operation,
     final RCTransferTaskType<T> task)
@@ -237,9 +224,7 @@ public final class RCTransferService
       ev.type = operation.getClass().getSimpleName();
 
       try {
-        try (final var _ = task) {
-          future.complete(task.execute());
-        }
+        future.complete(this.executeAndCloseTask(task));
         ev.message = "Transfer completed";
       } catch (final Throwable e) {
         ev.message = "Transfer failed (%s)".formatted(e.getMessage());
@@ -251,6 +236,29 @@ public final class RCTransferService
       }
     });
     return future;
+  }
+
+  @RCThread(TRANSFER_IO)
+  private <T> T executeAndCloseTask(
+    final RCTransferTaskType<T> task)
+    throws Exception
+  {
+    RCThreadLabels.checkThreadLabelsAny(TRANSFER_IO);
+
+    try {
+      return task.execute();
+    } finally {
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Closing task {}", task);
+      }
+      this.device.execute(() -> {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Closing task {}", task);
+        }
+        task.close();
+        return UNIT;
+      });
+    }
   }
 
   @Override
@@ -280,85 +288,27 @@ public final class RCTransferService
     final String name)
     throws RocaroException
   {
-    return switch (this.device.categoryForQueue(queue)) {
-      case COMPUTE -> {
-        final var executor = this.device.computeExecutor();
-        yield RCExecutors.executeAndWait(
-          executor,
-          () -> {
-            final var commandBuffer =
-              this.device.device()
-                .createCommandBuffer(
-                  this.computeCommandPool,
-                  VK_COMMAND_BUFFER_LEVEL_PRIMARY
-                );
+    try {
+      final var pool =
+        switch (this.device.categoryForQueue(queue)) {
+          case COMPUTE -> this.computeCommandPool;
+          case GRAPHICS -> this.graphicsCommandPool;
+          case TRANSFER -> this.transferCommandPool;
+        };
 
-            this.device.device()
-              .debugging()
-              .setObjectName(commandBuffer, name);
+      final var commandBuffer =
+        this.device.device()
+          .createCommandBuffer(pool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
-            taskResources.add(() -> {
-              RCExecutors.executeAndWait(executor, () -> {
-                commandBuffer.close();
-                return UNIT;
-              });
-            });
-            return commandBuffer;
-          });
-      }
+      this.device.device()
+        .debugging()
+        .setObjectName(commandBuffer, name);
 
-      case GRAPHICS -> {
-        final var executor = this.device.graphicsExecutor();
-        yield RCExecutors.executeAndWait(
-          executor,
-          () -> {
-            final var commandBuffer =
-              this.device.device()
-                .createCommandBuffer(
-                  this.graphicsCommandPool,
-                  VK_COMMAND_BUFFER_LEVEL_PRIMARY
-                );
-
-            this.device.device()
-              .debugging()
-              .setObjectName(commandBuffer, name);
-
-            taskResources.add(() -> {
-              RCExecutors.executeAndWait(executor, () -> {
-                commandBuffer.close();
-                return UNIT;
-              });
-            });
-            return commandBuffer;
-          });
-      }
-
-      case TRANSFER -> {
-        final var executor = this.device.transferExecutor();
-        yield RCExecutors.executeAndWait(
-          executor,
-          () -> {
-            final var commandBuffer =
-              this.device.device()
-                .createCommandBuffer(
-                  this.transferCommandPool,
-                  VK_COMMAND_BUFFER_LEVEL_PRIMARY
-                );
-
-            this.device.device()
-              .debugging()
-              .setObjectName(commandBuffer, name);
-
-            taskResources.add(() -> {
-              RCExecutors.executeAndWait(executor, () -> {
-                commandBuffer.close();
-                return UNIT;
-              });
-            });
-            return commandBuffer;
-          });
-      }
-    };
+      taskResources.add(commandBuffer);
+      return commandBuffer;
+    } catch (final VulkanException e) {
+      throw RCVulkanException.wrap(e);
+    }
   }
 
   @Override

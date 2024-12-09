@@ -15,13 +15,30 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.transfers;
+package com.io7m.rocaro.api.devices;
 
-import com.io7m.rocaro.api.RCCloseableGPUType;
+import jdk.jfr.Category;
+import jdk.jfr.Description;
+import jdk.jfr.Event;
+import jdk.jfr.Label;
+import jdk.jfr.StackTrace;
 
-interface RCTransferTaskType<V>
-  extends RCCloseableGPUType
+/**
+ * An event that indicates that someone is waiting for the device to idle.
+ */
+
+@Label("WaitIdle")
+@Category("Rocaro.Device")
+@Description("A thread is waiting for the device to become idle.")
+@StackTrace(value = false)
+public final class RCDeviceJFREventWaitIdle
+  extends Event
+  implements RCDeviceJFREventType
 {
-  V execute()
-    throws Exception;
+  // CHECKSTYLE:OFF
+
+  public RCDeviceJFREventWaitIdle()
+  {
+
+  }
 }

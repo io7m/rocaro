@@ -15,13 +15,15 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.transfers;
+package com.io7m.rocaro.api;
 
-import com.io7m.rocaro.api.RCCloseableGPUType;
+/**
+ * The type of closeable objects that contain GPU resources and therefore
+ * must be closed on a GPU thread.
+ */
 
-interface RCTransferTaskType<V>
-  extends RCCloseableGPUType
+public interface RCCloseableGPUType
+  extends RCCloseableType
 {
-  V execute()
-    throws Exception;
+
 }

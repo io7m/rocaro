@@ -17,17 +17,18 @@
 
 package com.io7m.rocaro.vanilla.internal.transfers;
 
+import com.io7m.jcoronado.api.VulkanAccessFlag;
 import com.io7m.jcoronado.api.VulkanBufferCreateInfo;
 import com.io7m.jcoronado.api.VulkanBufferImageCopy;
 import com.io7m.jcoronado.api.VulkanBufferType;
+import com.io7m.jcoronado.api.VulkanCommandBufferSubmitInfo;
 import com.io7m.jcoronado.api.VulkanCommandBufferType;
 import com.io7m.jcoronado.api.VulkanComponentMapping;
 import com.io7m.jcoronado.api.VulkanComponentSwizzle;
 import com.io7m.jcoronado.api.VulkanDebuggingType;
+import com.io7m.jcoronado.api.VulkanDependencyInfo;
 import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanExtent3D;
-import com.io7m.jcoronado.api.VulkanFenceCreateInfo;
-import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jcoronado.api.VulkanImageCreateInfo;
 import com.io7m.jcoronado.api.VulkanImageKind;
 import com.io7m.jcoronado.api.VulkanImageMemoryBarrier;
@@ -39,11 +40,16 @@ import com.io7m.jcoronado.api.VulkanImageViewKind;
 import com.io7m.jcoronado.api.VulkanImageViewType;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanOffset3D;
+import com.io7m.jcoronado.api.VulkanPipelineStageFlag;
+import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
 import com.io7m.jcoronado.api.VulkanQueueType;
+import com.io7m.jcoronado.api.VulkanSemaphoreSubmitInfo;
+import com.io7m.jcoronado.api.VulkanSubmitInfo;
 import com.io7m.jcoronado.vma.VMAAllocationCreateInfo;
 import com.io7m.jcoronado.vma.VMAAllocationResult;
 import com.io7m.jcoronado.vma.VMAAllocatorType;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
+import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.images.RCImageColorBasicType;
@@ -53,8 +59,8 @@ import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.fences.RCFenceServiceType;
 import com.io7m.rocaro.vanilla.internal.images.RCImageColorBasic;
-import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
+import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
 
 import java.lang.foreign.MemorySegment;
@@ -77,21 +83,19 @@ import static com.io7m.jcoronado.api.VulkanImageUsageFlag.VK_IMAGE_USAGE_SAMPLED
 import static com.io7m.jcoronado.api.VulkanImageUsageFlag.VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 import static com.io7m.jcoronado.api.VulkanMemoryPropertyFlag.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 import static com.io7m.jcoronado.api.VulkanMemoryPropertyFlag.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_TRANSFER_BIT;
 import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
 import static com.io7m.jcoronado.api.VulkanSampleCountFlag.VK_SAMPLE_COUNT_1_BIT;
 import static com.io7m.jcoronado.api.VulkanSharingMode.VK_SHARING_MODE_EXCLUSIVE;
 import static com.io7m.jcoronado.vma.VMAMemoryUsage.VMA_MEMORY_USAGE_CPU_ONLY;
 import static com.io7m.jcoronado.vma.VMAMemoryUsage.VMA_MEMORY_USAGE_GPU_ONLY;
-import static com.io7m.rocaro.api.RCUnit.UNIT;
-import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU_COMPUTE;
-import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU_GRAPHICS;
-import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU_TRANSFER;
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.TRANSFER;
+import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
 import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.TRANSFER_IO;
 
 final class RCTransferImageColorBasicTask
+  extends RCObject
   implements RCTransferTaskType<RCImageColorBasicType>
 {
   private final RCDeviceType device;
@@ -105,10 +109,7 @@ final class RCTransferImageColorBasicTask
   private final VulkanImageSubresourceRange imageSubresourceRange;
   private final RCTransferCommandBufferFactoryType commandBuffers;
   private final VulkanDebuggingType debugging;
-
-  @RCThread(GPU_TRANSFER)
-  private volatile VulkanCommandBufferType mainCommands;
-  private VulkanCommandBufferType otherCommands;
+  private VulkanCommandBufferType mainCommands;
 
   RCTransferImageColorBasicTask(
     final RCDeviceType inDevice,
@@ -136,7 +137,7 @@ final class RCTransferImageColorBasicTask
     this.transferQueue =
       this.device.transferQueue();
     this.targetQueue =
-      this.image2D.targetQueue();
+      inDevice.queueForCategory(this.image2D.targetQueue());
     this.vulkanDevice =
       inDevice.device();
     this.debugging =
@@ -199,7 +200,7 @@ final class RCTransferImageColorBasicTask
     final CloseableCollectionType<RocaroException> taskResources)
     throws VulkanException
   {
-    RCExecutors.checkThreadLabelsAny(TRANSFER_IO);
+    RCThreadLabels.checkThreadLabelsAny(TRANSFER_IO);
 
     final var width =
       this.image2D.size().x();
@@ -262,6 +263,8 @@ final class RCTransferImageColorBasicTask
   public RCImageColorBasicType execute()
     throws Exception
   {
+    RCThreadLabels.checkThreadLabelsAll(TRANSFER_IO);
+
     try {
       this.mainCommands =
         this.commandBuffers.commandBufferForQueue(
@@ -274,16 +277,13 @@ final class RCTransferImageColorBasicTask
         this.createCPUStagingBuffer(this.resources);
       final var imageR =
         this.createGPUTexture();
-      final var transferFences =
+      final var transferFuture =
         this.scheduleTransferCommands(imageR, stagingR);
 
-      transferFences.future.get(5L, TimeUnit.SECONDS);
+      transferFuture.get(5L, TimeUnit.SECONDS);
 
       final var imageView =
-        RCExecutors.executeAndWait(
-          this.device.executorForQueue(this.image2D.targetQueue()),
-          () -> this.createImageView(imageR.result())
-        );
+        this.createImageView(imageR.result());
 
       return new RCImageColorBasic(
         this.image2D.size(),
@@ -296,13 +296,10 @@ final class RCTransferImageColorBasicTask
     }
   }
 
-  @RCThread({GPU_COMPUTE, GPU_GRAPHICS, GPU_TRANSFER})
   private VulkanImageViewType createImageView(
     final VulkanImageType image)
     throws VulkanException
   {
-    RCExecutors.checkThreadLabelsAny(GPU_COMPUTE, GPU_GRAPHICS, GPU_TRANSFER);
-
     final var imageViewInfo =
       VulkanImageViewCreateInfo.builder()
         .setImage(image)
@@ -327,15 +324,8 @@ final class RCTransferImageColorBasicTask
     return imageView;
   }
 
-  private record Fences(
-    VulkanFenceType sourceFence,
-    Optional<VulkanFenceType> targetFence,
-    CompletableFuture<?> future)
-  {
-
-  }
-
-  private Fences scheduleTransferCommands(
+  @RCThread(TRANSFER_IO)
+  private CompletableFuture<?> scheduleTransferCommands(
     final VMAAllocationResult<VulkanImageType> gpuImageResult,
     final VMAAllocationResult<VulkanBufferType> stagingBufferResult)
     throws VulkanException, RocaroException
@@ -358,7 +348,8 @@ final class RCTransferImageColorBasicTask
     }
   }
 
-  private Fences scheduleTransferCommandsMultiQueue(
+  @RCThread(TRANSFER_IO)
+  private CompletableFuture<?> scheduleTransferCommandsMultiQueue(
     final VMAAllocationResult<VulkanImageType> gpuImageResult,
     final VMAAllocationResult<VulkanBufferType> stagingBufferResult)
     throws VulkanException, RocaroException
@@ -370,7 +361,7 @@ final class RCTransferImageColorBasicTask
     final var finalLayout =
       this.image2D.finalLayout();
 
-    this.otherCommands =
+    final var otherCommands =
       this.commandBuffers.commandBufferForQueue(
         this.resources,
         this.targetQueue,
@@ -378,43 +369,28 @@ final class RCTransferImageColorBasicTask
       );
 
     /*
-     * Create two fences that will be used to determine when the entire image
-     * transfer is completed. The fences will ultimately be monitored by
-     * the fence service. We need two fences because we have to make submissions
-     * to two different queues.
+     * Create a semaphore that will be used to execute the commands on
+     * the graphics queue after the commands on the transfer queue.
      */
 
-    final var fenceInfo =
-      VulkanFenceCreateInfo.builder()
-        .build();
+    final var semaphore =
+      this.resources.add(this.vulkanDevice.createBinarySemaphore());
+    this.debugging.setObjectName(semaphore, "TransferSemaphore");
 
-    final var fence0 =
-      this.vulkanDevice.createFence(fenceInfo);
+    /*
+     * Create a fence that will be used to determine when the entire image
+     * transfer is completed.
+     */
 
-    this.debugging.setObjectName(fence0, "TransferFence[Transfer]");
+    final var fence =
+      this.resources.add(this.vulkanDevice.createFence());
+    this.debugging.setObjectName(fence, "TransferFence[Transfer]");
 
-    this.resources.add(() -> {
-      RCExecutors.executeAndWait(
-        this.device.transferExecutor(),
-        () -> {
-          fence0.close();
-          return UNIT;
-        });
-    });
-
-    final var fence1 =
-      this.vulkanDevice.createFence(fenceInfo);
-
-    this.debugging.setObjectName(fence0, "TransferFence[Target]");
-
-    this.resources.add(() -> {
-      RCExecutors.executeAndWait(
-        this.device.executorForQueue(this.targetQueue),
-        () -> {
-          fence1.close();
-          return UNIT;
-        });
-    });
+    /*
+     * Record the commands that will be executed by the transfer queue.
+     * This is, essentially, "copy the image data and transition it to the
+     * final layout".
+     */
 
     try (final var _ =
            this.debugging.begin(this.mainCommands, "TransferQueueUpload")) {
@@ -428,26 +404,36 @@ final class RCTransferImageColorBasicTask
        * destination of a transfer operation.
        */
 
-      final var preCopyTransitionBarrier =
-        VulkanImageMemoryBarrier.builder()
-          .setSourceQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
-          .setTargetQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
-          .setImage(gpuImageResult.result())
-          .setSubresourceRange(this.imageSubresourceRange)
-          .setSourceAccessMask(Set.of())
-          .setTargetAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
-          .setOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-          .setNewLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-          .build();
+      {
+        final var srcStageMask =
+          Set.<VulkanPipelineStageFlag>of();
+        final var srcAccessMask =
+          Set.<VulkanAccessFlag>of();
+        final var dstStageMask =
+          Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT);
+        final var dstAccessMask =
+          Set.of(VK_ACCESS_TRANSFER_WRITE_BIT);
 
-      this.mainCommands.pipelineBarrier(
-        Set.of(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT),
-        Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT),
-        Set.of(),
-        List.of(),
-        List.of(),
-        List.of(preCopyTransitionBarrier)
-      );
+        final var preCopyTransitionBarrier =
+          VulkanImageMemoryBarrier.builder()
+            .setSrcAccessMask(srcAccessMask)
+            .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+            .setSrcStageMask(srcStageMask)
+            .setDstAccessMask(dstAccessMask)
+            .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+            .setDstStageMask(dstStageMask)
+            .setImage(gpuImageResult.result())
+            .setOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+            .setNewLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+            .setSubresourceRange(this.imageSubresourceRange)
+            .build();
+
+        this.mainCommands.pipelineBarrier(
+          VulkanDependencyInfo.builder()
+            .addImageMemoryBarriers(preCopyTransitionBarrier)
+            .build()
+        );
+      }
 
       /*
        * Copy the contents of the CPU-side staging buffer into the image.
@@ -482,89 +468,136 @@ final class RCTransferImageColorBasicTask
        * a barrier on both queues.
        */
 
-      final var postCopyTransitionBarrier0 =
-        VulkanImageMemoryBarrier.builder()
-          .setSourceQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
-          .setTargetQueueFamilyIndex(this.targetQueue.queueFamilyIndex())
-          .setImage(gpuImageResult.result())
-          .setSubresourceRange(this.imageSubresourceRange)
-          .setSourceAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
-          .setTargetAccessMask(Set.of())
-          .setOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-          .setNewLayout(finalLayout)
-          .build();
+      {
+        final var srcAccessMask =
+          Set.of(VK_ACCESS_TRANSFER_WRITE_BIT);
+        final var srcStageMask =
+          Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT);
+        final var dstAccessMask =
+          Set.<VulkanAccessFlag>of();
+        final var dstStageMask =
+          Set.<VulkanPipelineStageFlag>of();
 
-      this.mainCommands.pipelineBarrier(
-        Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT),
-        Set.of(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT),
-        Set.of(),
-        List.of(),
-        List.of(),
-        List.of(postCopyTransitionBarrier0)
-      );
+        final var postCopyTransitionBarrier0 =
+          VulkanImageMemoryBarrier.builder()
+            .setSrcAccessMask(srcAccessMask)
+            .setSrcQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
+            .setSrcStageMask(srcStageMask)
+            .setDstAccessMask(dstAccessMask)
+            .setDstQueueFamilyIndex(this.targetQueue.queueFamilyIndex())
+            .setDstStageMask(dstStageMask)
+            .setImage(gpuImageResult.result())
+            .setOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+            .setNewLayout(finalLayout)
+            .setSubresourceRange(this.imageSubresourceRange)
+            .build();
+
+        this.mainCommands.pipelineBarrier(
+          VulkanDependencyInfo.builder()
+            .addImageMemoryBarriers(postCopyTransitionBarrier0)
+            .build()
+        );
+      }
+
       this.mainCommands.endCommandBuffer();
     }
+
+    /*
+     * Put together the work submission for the transfer queue. The work
+     * will signal the given semaphore when it completes.
+     */
+
+    final var transferSemaphoreSubmission =
+      VulkanSemaphoreSubmitInfo.builder()
+        .setSemaphore(semaphore)
+        .addStageMask(VK_PIPELINE_STAGE_TRANSFER_BIT)
+        .build();
+
+    final var transferCommandSubmission =
+      VulkanCommandBufferSubmitInfo.builder()
+        .setCommandBuffer(this.mainCommands)
+        .build();
+
+    final var transferSubmission =
+      VulkanSubmitInfo.builder()
+        .addCommandBuffers(transferCommandSubmission)
+        .addSignalSemaphores(transferSemaphoreSubmission)
+        .build();
+
+    /*
+     * Record the commands that will be executed by the graphics queue.
+     * This is merely one half of an ownership transfer.
+     */
 
     try (final var _ =
            this.debugging.begin(this.mainCommands, "GraphicsQueueUpload")) {
 
       final var postCopyTransitionBarrier1 =
         VulkanImageMemoryBarrier.builder()
-          .setSourceQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
-          .setTargetQueueFamilyIndex(this.targetQueue.queueFamilyIndex())
+          .setSrcStageMask(Set.of())
+          .setSrcAccessMask(Set.of())
+          .setSrcQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
+          .setDstStageMask(Set.of(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT))
+          .setDstAccessMask(Set.of(VK_ACCESS_SHADER_READ_BIT))
+          .setDstQueueFamilyIndex(this.targetQueue.queueFamilyIndex())
           .setImage(gpuImageResult.result())
           .setSubresourceRange(this.imageSubresourceRange)
-          .setSourceAccessMask(Set.of())
-          .setTargetAccessMask(Set.of(VK_ACCESS_SHADER_READ_BIT))
           .setOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
           .setNewLayout(finalLayout)
           .build();
 
-      this.otherCommands.beginCommandBuffer(
+      otherCommands.beginCommandBuffer(
         VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
       );
-      this.otherCommands.pipelineBarrier(
-        Set.of(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT),
-        Set.of(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT),
-        Set.of(),
-        List.of(),
-        List.of(),
-        List.of(postCopyTransitionBarrier1)
+      otherCommands.pipelineBarrier(
+        VulkanDependencyInfo.builder()
+          .addImageMemoryBarriers(postCopyTransitionBarrier1)
+          .build()
       );
-      this.otherCommands.endCommandBuffer();
+      otherCommands.endCommandBuffer();
     }
 
-    this.device.transferSubmitWithFence(
-      fence0,
-      this.mainCommands
+    /*
+     * Put together the work submission for the graphics queue. The work
+     * will wait on the transfer semaphore before executing, and will signal
+     * the given fence when completed.
+     */
+
+    final var graphicsCommandSubmission =
+      VulkanCommandBufferSubmitInfo.builder()
+        .setCommandBuffer(otherCommands)
+        .build();
+
+    final var graphicsSemaphoreSubmission =
+      VulkanSemaphoreSubmitInfo.builder()
+        .setSemaphore(semaphore)
+        .build();
+
+    final var graphicsSubmission =
+      VulkanSubmitInfo.builder()
+        .addCommandBuffers(graphicsCommandSubmission)
+        .addWaitSemaphores(graphicsSemaphoreSubmission)
+        .build();
+
+    this.device.submit(
+      TRANSFER,
+      List.of(transferSubmission),
+      Optional.empty()
     );
-    this.device.submitWithFence(
-      this.device.categoryForQueue(this.targetQueue),
-      fence1,
-      this.otherCommands
+    this.device.submit(
+      GRAPHICS,
+      List.of(graphicsSubmission),
+      Optional.of(fence)
     );
 
-    final var future0 =
-      this.fences.registerTransferFence(fence0);
-
-    final var future1 =
-      switch (this.device.categoryForQueue(this.targetQueue)) {
-        case COMPUTE -> this.fences.registerComputeFence(fence1);
-        case GRAPHICS -> this.fences.registerGraphicsFence(fence1);
-        case TRANSFER -> this.fences.registerTransferFence(fence1);
-      };
-
-    return new Fences(
-      fence0,
-      Optional.of(fence1),
-      CompletableFuture.allOf(future0, future1)
-    );
+    return this.fences.registerTransferFence(fence);
   }
 
-  private Fences scheduleTransferCommandsSingleQueue(
+  @RCThread(TRANSFER_IO)
+  private CompletableFuture<?> scheduleTransferCommandsSingleQueue(
     final VMAAllocationResult<VulkanImageType> gpuImageResult,
     final VMAAllocationResult<VulkanBufferType> stagingBufferResult)
-    throws VulkanException, RocaroException
+    throws VulkanException
   {
     final var width =
       this.image2D.size().x();
@@ -579,19 +612,9 @@ final class RCTransferImageColorBasicTask
      * the fence service.
      */
 
-    final var fenceInfo =
-      VulkanFenceCreateInfo.builder()
-        .build();
-
     final var fence =
-      this.vulkanDevice.createFence(fenceInfo);
-
-    this.resources.add(() -> {
-      RCExecutors.executeAndWait(this.device.transferExecutor(), () -> {
-        fence.close();
-        return UNIT;
-      });
-    });
+      this.resources.add(this.vulkanDevice.createFence());
+    this.debugging.setObjectName(fence, "TransferFence");
 
     try (final var _ =
            this.debugging.begin(this.mainCommands, "TransferQueueUpload")) {
@@ -607,23 +630,22 @@ final class RCTransferImageColorBasicTask
 
       final var preCopyTransitionBarrier =
         VulkanImageMemoryBarrier.builder()
-          .setSourceQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
-          .setTargetQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
+          .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+          .setSrcStageMask(Set.of())
+          .setSrcAccessMask(Set.of())
+          .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+          .setDstAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
+          .setDstStageMask(Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT))
           .setImage(gpuImageResult.result())
           .setSubresourceRange(this.imageSubresourceRange)
-          .setSourceAccessMask(Set.of())
-          .setTargetAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
           .setOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
           .setNewLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
           .build();
 
       this.mainCommands.pipelineBarrier(
-        Set.of(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT),
-        Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT),
-        Set.of(),
-        List.of(),
-        List.of(),
-        List.of(preCopyTransitionBarrier)
+        VulkanDependencyInfo.builder()
+          .addImageMemoryBarriers(preCopyTransitionBarrier)
+          .build()
       );
 
       /*
@@ -661,41 +683,52 @@ final class RCTransferImageColorBasicTask
 
       final var postCopyTransitionBarrier =
         VulkanImageMemoryBarrier.builder()
-          .setSourceQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
-          .setTargetQueueFamilyIndex(this.transferQueue.queueFamilyIndex())
+          .setSrcAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
+          .setSrcStageMask(Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT))
+          .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+          .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+          .setDstAccessMask(Set.of(VK_ACCESS_SHADER_READ_BIT))
+          .setDstStageMask(Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT))
           .setImage(gpuImageResult.result())
           .setSubresourceRange(this.imageSubresourceRange)
-          .setSourceAccessMask(Set.of(VK_ACCESS_TRANSFER_WRITE_BIT))
-          .setTargetAccessMask(Set.of(VK_ACCESS_SHADER_READ_BIT))
           .setOldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
           .setNewLayout(finalLayout)
           .build();
 
       this.mainCommands.pipelineBarrier(
-        Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT),
-        Set.of(VK_PIPELINE_STAGE_TRANSFER_BIT),
-        Set.of(),
-        List.of(),
-        List.of(),
-        List.of(postCopyTransitionBarrier)
+        VulkanDependencyInfo.builder()
+          .addImageMemoryBarriers(postCopyTransitionBarrier)
+          .build()
       );
 
       this.mainCommands.endCommandBuffer();
     }
 
-    this.device.transferSubmitWithFence(fence, this.mainCommands);
+    final var commandSubmission =
+      VulkanCommandBufferSubmitInfo.builder()
+        .setCommandBuffer(this.mainCommands)
+        .build();
 
-    return new Fences(
-      fence,
-      Optional.empty(),
-      this.fences.registerTransferFence(fence)
+    final var submission =
+      VulkanSubmitInfo.builder()
+        .addCommandBuffers(commandSubmission)
+        .build();
+
+    this.device.submit(
+      this.targetQueue,
+      List.of(submission),
+      Optional.of(fence)
     );
+
+    return this.fences.registerTransferFence(fence);
   }
 
+  @RCThread(GPU)
   @Override
   public void close()
     throws RocaroException
   {
+    RCThreadLabels.checkThreadLabelsAny(GPU);
     this.resources.close();
   }
 }

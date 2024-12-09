@@ -17,11 +17,16 @@
 
 package com.io7m.rocaro.vanilla.internal.graph;
 
+import com.io7m.jcoronado.api.VulkanAccessFlag;
+import com.io7m.jcoronado.api.VulkanCommandBufferSubmitInfo;
+import com.io7m.jcoronado.api.VulkanDependencyInfo;
 import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanImageAspectFlag;
 import com.io7m.jcoronado.api.VulkanImageLayout;
 import com.io7m.jcoronado.api.VulkanImageMemoryBarrier;
 import com.io7m.jcoronado.api.VulkanImageSubresourceRange;
+import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
+import com.io7m.jcoronado.api.VulkanSemaphoreSubmitInfo;
 import com.io7m.jcoronado.api.VulkanSubmitInfo;
 import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RCUnit;
@@ -45,8 +50,9 @@ import java.util.Set;
 import static com.io7m.jcoronado.api.VulkanAccessFlag.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 import static com.io7m.jcoronado.api.VulkanCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 import static com.io7m.jcoronado.api.VulkanCommandBufferUsageFlag.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_NONE;
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 
 /**
  * The frame target.
@@ -133,45 +139,77 @@ public final class RCFrameTarget
 
       try (final var _ =
              debugging.begin(commands, "FramePresentation")) {
+
+        final var srcAccessMask =
+          Set.of(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+        final var srcStageMask =
+          Set.of(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        final var dstAccessMask =
+          Set.<VulkanAccessFlag>of();
+        final var dstStageMask =
+          Set.of(VK_PIPELINE_STAGE_NONE);
+
+        final var subresourceRange =
+          VulkanImageSubresourceRange.of(
+            Set.of(VulkanImageAspectFlag.VK_IMAGE_ASPECT_COLOR_BIT),
+            0,
+            1,
+            0,
+            1
+          );
+
         final var imageBarrier =
           VulkanImageMemoryBarrier.builder()
-            .setSourceAccessMask(Set.of(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
-            .setTargetAccessMask(Set.of())
+            .setSrcAccessMask(srcAccessMask)
+            .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+            .setSrcStageMask(srcStageMask)
+            .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
+            .setDstStageMask(dstStageMask)
+            .setDstAccessMask(dstAccessMask)
             .setOldLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_UNDEFINED)
             .setNewLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-            .setSourceQueueFamilyIndex(device.graphicsQueue().queueFamilyIndex())
-            .setTargetQueueFamilyIndex(device.graphicsQueue().queueFamilyIndex())
             .setImage(windowContext.image().data())
-            .setSubresourceRange(VulkanImageSubresourceRange.of(
-              Set.of(VulkanImageAspectFlag.VK_IMAGE_ASPECT_COLOR_BIT),
-              0,
-              1,
-              0,
-              1
-            ))
+            .setSubresourceRange(subresourceRange)
             .build();
 
-        commands.beginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        commands.beginCommandBuffer(
+          VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
         commands.pipelineBarrier(
-          Set.of(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT),
-          Set.of(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT),
-          Set.of(),
-          List.of(),
-          List.of(),
-          List.of(imageBarrier)
+          VulkanDependencyInfo.builder()
+            .addImageMemoryBarriers(imageBarrier)
+            .build()
         );
         commands.endCommandBuffer();
       }
 
-      device.graphicsQueue()
-        .submit(List.of(
-          VulkanSubmitInfo.builder()
-            .addCommandBuffers(commands)
-            .addWaitSemaphores(windowContext.imageIsReady())
-            .addWaitStageMasks(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-            .addSignalSemaphores(windowContext.imageRenderingIsFinished())
-            .build()
-        ), Optional.of(windowContext.imageRenderingIsFinishedFence()));
+      final var commandSubmitInfo =
+        VulkanCommandBufferSubmitInfo.builder()
+          .setCommandBuffer(commands)
+          .build();
+
+      final var waitSemaphores =
+        VulkanSemaphoreSubmitInfo.builder()
+          .addStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+          .setSemaphore(windowContext.imageIsReady())
+          .build();
+
+      final var signalSemaphores =
+        VulkanSemaphoreSubmitInfo.builder()
+          .setSemaphore(windowContext.imageRenderingIsFinished())
+          .build();
+
+      final var submission =
+        VulkanSubmitInfo.builder()
+          .addCommandBuffers(commandSubmitInfo)
+          .addWaitSemaphores(waitSemaphores)
+          .addSignalSemaphores(signalSemaphores)
+          .build();
+
+      device.submit(
+        GRAPHICS,
+        List.of(submission),
+        Optional.of(windowContext.imageRenderingIsFinishedFence())
+      );
 
       windowContext.present();
     } catch (final VulkanException e) {

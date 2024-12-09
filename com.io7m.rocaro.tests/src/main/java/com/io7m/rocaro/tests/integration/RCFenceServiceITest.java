@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.tests.integration;
 
+import com.io7m.jcoronado.api.VulkanCommandBufferSubmitInfo;
 import com.io7m.jcoronado.api.VulkanCommandPoolCreateInfo;
 import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanFenceCreateInfo;
@@ -39,6 +40,7 @@ import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
 import com.io7m.rocaro.vanilla.internal.fences.RCFenceServiceType;
+import com.io7m.rocaro.vanilla.internal.threading.RCExecutorType;
 import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
 import org.junit.jupiter.api.AfterEach;
@@ -52,6 +54,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -130,7 +133,7 @@ public final class RCFenceServiceITest
     throws Exception
   {
     this.executeFenceSignalled(
-      this.device.transferExecutor(),
+      (RCExecutorType) this.device.gpuExecutor(),
       this.device.transferQueue(),
       this.fences::registerTransferFence
     );
@@ -141,7 +144,7 @@ public final class RCFenceServiceITest
     throws Exception
   {
     this.executeFenceSignalled(
-      this.device.computeExecutor(),
+      (RCExecutorType) this.device.gpuExecutor(),
       this.device.computeQueue(),
       this.fences::registerComputeFence
     );
@@ -152,48 +155,42 @@ public final class RCFenceServiceITest
     throws Exception
   {
     this.executeFenceSignalled(
-      this.device.graphicsExecutor(),
+      (RCExecutorType) this.device.gpuExecutor(),
       this.device.graphicsQueue(),
       this.fences::registerGraphicsFence
     );
   }
 
   private void executeFenceSignalled(
-    final ExecutorService executor,
+    final RCExecutorType executor,
     final VulkanQueueType queue,
     final Function<VulkanFenceType, CompletableFuture<?>> register)
     throws Exception
   {
     final var commandPool =
-      this.device.registerTransferResource(
-        RCExecutors.executeAndWait(
-          executor,
-          () -> {
-            LOG.debug("Creating command pool…");
-            return this.vulkanDevice.createCommandPool(
-              VulkanCommandPoolCreateInfo.builder()
-                .setQueueFamilyIndex(queue.queueFamilyIndex())
-                .build()
-            );
-          }
-        )
+      this.device.registerResource(
+        executor.executeAndWait(() -> {
+          LOG.debug("Creating command pool…");
+          return this.vulkanDevice.createCommandPool(
+            VulkanCommandPoolCreateInfo.builder()
+              .setQueueFamilyIndex(queue.queueFamilyIndex())
+              .build()
+          );
+        })
       );
 
     this.vulkanDevice.debugging()
       .setObjectName(commandPool, "CommandPool[FenceTest]");
 
     final var fence =
-      this.device.registerTransferResource(
-        RCExecutors.executeAndWait(
-          executor,
-          () -> {
-            LOG.debug("Creating fence…");
-            return this.vulkanDevice.createFence(
-              VulkanFenceCreateInfo.builder()
-                .build()
-            );
-          }
-        )
+      this.device.registerResource(
+        executor.executeAndWait(() -> {
+          LOG.debug("Creating fence…");
+          return this.vulkanDevice.createFence(
+            VulkanFenceCreateInfo.builder()
+              .build()
+          );
+        })
       );
 
     this.vulkanDevice.debugging()
@@ -215,7 +212,7 @@ public final class RCFenceServiceITest
         this.vulkanDevice.debugging()
           .setObjectName(cmd, "CommandBuffer[FenceTest]");
 
-        this.device.registerTransferResource(cmd);
+        this.device.registerResource(cmd);
         cmd.beginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
         cmd.endCommandBuffer();
 
@@ -223,7 +220,11 @@ public final class RCFenceServiceITest
         queue.submit(
           List.of(
             VulkanSubmitInfo.builder()
-              .addCommandBuffers(cmd)
+              .addCommandBuffers(
+                VulkanCommandBufferSubmitInfo.builder()
+                  .setCommandBuffer(cmd)
+                  .build()
+              )
               .build()
           ),
           Optional.of(fence)
@@ -239,7 +240,7 @@ public final class RCFenceServiceITest
      */
 
     Thread.sleep(1_000L);
-    this.renderer.execute(_ -> {
+    this.renderer.executeFrame(_ -> {
 
     });
     Thread.sleep(1_000L);

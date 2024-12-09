@@ -52,6 +52,9 @@ import com.io7m.rocaro.vanilla.internal.RCGLFWFacadeType;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCVersions;
+import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
+import com.io7m.rocaro.vanilla.internal.threading.RCThread;
+import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindows;
 import com.io7m.verona.core.Version;
@@ -74,6 +77,7 @@ import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_VULKAN_VE
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_VULKAN_VERSION_UNSUPPORTED_REMEDIATION;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.VERSION_PROVIDED;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.VERSION_REQUIRED;
+import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
 
 /**
  * The Vulkan portion of the renderer.
@@ -138,6 +142,7 @@ public final class RCVulkanRenderer
    * The Vulkan portion of the renderer.
    *
    * @param services               The service directory
+   * @param executors              The standard executors
    * @param versions               The versions
    * @param glfw                   The GLFW facade
    * @param configuration          The configuration
@@ -152,6 +157,7 @@ public final class RCVulkanRenderer
 
   public static RCVulkanRendererType create(
     final RPServiceDirectoryType services,
+    final RCStandardExecutors executors,
     final RCVersions versions,
     final RCGLFWFacadeType glfw,
     final RendererVulkanConfiguration configuration,
@@ -161,6 +167,7 @@ public final class RCVulkanRenderer
     throws RocaroException
   {
     Objects.requireNonNull(services, "services");
+    Objects.requireNonNull(executors, "executors");
     Objects.requireNonNull(glfw, "glfw");
     Objects.requireNonNull(versions, "versions");
     Objects.requireNonNull(configuration, "configuration");
@@ -225,7 +232,7 @@ public final class RCVulkanRenderer
           hostAllocatorTracker
         );
       } catch (final VulkanException e) {
-        throw RCVulkanException.wrap(strings, e);
+        throw RCVulkanException.wrap(e);
       }
       LOG.debug("Created Vulkan instance.");
 
@@ -262,6 +269,7 @@ public final class RCVulkanRenderer
         resources.add(
           RCLogicalDevices.create(
             strings,
+            executors,
             configuration,
             physicalDevice,
             windowWithSurface,
@@ -350,7 +358,7 @@ public final class RCVulkanRenderer
         )
       );
     } catch (final VulkanException e) {
-      throw RCVulkanException.wrap(strings, e);
+      throw RCVulkanException.wrap(e);
     }
   }
 
@@ -476,7 +484,7 @@ public final class RCVulkanRenderer
 
       return enable;
     } catch (final VulkanException e) {
-      throw RCVulkanException.wrap(strings, e);
+      throw RCVulkanException.wrap(e);
     }
   }
 
@@ -538,7 +546,7 @@ public final class RCVulkanRenderer
 
       return enable;
     } catch (final VulkanException e) {
-      throw RCVulkanException.wrap(strings, e);
+      throw RCVulkanException.wrap(e);
     }
   }
 
@@ -669,11 +677,14 @@ public final class RCVulkanRenderer
     return "Vulkan renderer service.";
   }
 
+  @RCThread(GPU)
   @Override
   public void close()
     throws RocaroException
   {
     LOG.debug("Close");
+
+    RCThreadLabels.checkThreadLabelsAny(GPU);
     this.resources.close();
   }
 

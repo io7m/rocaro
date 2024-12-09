@@ -74,7 +74,7 @@ public interface RendererType
    * @throws RocaroException On errors
    */
 
-  void execute(
+  void executeFrame(
     RendererFrameBuilderProcedureType f)
     throws RocaroException;
 }

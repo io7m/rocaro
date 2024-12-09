@@ -21,26 +21,39 @@ import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
 import com.io7m.quarrel.core.QCommandContextType;
 import com.io7m.quarrel.core.QCommandStatus;
 import com.io7m.quarrel.core.QParameterNamedType;
+import com.io7m.rocaro.api.RCFrameIndex;
+import com.io7m.rocaro.api.RCFrameInformation;
+import com.io7m.rocaro.api.RCFrameNumber;
 import com.io7m.rocaro.api.RendererFactoryType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
+import com.io7m.rocaro.api.transfers.RCTransferImageColorBasic;
+import com.io7m.rocaro.api.transfers.RCTransferServiceType;
+import com.io7m.rocaro.vanilla.internal.frames.RCFrameServiceType;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import static com.io7m.jcoronado.api.VulkanFormat.VK_FORMAT_R8_UNORM;
+import static com.io7m.jcoronado.api.VulkanImageLayout.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 
 /**
  * A demo.
  */
 
-public final class RCDemoStartup
+public final class RCDemoTransferImage
   extends RCDemoAbstract
 {
   /**
    * A demo.
    */
 
-  public RCDemoStartup()
+  public RCDemoTransferImage()
   {
-    super("startup", "Start up the renderer and do nothing.");
+    super("transfer-image", "Test image transfers.");
   }
 
   @Override
@@ -65,8 +78,40 @@ public final class RCDemoStartup
 
     builder.setVulkanConfiguration(this.vulkanConfiguration(context));
 
-    try (final var _ = builder.start()) {
-      // Nothing to do.
+    try (final var r = builder.start()) {
+      final var transfers =
+        r.requireService(RCTransferServiceType.class);
+      final var frames =
+        r.requireService(RCFrameServiceType.class);
+
+      frames.beginNewFrame(new RCFrameInformation(
+        new RCFrameNumber(BigInteger.ZERO),
+        new RCFrameIndex(0)
+      ));
+
+      final var future =
+        transfers.transfer(
+          RCTransferImageColorBasic.builder()
+            .setFinalLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+            .setFormat(VK_FORMAT_R8_UNORM)
+            .setId(UUID.randomUUID())
+            .setName("example-image")
+            .setSize(Vector2I.of(128, 128))
+            .setTargetQueue(GRAPHICS)
+            .setDataCopier(target -> target.fill((byte) 0x7f))
+            .build()
+        );
+
+      this.framePause();
+
+      frames.beginNewFrame(new RCFrameInformation(
+        new RCFrameNumber(BigInteger.ONE),
+        new RCFrameIndex(1)
+      ));
+
+      final var i = future.get(2L, TimeUnit.SECONDS);
+      final var logger = this.logger();
+      logger.debug("Transfer future complete: Image {}", i);
     }
 
     return QCommandStatus.SUCCESS;

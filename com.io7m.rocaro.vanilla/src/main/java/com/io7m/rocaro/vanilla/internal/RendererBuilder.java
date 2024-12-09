@@ -25,8 +25,10 @@ import com.io7m.jdeferthrow.core.ExceptionTracker;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.repetoir.core.RPServiceDirectory;
 import com.io7m.repetoir.core.RPServiceType;
+import com.io7m.rocaro.api.RCCloseableGPUType;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCRendererID;
+import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.RendererBuilderType;
 import com.io7m.rocaro.api.RendererType;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
@@ -52,7 +54,7 @@ import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescription;
 import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescriptionBuilder;
 import com.io7m.rocaro.vanilla.internal.renderdoc.RCRenderDocService;
 import com.io7m.rocaro.vanilla.internal.renderdoc.RCRenderDocServiceType;
-import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
+import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
 import com.io7m.rocaro.vanilla.internal.transfers.RCTransferService;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRenderer;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
@@ -66,13 +68,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.io7m.rocaro.api.RCStandardErrorCodes.DUPLICATE_GRAPH;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_GRAPH_NAME_ALREADY_USED;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.GRAPH;
-import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.MAIN;
 
 /**
  * A renderer builder.
@@ -195,24 +195,24 @@ public final class RendererBuilder
   {
     final var id =
       new RCRendererID(freshID());
-    final var mainExecutor =
-      RCExecutors.createPlatformExecutor("main", id, MAIN);
+    final var executors =
+      RCStandardExecutors.create(this.strings, id);
 
     try {
-      return RCExecutors.executeAndWait(mainExecutor, () -> {
+      return executors.mainExecutor().executeAndWait(() -> {
         LOG.debug("Starting renderer.");
-        return this.createRenderer(id, mainExecutor);
+        return this.createRenderer(id, executors);
       });
     } catch (final Exception e) {
-      mainExecutor.close();
+      executors.close();
       throw e;
     }
   }
 
   private Renderer createRenderer(
     final RCRendererID rendererId,
-    final ScheduledExecutorService mainExecutor)
-    throws Throwable
+    final RCStandardExecutors executors)
+    throws Exception
   {
     final var exceptions =
       new ExceptionTracker<RocaroException>();
@@ -225,6 +225,7 @@ public final class RendererBuilder
       createService(
         exceptions,
         services,
+        executors,
         resources,
         RCStrings.class,
         () -> this.strings
@@ -233,6 +234,7 @@ public final class RendererBuilder
       createService(
         exceptions,
         services,
+        executors,
         resources,
         RCAssetResolverType.class,
         () -> this.resolver
@@ -241,6 +243,7 @@ public final class RendererBuilder
       createService(
         exceptions,
         services,
+        executors,
         resources,
         RCAssetLoaderDirectoryType.class,
         () -> this.loaders
@@ -249,6 +252,7 @@ public final class RendererBuilder
       createService(
         exceptions,
         services,
+        executors,
         resources,
         RCFrameServiceType.class,
         RCFrameService::create
@@ -258,6 +262,7 @@ public final class RendererBuilder
         createService(
           exceptions,
           services,
+          executors,
           resources,
           RCRenderDocServiceType.class,
           RCRenderDocService::create
@@ -266,6 +271,7 @@ public final class RendererBuilder
         createService(
           exceptions,
           services,
+          executors,
           resources,
           RCRenderDocServiceType.class,
           RCRenderDocService::createNoOp
@@ -287,9 +293,17 @@ public final class RendererBuilder
       createService(
         exceptions,
         services,
+        executors,
         resources,
         RCVulkanRendererType.class,
-        () -> this.buildVulkanRenderer(services, featuresRequired, rendererId)
+        () -> {
+          return this.buildVulkanRenderer(
+            services,
+            executors,
+            featuresRequired,
+            rendererId
+          );
+        }
       );
 
       /*
@@ -301,6 +315,7 @@ public final class RendererBuilder
       createService(
         exceptions,
         services,
+        executors,
         resources,
         RCFenceServiceType.class,
         () -> RCFenceService.create(services)
@@ -309,6 +324,7 @@ public final class RendererBuilder
       createService(
         exceptions,
         services,
+        executors,
         resources,
         RCTransferServiceType.class,
         () -> RCTransferService.create(services)
@@ -317,6 +333,7 @@ public final class RendererBuilder
       createService(
         exceptions,
         services,
+        executors,
         resources,
         RCAssetServiceType.class,
         () -> {
@@ -335,12 +352,12 @@ public final class RendererBuilder
       return new Renderer(
         services,
         services.requireService(RCStrings.class),
+        executors,
         services.requireService(RCVulkanRendererType.class),
         services.requireService(RCFrameServiceType.class),
         resources,
         builtGraphDescriptions,
         instantiatedGraphs,
-        mainExecutor,
         rendererId
       );
 
@@ -359,6 +376,7 @@ public final class RendererBuilder
   private static <T extends RPServiceType> void createService(
     final ExceptionTracker<RocaroException> tracker,
     final RPServiceDirectory services,
+    final RCStandardExecutors executors,
     final CloseableCollectionType<RocaroException> resources,
     final Class<T> clazz,
     final ServiceConstructorType<T> callable)
@@ -367,7 +385,16 @@ public final class RendererBuilder
       LOG.debug("Creating service {}", clazz);
       final var service = callable.execute();
       if (service instanceof final RCCloseableType closeable) {
-        resources.add(closeable);
+        if (closeable instanceof final RCCloseableGPUType gpuCloseable) {
+          resources.add(() -> {
+            executors.gpuExecutor().executeAndWait(() -> {
+              gpuCloseable.close();
+              return RCUnit.UNIT;
+            });
+          });
+        } else {
+          resources.add(closeable);
+        }
       }
       services.register(clazz, service);
     } catch (final RocaroException e) {
@@ -393,6 +420,7 @@ public final class RendererBuilder
 
   private RCVulkanRendererType buildVulkanRenderer(
     final RPServiceDirectory services,
+    final RCStandardExecutors executors,
     final VulkanPhysicalDeviceFeatures requiredDeviceFeatures,
     final RCRendererID rendererId)
     throws RocaroException
@@ -400,6 +428,7 @@ public final class RendererBuilder
     final var renderer =
       RCVulkanRenderer.create(
         services,
+        executors,
         this.versions,
         this.glfw,
         this.vulkanConfiguration,

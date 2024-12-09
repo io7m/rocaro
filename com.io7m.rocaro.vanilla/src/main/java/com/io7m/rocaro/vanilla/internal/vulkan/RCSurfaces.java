@@ -98,7 +98,7 @@ public final class RCSurfaces
         }
       };
     } catch (final VulkanException e) {
-      throw RCVulkanException.wrap(strings, e);
+      throw RCVulkanException.wrap(e);
     }
   }
 
