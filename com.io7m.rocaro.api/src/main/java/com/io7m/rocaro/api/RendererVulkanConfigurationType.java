@@ -20,6 +20,7 @@ package com.io7m.rocaro.api;
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import com.io7m.jcoronado.api.VulkanInstanceProviderType;
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationSettingType;
+import com.io7m.jcoronado.layers.lunarg_api_dump.api.VulkanAPIDumpSettingType;
 import com.io7m.jcoronado.vma.VMAAllocatorProviderType;
 import com.io7m.rocaro.api.devices.RCDeviceSelectionAny;
 import com.io7m.rocaro.api.devices.RCDeviceSelectionType;
@@ -93,6 +94,14 @@ public interface RendererVulkanConfigurationType
    */
 
   Set<VulkanValidationSettingType> enableValidation();
+
+  /**
+   * @return Enable API dump
+   *
+   * @see "https://vulkan.lunarg.com/doc/view/latest/linux/api_dump_layer.html"
+   */
+
+  Set<VulkanAPIDumpSettingType> enableAPIDump();
 
   /**
    * @return The optional layers to enable if they are present

@@ -38,6 +38,7 @@ module com.io7m.rocaro.vanilla
   requires com.io7m.jcoronado.extensions.ext_layer_settings.api;
   requires com.io7m.jcoronado.extensions.khr.surface.api;
   requires com.io7m.jcoronado.layers.khronos_validation.api;
+  requires com.io7m.jcoronado.layers.lunarg_api_dump.api;
   requires com.io7m.jcoronado.lwjgl;
   requires com.io7m.jcoronado.vma;
   requires com.io7m.jdeferthrow.core;
@@ -47,14 +48,14 @@ module com.io7m.rocaro.vanilla
   requires com.io7m.jxtrand.api;
   requires com.io7m.jxtrand.vanilla;
   requires com.io7m.lanark.core;
+  requires com.io7m.renderdoc_jffm.core;
   requires com.io7m.repetoir.core;
+  requires com.io7m.seltzer.api;
   requires com.io7m.verona.core;
   requires jdk.jfr;
   requires org.jgrapht.core;
   requires org.lwjgl.glfw;
   requires org.slf4j;
-  requires com.io7m.renderdoc_jffm.core;
-  requires com.io7m.seltzer.api;
 
   provides RendererFactoryType
     with Renderers;

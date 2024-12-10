@@ -20,6 +20,7 @@ package com.io7m.rocaro.vanilla.internal;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.repetoir.core.RPServiceDirectoryType;
 import com.io7m.repetoir.core.RPServiceType;
+import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCFrameInformation;
 import com.io7m.rocaro.api.RCFrameNumber;
 import com.io7m.rocaro.api.RCObject;
@@ -184,8 +185,7 @@ public final class Renderer
       final var frameInformation =
         new RCFrameInformation(this.frameNumber, frameIndex);
 
-      try (final var frameContext =
-             this.vulkanRenderer.acquireFrame(frameIndex)) {
+      try (final var frameContext = this.acquireFrame(frameIndex)) {
         this.frameService.beginNewFrame(frameInformation);
 
         f.execute(
@@ -199,6 +199,14 @@ public final class Renderer
     } finally {
       this.frameNumber = this.frameNumber.next();
     }
+  }
+
+  private RCVulkanFrameContextType acquireFrame(
+    final RCFrameIndex frameIndex)
+    throws RocaroException
+  {
+    return this.executors.gpuExecutor()
+      .executeAndWait(() -> this.vulkanRenderer.acquireFrame(frameIndex));
   }
 
   private static final class FrameBuilder

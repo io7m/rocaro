@@ -24,9 +24,12 @@ import com.io7m.rocaro.api.RCCloseableGPUType;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.devices.RCDeviceType;
+import com.io7m.rocaro.vanilla.internal.threading.RCThread;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 
 import java.util.concurrent.TimeoutException;
+
+import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
 
 /**
  * A Vulkan renderer.
@@ -82,6 +85,7 @@ public interface RCVulkanRendererType
    * @throws TimeoutException  If a frame cannot be acquired within a timeout
    */
 
+  @RCThread(GPU)
   RCVulkanFrameContextType acquireFrame(
     RCFrameIndex frame)
     throws RCVulkanException, TimeoutException;

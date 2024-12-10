@@ -203,6 +203,11 @@
       </dependency>
       <dependency>
         <groupId>com.io7m.jcoronado</groupId>
+        <artifactId>com.io7m.jcoronado.layers.lunarg_api_dump.api</artifactId>
+        <version>${com.io7m.jcoronado.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jcoronado</groupId>
         <artifactId>com.io7m.jcoronado.extensions.khr_surface.api</artifactId>
         <version>${com.io7m.jcoronado.version}</version>
       </dependency>

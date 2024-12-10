@@ -46,7 +46,6 @@ import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainCreateInfo
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCObject;
-import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.images.RCImageColorBlendableType;
@@ -283,29 +282,30 @@ public final class RCWindowWithSurface
     }
 
     @Override
+    @RCThread(GPU)
     public void present()
+      throws RCVulkanException
     {
-      this.windowWithSurface.device.execute(() -> {
-        if (LOG.isTraceEnabled()) {
-          LOG.trace("Presenting.");
-        }
+      RCThreadLabels.checkThreadLabelsAny(GPU);
 
-        try {
-          final var presentationInfo =
-            VulkanPresentInfoKHR.builder()
-              .addImageIndices(this.index.index)
-              .addSwapChains(this.windowWithSurface.swapChain)
-              .addWaitSemaphores(this.imageRenderingIsFinishedSemaphore)
-              .build();
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Presenting.");
+      }
 
-          this.windowWithSurface.khrSwapChainExt.queuePresent(
-            this.windowWithSurface.presentationQueue, presentationInfo
-          );
-        } catch (final VulkanException e) {
-          throw RCVulkanException.wrap(e);
-        }
-        return RCUnit.UNIT;
-      });
+      try {
+        final var presentationInfo =
+          VulkanPresentInfoKHR.builder()
+            .addImageIndices(this.index.index)
+            .addSwapChains(this.windowWithSurface.swapChain)
+            .addWaitSemaphores(this.imageRenderingIsFinishedSemaphore)
+            .build();
+
+        this.windowWithSurface.khrSwapChainExt.queuePresent(
+          this.windowWithSurface.presentationQueue, presentationInfo
+        );
+      } catch (final VulkanException e) {
+        throw RCVulkanException.wrap(e);
+      }
     }
 
     @Override

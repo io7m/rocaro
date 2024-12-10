@@ -37,8 +37,8 @@ import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsMessage
 import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsMessengerCreateInfoEXT;
 import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsSLF4J;
 import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsType;
+import com.io7m.jcoronado.extensions.ext_layer_settings.api.VulkanLayerSettingType;
 import com.io7m.jcoronado.extensions.ext_layer_settings.api.VulkanLayerSettingsCreateInfo;
-import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationSettingType;
 import com.io7m.jcoronado.lwjgl.VulkanLWJGLHostAllocatorJeMalloc;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.repetoir.core.RPServiceDirectoryType;
@@ -62,9 +62,11 @@ import com.io7m.verona.core.VersionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -94,6 +96,8 @@ public final class RCVulkanRenderer
     VulkanVersions.encode(1, 3, 0);
   private static final String VK_LAYER_KHRONOS_VALIDATION =
     "VK_LAYER_KHRONOS_validation";
+  private static final String VK_LAYER_LUNARG_API_DUMP =
+    "VK_LAYER_LUNARG_api_dump";
   private static final String VK_EXT_DEBUG_UTILS =
     "VK_EXT_debug_utils";
 
@@ -207,14 +211,13 @@ public final class RCVulkanRenderer
 
       final var enableExtensions =
         configureInstanceExtensions(
-          strings,
           instances,
           glfw,
           window,
           configuration
         );
       final var enableLayers =
-        configureInstanceLayers(strings, instances, configuration);
+        configureInstanceLayers(instances, configuration);
 
       /*
        * Create a new instance.
@@ -409,18 +412,8 @@ public final class RCVulkanRenderer
         .setEnabledExtensions(enableExtensions)
         .setEnabledLayers(enableLayers);
 
-    final var validationSettings =
-      configuration.enableValidation();
-
-    if (!validationSettings.isEmpty()) {
-      instanceCreateInfoBuilder.addExtensionInfo(
-        new VulkanLayerSettingsCreateInfo(
-          validationSettings.stream()
-            .map(VulkanValidationSettingType::toSetting)
-            .toList()
-        )
-      );
-    }
+    createLayerSettingsInfo(configuration)
+      .ifPresent(instanceCreateInfoBuilder::addExtensionInfo);
 
     final var instanceCreateInfo =
       instanceCreateInfoBuilder.build();
@@ -433,8 +426,26 @@ public final class RCVulkanRenderer
     );
   }
 
+  private static Optional<VulkanLayerSettingsCreateInfo> createLayerSettingsInfo(
+    final RendererVulkanConfiguration configuration)
+  {
+    final var settings = new ArrayList<VulkanLayerSettingType>();
+    for (final var setting : configuration.enableValidation()) {
+      settings.add(setting.toSetting());
+    }
+
+    for (final var setting : configuration.enableAPIDump()) {
+      settings.add(setting.toSetting());
+    }
+
+    if (settings.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(new VulkanLayerSettingsCreateInfo(List.copyOf(settings)));
+  }
+
   private static Set<String> configureInstanceLayers(
-    final RCStrings strings,
     final VulkanInstanceProviderType instances,
     final RendererVulkanConfiguration configuration)
     throws RCVulkanException
@@ -473,6 +484,9 @@ public final class RCVulkanRenderer
       if (!configuration.enableValidation().isEmpty()) {
         required.add(VK_LAYER_KHRONOS_VALIDATION);
       }
+      if (!configuration.enableAPIDump().isEmpty()) {
+        required.add(VK_LAYER_LUNARG_API_DUMP);
+      }
 
       final var enable =
         VulkanLayers.filterRequiredLayers(
@@ -489,7 +503,6 @@ public final class RCVulkanRenderer
   }
 
   private static Set<String> configureInstanceExtensions(
-    final RCStrings strings,
     final VulkanInstanceProviderType instances,
     final RCGLFWFacadeType glfw,
     final RCWindowType window,
@@ -641,6 +654,8 @@ public final class RCVulkanRenderer
     throws RCVulkanException, TimeoutException
   {
     Objects.requireNonNull(frame, "frame");
+
+    RCThreadLabels.checkThreadLabelsAny(GPU);
 
     try {
       final var windowContext =

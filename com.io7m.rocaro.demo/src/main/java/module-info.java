@@ -39,6 +39,7 @@ module com.io7m.rocaro.demo
   requires com.io7m.quarrel.core;
   requires java.logging;
   requires com.io7m.quarrel.ext.logback;
+  requires com.io7m.jcoronado.layers.lunarg_api_dump.api;
 
   uses RendererFactoryType;
   uses RCDisplayServiceType;

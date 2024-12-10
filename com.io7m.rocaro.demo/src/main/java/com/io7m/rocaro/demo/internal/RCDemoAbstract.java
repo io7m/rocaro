@@ -22,6 +22,8 @@ import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidate
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateBestPracticesNVIDIA;
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateCore;
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateSync;
+import com.io7m.jcoronado.layers.lunarg_api_dump.api.VulkanAPIDumpLogFilename;
+import com.io7m.jcoronado.layers.lunarg_api_dump.api.VulkanAPIDumpOutputToFile;
 import com.io7m.jcoronado.lwjgl.VMALWJGLAllocatorProvider;
 import com.io7m.jcoronado.lwjgl.VulkanLWJGLInstanceProvider;
 import com.io7m.quarrel.core.QCommandContextType;
@@ -37,6 +39,7 @@ import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -110,6 +113,15 @@ public abstract class RCDemoAbstract implements QCommandType
       Boolean.class
     );
 
+  private static final QParameterNamed01<Path> API_DUMP =
+    new QParameterNamed01<>(
+      "--enable-api-dump",
+      List.of(),
+      new QConstant("Enable/disable the API dump layer."),
+      Optional.empty(),
+      Path.class
+    );
+
   private final QCommandMetadata metadata;
   private final Logger logger;
   private int frameCount;
@@ -151,13 +163,14 @@ public abstract class RCDemoAbstract implements QCommandType
   protected final List<QParameterNamedType<?>> vulkanParameters()
   {
     return List.of(
+      API_DUMP,
       FRAME_COUNT_LIMIT,
+      RENDERDOC,
       VULKAN_VALIDATE_BEST_PRACTICE,
       VULKAN_VALIDATE_BEST_PRACTICE_AMD,
       VULKAN_VALIDATE_BEST_PRACTICE_NVIDIA,
       VULKAN_VALIDATE_CORE,
-      VULKAN_VALIDATE_SYNC,
-      RENDERDOC
+      VULKAN_VALIDATE_SYNC
     );
   }
 
@@ -223,6 +236,16 @@ public abstract class RCDemoAbstract implements QCommandType
 
     builder.setEnableRenderDocSupport(
       context.parameterValue(RENDERDOC));
+
+    context.parameterValue(API_DUMP)
+      .ifPresent(path -> {
+        builder.addEnableAPIDump(
+          new VulkanAPIDumpLogFilename(path.toAbsolutePath())
+        );
+        builder.addEnableAPIDump(
+          new VulkanAPIDumpOutputToFile(true)
+        );
+      });
 
     return builder.build();
   }

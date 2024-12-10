@@ -17,12 +17,10 @@
 
 package com.io7m.rocaro.vanilla.internal.graph;
 
-import com.io7m.jcoronado.api.VulkanAccessFlag;
 import com.io7m.jcoronado.api.VulkanCommandBufferSubmitInfo;
 import com.io7m.jcoronado.api.VulkanDependencyInfo;
 import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanImageAspectFlag;
-import com.io7m.jcoronado.api.VulkanImageLayout;
 import com.io7m.jcoronado.api.VulkanImageMemoryBarrier;
 import com.io7m.jcoronado.api.VulkanImageSubresourceRange;
 import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
@@ -50,8 +48,9 @@ import java.util.Set;
 import static com.io7m.jcoronado.api.VulkanAccessFlag.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 import static com.io7m.jcoronado.api.VulkanCommandBufferLevel.VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 import static com.io7m.jcoronado.api.VulkanCommandBufferUsageFlag.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+import static com.io7m.jcoronado.api.VulkanImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+import static com.io7m.jcoronado.api.VulkanImageLayout.VK_IMAGE_LAYOUT_UNDEFINED;
 import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-import static com.io7m.jcoronado.api.VulkanPipelineStageFlag.VK_PIPELINE_STAGE_NONE;
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 
 /**
@@ -140,15 +139,6 @@ public final class RCFrameTarget
       try (final var _ =
              debugging.begin(commands, "FramePresentation")) {
 
-        final var srcAccessMask =
-          Set.of(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
-        final var srcStageMask =
-          Set.of(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        final var dstAccessMask =
-          Set.<VulkanAccessFlag>of();
-        final var dstStageMask =
-          Set.of(VK_PIPELINE_STAGE_NONE);
-
         final var subresourceRange =
           VulkanImageSubresourceRange.of(
             Set.of(VulkanImageAspectFlag.VK_IMAGE_ASPECT_COLOR_BIT),
@@ -160,14 +150,14 @@ public final class RCFrameTarget
 
         final var imageBarrier =
           VulkanImageMemoryBarrier.builder()
-            .setSrcAccessMask(srcAccessMask)
+            .setSrcStageMask(Set.of(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT))
+            .setSrcAccessMask(Set.of(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
             .setSrcQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
-            .setSrcStageMask(srcStageMask)
+            .setDstStageMask(Set.of())
+            .setDstAccessMask(Set.of())
             .setDstQueueFamilyIndex(VulkanQueueFamilyIndex.ignored())
-            .setDstStageMask(dstStageMask)
-            .setDstAccessMask(dstAccessMask)
-            .setOldLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_UNDEFINED)
-            .setNewLayout(VulkanImageLayout.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+            .setOldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+            .setNewLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
             .setImage(windowContext.image().data())
             .setSubresourceRange(subresourceRange)
             .build();
@@ -211,7 +201,10 @@ public final class RCFrameTarget
         Optional.of(windowContext.imageRenderingIsFinishedFence())
       );
 
-      windowContext.present();
+      device.execute(() -> {
+        windowContext.present();
+        return RCUnit.UNIT;
+      });
     } catch (final VulkanException e) {
       throw RCVulkanException.wrap(e);
     }

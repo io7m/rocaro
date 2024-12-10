@@ -52,6 +52,10 @@
     </dependency>
     <dependency>
       <groupId>com.io7m.jcoronado</groupId>
+      <artifactId>com.io7m.jcoronado.layers.lunarg_api_dump.api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jcoronado</groupId>
       <artifactId>com.io7m.jcoronado.vma</artifactId>
     </dependency>
 

@@ -25,8 +25,10 @@ module com.io7m.rocaro.api
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
+  requires com.io7m.jaffirm.core;
   requires com.io7m.jcoronado.api;
   requires com.io7m.jcoronado.layers.khronos_validation.api;
+  requires com.io7m.jcoronado.layers.lunarg_api_dump.api;
   requires com.io7m.jcoronado.vma;
   requires com.io7m.jtensors.core;
   requires com.io7m.lanark.core;
@@ -34,7 +36,6 @@ module com.io7m.rocaro.api
   requires com.io7m.seltzer.api;
   requires com.io7m.verona.core;
   requires jdk.jfr;
-  requires com.io7m.jaffirm.core;
 
   exports com.io7m.rocaro.api.assets;
   exports com.io7m.rocaro.api.devices;

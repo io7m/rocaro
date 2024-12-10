@@ -21,6 +21,9 @@ import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jcoronado.api.VulkanSemaphoreType;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.images.RCImageColorBlendableType;
+import com.io7m.rocaro.vanilla.internal.threading.RCThread;
+
+import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
 
 /**
  * The context of a single frame.
@@ -68,6 +71,7 @@ public interface RCWindowFrameContextType
    * @throws RCVulkanException On errors
    */
 
+  @RCThread(GPU)
   void present()
     throws RCVulkanException;
 }
