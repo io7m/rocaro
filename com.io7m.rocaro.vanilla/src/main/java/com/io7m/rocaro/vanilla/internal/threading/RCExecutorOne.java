@@ -19,6 +19,7 @@ package com.io7m.rocaro.vanilla.internal.threading;
 
 import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.seltzer.api.SStructuredErrorExceptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,17 +183,17 @@ public final class RCExecutorOne implements RCExecutorType
         case final RocaroException re -> {
           throw re;
         }
-        case null -> {
+        case final SStructuredErrorExceptionType<?> re -> {
           throw new RCExecutionException(
             e,
-            Map.of(),
-            "error-unknown",
-            Optional.empty()
+            re.attributes(),
+            re.errorCode().toString(),
+            re.remediatingAction()
           );
         }
-        default -> {
+        case null, default -> {
           throw new RCExecutionException(
-            cause,
+            e,
             Map.of(),
             "error-unknown",
             Optional.empty()
