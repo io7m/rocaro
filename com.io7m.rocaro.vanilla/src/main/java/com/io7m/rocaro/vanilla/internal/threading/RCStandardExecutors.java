@@ -36,9 +36,9 @@ import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.MAIN;
 public final class RCStandardExecutors
   implements RCCloseableType
 {
-  private final RCExecutorType mainExecutor;
-  private final RCExecutorType gpuExecutor;
   private final CloseableCollectionType<RocaroException> resources;
+  private final RCExecutorType gpuExecutor;
+  private final RCExecutorType mainExecutor;
 
   private RCStandardExecutors(
     final RCStrings strings,

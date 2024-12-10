@@ -33,6 +33,12 @@ package com.io7m.rocaro.vanilla.internal.threading;
 public enum RCThreadLabel
 {
   /**
+   * An unspecified background thread.
+   */
+
+  UNSPECIFIED(0b00000000_00000000_00000000_00000001),
+
+  /**
    * The thread responsible for submitting GPU work.
    */
 

@@ -39,6 +39,17 @@ import java.util.Set;
 public interface RendererVulkanConfigurationType
 {
   /**
+   * @return The rate at which the notification service checks each
+   * registered resource
+   */
+
+  @Value.Default
+  default Duration notificationFrequency()
+  {
+    return Duration.ofMillis(16L);
+  }
+
+  /**
    * @return Whether RenderDoc support should be enabled if available
    */
 

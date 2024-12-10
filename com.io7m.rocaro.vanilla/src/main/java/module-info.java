@@ -77,7 +77,7 @@ module com.io7m.rocaro.vanilla
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.vulkan
     to com.io7m.rocaro.tests;
-  exports com.io7m.rocaro.vanilla.internal.fences
+  exports com.io7m.rocaro.vanilla.internal.notifications
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.threading
     to com.io7m.rocaro.tests;

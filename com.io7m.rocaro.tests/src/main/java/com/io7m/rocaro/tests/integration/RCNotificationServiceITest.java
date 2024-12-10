@@ -24,6 +24,9 @@ import com.io7m.jcoronado.api.VulkanFenceCreateInfo;
 import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanQueueType;
+import com.io7m.jcoronado.api.VulkanSemaphoreSubmitInfo;
+import com.io7m.jcoronado.api.VulkanSemaphoreTimelineType;
+import com.io7m.jcoronado.api.VulkanSemaphoreTimelineWait;
 import com.io7m.jcoronado.api.VulkanSubmitInfo;
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateBestPractices;
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateBestPracticesAMD;
@@ -39,9 +42,8 @@ import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
-import com.io7m.rocaro.vanilla.internal.fences.RCFenceServiceType;
+import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.threading.RCExecutorType;
-import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,8 +56,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -63,13 +63,13 @@ import static com.io7m.jcoronado.api.VulkanCommandBufferLevel.VK_COMMAND_BUFFER_
 import static com.io7m.jcoronado.api.VulkanCommandBufferUsageFlag.VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 @Tag("Real-Vulkan-Integration")
-public final class RCFenceServiceITest
+public final class RCNotificationServiceITest
 {
   private static final Logger LOG =
-    LoggerFactory.getLogger(RCFenceServiceITest.class);
+    LoggerFactory.getLogger(RCNotificationServiceITest.class);
 
   private RendererType renderer;
-  private RCFenceServiceType fences;
+  private RCNotificationServiceType notifications;
   private RCVulkanRendererType vulkanRenderer;
   private RCDeviceType device;
   private VulkanLogicalDeviceType vulkanDevice;
@@ -86,7 +86,7 @@ public final class RCFenceServiceITest
     final var builder = renderers.builder();
     builder.setDisplaySelection(
       new RCDisplaySelectionWindowed(
-        "RCFenceServiceITest",
+        "RCNotificationServiceITest",
         Vector2I.of(640, 480)));
 
     builder.setVulkanConfiguration(
@@ -110,8 +110,8 @@ public final class RCFenceServiceITest
       builder.start();
     this.vulkanRenderer =
       this.renderer.requireService(RCVulkanRendererType.class);
-    this.fences =
-      this.renderer.requireService(RCFenceServiceType.class);
+    this.notifications =
+      this.renderer.requireService(RCNotificationServiceType.class);
     this.device =
       this.vulkanRenderer.device();
     this.vulkanDevice =
@@ -135,7 +135,7 @@ public final class RCFenceServiceITest
     this.executeFenceSignalled(
       (RCExecutorType) this.device.gpuExecutor(),
       this.device.transferQueue(),
-      this.fences::registerTransferFence
+      this.notifications::registerFence
     );
   }
 
@@ -146,7 +146,7 @@ public final class RCFenceServiceITest
     this.executeFenceSignalled(
       (RCExecutorType) this.device.gpuExecutor(),
       this.device.computeQueue(),
-      this.fences::registerComputeFence
+      this.notifications::registerFence
     );
   }
 
@@ -157,9 +157,43 @@ public final class RCFenceServiceITest
     this.executeFenceSignalled(
       (RCExecutorType) this.device.gpuExecutor(),
       this.device.graphicsQueue(),
-      this.fences::registerGraphicsFence
+      this.notifications::registerFence
     );
   }
+
+  @Test
+  public void testTimelineSemaphoreSignalledTransfer()
+    throws Exception
+  {
+    this.executeTimelineSemaphoreSignalled(
+      (RCExecutorType) this.device.gpuExecutor(),
+      this.device.transferQueue(),
+      this.notifications::registerTimelineSemaphore
+    );
+  }
+
+  @Test
+  public void testTimelineSemaphoreSignalledCompute()
+    throws Exception
+  {
+    this.executeTimelineSemaphoreSignalled(
+      (RCExecutorType) this.device.gpuExecutor(),
+      this.device.computeQueue(),
+      this.notifications::registerTimelineSemaphore
+    );
+  }
+
+  @Test
+  public void testTimelineSemaphoreSignalledGraphics()
+    throws Exception
+  {
+    this.executeTimelineSemaphoreSignalled(
+      (RCExecutorType) this.device.gpuExecutor(),
+      this.device.graphicsQueue(),
+      this.notifications::registerTimelineSemaphore
+    );
+  }
+
 
   private void executeFenceSignalled(
     final RCExecutorType executor,
@@ -234,18 +268,87 @@ public final class RCFenceServiceITest
       }
     });
 
-    /*
-     * Pause briefly to give the GPU time to complete the work, and then
-     * execute a frame to check the status of the fence.
-     */
-
-    Thread.sleep(1_000L);
-    this.renderer.executeFrame(_ -> {
-
-    });
-    Thread.sleep(1_000L);
-
     LOG.debug("Waiting for fence…");
     fenceFuture.get(5L, TimeUnit.SECONDS);
+  }
+
+  private void executeTimelineSemaphoreSignalled(
+    final RCExecutorType executor,
+    final VulkanQueueType queue,
+    final Function<VulkanSemaphoreTimelineWait, CompletableFuture<?>> register)
+    throws Exception
+  {
+    final var commandPool =
+      this.device.registerResource(
+        executor.executeAndWait(() -> {
+          LOG.debug("Creating command pool…");
+          return this.vulkanDevice.createCommandPool(
+            VulkanCommandPoolCreateInfo.builder()
+              .setQueueFamilyIndex(queue.queueFamilyIndex())
+              .build()
+          );
+        })
+      );
+
+    this.vulkanDevice.debugging()
+      .setObjectName(commandPool, "CommandPool[TimelineSemaphoreTest]");
+
+    final var semaphore =
+      this.device.registerResource(
+        executor.executeAndWait(() -> {
+          LOG.debug("Creating semaphore…");
+          return this.vulkanDevice.createTimelineSemaphore(10L);
+        })
+      );
+
+    this.vulkanDevice.debugging()
+      .setObjectName(commandPool, "TimelineSemaphore[Test]");
+
+    LOG.debug("Registering timeline semaphore…");
+    final var semaphoreFuture =
+      register.apply(new VulkanSemaphoreTimelineWait(semaphore, 20L));
+
+    executor.execute(() -> {
+      try {
+        LOG.debug("Recording command buffer…");
+        final var cmd =
+          this.vulkanDevice.createCommandBuffer(
+            commandPool,
+            VK_COMMAND_BUFFER_LEVEL_PRIMARY
+          );
+
+        this.vulkanDevice.debugging()
+          .setObjectName(cmd, "CommandBuffer[TimelineSemaphoreTest]");
+
+        this.device.registerResource(cmd);
+        cmd.beginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        cmd.endCommandBuffer();
+
+        LOG.debug("Submitting command buffer…");
+        queue.submit(
+          List.of(
+            VulkanSubmitInfo.builder()
+              .addCommandBuffers(
+                VulkanCommandBufferSubmitInfo.builder()
+                  .setCommandBuffer(cmd)
+                  .build()
+              )
+              .addSignalSemaphores(
+                VulkanSemaphoreSubmitInfo.builder()
+                  .setSemaphore(semaphore)
+                  .setValue(20L)
+                  .build()
+              )
+              .build()
+          ),
+          Optional.empty()
+        );
+      } catch (final VulkanException e) {
+        throw new RuntimeException(e);
+      }
+    });
+
+    LOG.debug("Waiting for semaphore…");
+    semaphoreFuture.get(5L, TimeUnit.SECONDS);
   }
 }

@@ -15,10 +15,10 @@
  */
 
 /**
- * 3D rendering system (Vanilla implementation [Fences]).
+ * 3D rendering system (Vanilla implementation [Notifications]).
  */
 
 @Version("1.0.0")
-package com.io7m.rocaro.vanilla.internal.fences;
+package com.io7m.rocaro.vanilla.internal.notifications;
 
 import org.osgi.annotation.versioning.Version;

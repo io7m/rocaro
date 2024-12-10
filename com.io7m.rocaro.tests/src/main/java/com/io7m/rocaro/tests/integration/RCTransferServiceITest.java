@@ -36,8 +36,8 @@ import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
 import com.io7m.rocaro.api.transfers.RCTransferImageColorBasic;
 import com.io7m.rocaro.api.transfers.RCTransferServiceType;
-import com.io7m.rocaro.vanilla.internal.fences.RCFenceServiceType;
 import com.io7m.rocaro.vanilla.internal.images.RCImageColorBasic;
+import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.renderdoc.RCRenderDocServiceType;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
 import org.junit.jupiter.api.AfterEach;
@@ -61,7 +61,7 @@ public final class RCTransferServiceITest
     LoggerFactory.getLogger(RCTransferServiceITest.class);
 
   private RendererType renderer;
-  private RCFenceServiceType fences;
+  private RCNotificationServiceType notifications;
   private RCVulkanRendererType vulkanRenderer;
   private RCDeviceType device;
   private VulkanLogicalDeviceType vulkanDevice;
@@ -80,7 +80,7 @@ public final class RCTransferServiceITest
     final var builder = renderers.builder();
     builder.setDisplaySelection(
       new RCDisplaySelectionWindowed(
-        "RCFenceServiceITest",
+        "RCNotificationServiceITest",
         Vector2I.of(640, 480)));
 
     builder.setVulkanConfiguration(

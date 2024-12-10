@@ -35,7 +35,7 @@ import com.io7m.rocaro.api.transfers.RCTransferOperationType;
 import com.io7m.rocaro.api.transfers.RCTransferServiceType;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
-import com.io7m.rocaro.vanilla.internal.fences.RCFenceServiceType;
+import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
 import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
@@ -63,7 +63,7 @@ public final class RCTransferService
   private static final Logger LOG =
     LoggerFactory.getLogger(RCTransferService.class);
 
-  private final RCFenceServiceType fences;
+  private final RCNotificationServiceType notifications;
   private final RCDeviceType device;
   private final VMAAllocatorType allocator;
   private final ExecutorService taskExecutor;
@@ -76,7 +76,7 @@ public final class RCTransferService
   private RCTransferService(
     final CloseableCollectionType<RocaroException> inResources,
     final RCStrings inStrings,
-    final RCFenceServiceType inFences,
+    final RCNotificationServiceType inNotifications,
     final RCDeviceType inDevice,
     final VMAAllocatorType inAllocator,
     final ExecutorService inTaskExecutor,
@@ -88,8 +88,8 @@ public final class RCTransferService
       Objects.requireNonNull(inResources, "inResources");
     this.strings =
       Objects.requireNonNull(inStrings, "strings");
-    this.fences =
-      Objects.requireNonNull(inFences, "fences");
+    this.notifications =
+      Objects.requireNonNull(inNotifications, "notifications");
     this.device =
       Objects.requireNonNull(inDevice, "device");
     this.allocator =
@@ -122,8 +122,8 @@ public final class RCTransferService
       services.requireService(RCStrings.class);
     final var renderer =
       services.requireService(RCVulkanRendererType.class);
-    final var fences =
-      services.requireService(RCFenceServiceType.class);
+    final var notifications =
+      services.requireService(RCNotificationServiceType.class);
 
     final var resources =
       RCResourceCollections.create(strings);
@@ -173,7 +173,7 @@ public final class RCTransferService
       return new RCTransferService(
         resources,
         strings,
-        fences,
+        notifications,
         device,
         allocator,
         taskExecutor,
@@ -274,7 +274,7 @@ public final class RCTransferService
             this.allocator,
             this::createCommandBuffer,
             this.strings,
-            this.fences,
+            this.notifications,
             image
           )
         );

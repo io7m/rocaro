@@ -45,13 +45,13 @@ import com.io7m.rocaro.api.transfers.RCTransferServiceType;
 import com.io7m.rocaro.vanilla.RCAssetLoaderDirectory;
 import com.io7m.rocaro.vanilla.RCAssetResolvers;
 import com.io7m.rocaro.vanilla.internal.assets.RCAssetService;
-import com.io7m.rocaro.vanilla.internal.fences.RCFenceService;
-import com.io7m.rocaro.vanilla.internal.fences.RCFenceServiceType;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameService;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameServiceType;
 import com.io7m.rocaro.vanilla.internal.graph.RCGraph;
 import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescription;
 import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescriptionBuilder;
+import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationService;
+import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.renderdoc.RCRenderDocService;
 import com.io7m.rocaro.vanilla.internal.renderdoc.RCRenderDocServiceType;
 import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
@@ -317,8 +317,13 @@ public final class RendererBuilder
         services,
         executors,
         resources,
-        RCFenceServiceType.class,
-        () -> RCFenceService.create(services)
+        RCNotificationServiceType.class,
+        () -> {
+          return RCNotificationService.create(
+            services,
+            this.vulkanConfiguration.notificationFrequency()
+          );
+        }
       );
 
       createService(

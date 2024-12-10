@@ -15,53 +15,42 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.fences;
+package com.io7m.rocaro.vanilla.internal.notifications;
 
 import com.io7m.jcoronado.api.VulkanFenceType;
+import com.io7m.jcoronado.api.VulkanSemaphoreTimelineWait;
 import com.io7m.repetoir.core.RPServiceType;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * A service used to register and signal fences.
+ * A service used to register resources for notification.
  */
 
-public interface RCFenceServiceType
+public interface RCNotificationServiceType
   extends RPServiceType
 {
   /**
    * Register a fence and return a future that will be completed when the
-   * fence is signalled. The fence is signalled on the graphics queue.
+   * fence is signalled.
    *
    * @param fence The fence
    *
    * @return The future
    */
 
-  CompletableFuture<?> registerGraphicsFence(
+  CompletableFuture<?> registerFence(
     VulkanFenceType fence);
 
   /**
-   * Register a fence and return a future that will be completed when the
-   * fence is signalled. The fence is signalled on the compute queue.
+   * Register a timeline semaphore and return a future that will be completed
+   * when the semaphore is signalled with at least the provided value.
    *
-   * @param fence The fence
-   *
-   * @return The future
-   */
-
-  CompletableFuture<?> registerComputeFence(
-    VulkanFenceType fence);
-
-  /**
-   * Register a fence and return a future that will be completed when the
-   * fence is signalled. The fence is signalled on the transfer queue.
-   *
-   * @param fence The fence
+   * @param semaphore The semaphore
    *
    * @return The future
    */
 
-  CompletableFuture<?> registerTransferFence(
-    VulkanFenceType fence);
+  CompletableFuture<?> registerTimelineSemaphore(
+    VulkanSemaphoreTimelineWait semaphore);
 }

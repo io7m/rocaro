@@ -42,6 +42,7 @@ import com.io7m.jcoronado.api.VulkanOffset3D;
 import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
 import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.jcoronado.api.VulkanSemaphoreSubmitInfo;
+import com.io7m.jcoronado.api.VulkanSemaphoreTimelineWait;
 import com.io7m.jcoronado.api.VulkanSubmitInfo;
 import com.io7m.jcoronado.vma.VMAAllocationCreateInfo;
 import com.io7m.jcoronado.vma.VMAAllocationResult;
@@ -55,8 +56,8 @@ import com.io7m.rocaro.api.transfers.RCTransferImageColorBasicType;
 import com.io7m.rocaro.api.transfers.RCTransferJFREventStagingCopy;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
-import com.io7m.rocaro.vanilla.internal.fences.RCFenceServiceType;
 import com.io7m.rocaro.vanilla.internal.images.RCImageColorBasic;
+import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
 import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
@@ -103,7 +104,7 @@ final class RCTransferImageColorBasicTask
   private final RCTransferImageColorBasicType image2D;
   private final VulkanQueueType transferQueue;
   private final VulkanQueueType targetQueue;
-  private final RCFenceServiceType fences;
+  private final RCNotificationServiceType notifications;
   private final VulkanLogicalDeviceType vulkanDevice;
   private final VulkanImageSubresourceRange imageSubresourceRange;
   private final RCTransferCommandBufferFactoryType commandBuffers;
@@ -115,15 +116,15 @@ final class RCTransferImageColorBasicTask
     final VMAAllocatorType inAllocator,
     final RCTransferCommandBufferFactoryType inCommandBuffers,
     final RCStrings strings,
-    final RCFenceServiceType inFences,
+    final RCNotificationServiceType inNotifications,
     final RCTransferImageColorBasicType inImage2D)
   {
     Objects.requireNonNull(strings, "strings");
 
     this.resources =
       RCResourceCollections.create(strings);
-    this.fences =
-      Objects.requireNonNull(inFences, "fences");
+    this.notifications =
+      Objects.requireNonNull(inNotifications, "notifications");
     this.device =
       Objects.requireNonNull(inDevice, "device");
     this.allocator =
@@ -369,21 +370,29 @@ final class RCTransferImageColorBasicTask
 
     /*
      * Create a semaphore that will be used to execute the commands on
-     * the graphics queue after the commands on the transfer queue.
+     * the target queue after the commands on the transfer queue.
      */
 
-    final var semaphore =
+    final var semaphoreInitial =
       this.resources.add(this.vulkanDevice.createBinarySemaphore());
-    this.debugging.setObjectName(semaphore, "TransferSemaphore");
+
+    this.debugging.setObjectName(
+      semaphoreInitial,
+      "TransferSemaphoreInitial[%s]".formatted(this.image2D.name())
+    );
 
     /*
-     * Create a fence that will be used to determine when the entire image
-     * transfer is completed.
+     * Create a semaphore that will be used to signal the end of the
+     * commands on the target queue.
      */
 
-    final var fence =
-      this.resources.add(this.vulkanDevice.createFence());
-    this.debugging.setObjectName(fence, "TransferFence[Transfer]");
+    final var semaphoreEnd =
+      this.resources.add(this.vulkanDevice.createTimelineSemaphore(0L));
+
+    this.debugging.setObjectName(
+      semaphoreEnd,
+      "TransferSemaphoreCompletion[%s]".formatted(this.image2D.name())
+    );
 
     /*
      * Record the commands that will be executed by the transfer queue.
@@ -491,7 +500,7 @@ final class RCTransferImageColorBasicTask
     final var transferSemaphoreSubmission =
       VulkanSemaphoreSubmitInfo.builder()
         .addStageMask(VK_PIPELINE_STAGE_COPY_BIT)
-        .setSemaphore(semaphore)
+        .setSemaphore(semaphoreInitial)
         .build();
 
     final var transferCommandSubmission =
@@ -549,16 +558,24 @@ final class RCTransferImageColorBasicTask
         .setCommandBuffer(otherCommands)
         .build();
 
-    final var graphicsSemaphoreSubmission =
+    final var graphicsSemaphoreWait =
       VulkanSemaphoreSubmitInfo.builder()
         .addStageMask(VK_PIPELINE_STAGE_COPY_BIT)
-        .setSemaphore(semaphore)
+        .setSemaphore(semaphoreInitial)
+        .build();
+
+    final var graphicsSemaphoreSignal =
+      VulkanSemaphoreSubmitInfo.builder()
+        .addStageMask(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT)
+        .setSemaphore(semaphoreEnd)
+        .setValue(1L)
         .build();
 
     final var graphicsSubmission =
       VulkanSubmitInfo.builder()
         .addCommandBuffers(graphicsCommandSubmission)
-        .addWaitSemaphores(graphicsSemaphoreSubmission)
+        .addWaitSemaphores(graphicsSemaphoreWait)
+        .addSignalSemaphores(graphicsSemaphoreSignal)
         .build();
 
     this.device.submit(
@@ -569,10 +586,12 @@ final class RCTransferImageColorBasicTask
     this.device.submit(
       GRAPHICS,
       List.of(graphicsSubmission),
-      Optional.of(fence)
+      Optional.empty()
     );
 
-    return this.fences.registerTransferFence(fence);
+    return this.notifications.registerTimelineSemaphore(
+      new VulkanSemaphoreTimelineWait(semaphoreEnd, 1L)
+    );
   }
 
   @RCThread(TRANSFER_IO)
@@ -589,14 +608,18 @@ final class RCTransferImageColorBasicTask
       this.image2D.finalLayout();
 
     /*
-     * Create a fence that will be used to determine when the entire image
-     * transfer is completed. This fence will ultimately be monitored by
-     * the fence service.
+     * Create a semaphore that will be used to determine when the entire image
+     * transfer is completed. This semaphore will ultimately be monitored by
+     * the notification service.
      */
 
-    final var fence =
-      this.resources.add(this.vulkanDevice.createFence());
-    this.debugging.setObjectName(fence, "TransferFence");
+    final var semaphoreEnd =
+      this.resources.add(this.vulkanDevice.createTimelineSemaphore(0L));
+
+    this.debugging.setObjectName(
+      semaphoreEnd,
+      "TransferSemaphoreCompletion[%s]".formatted(this.image2D.name())
+    );
 
     try (final var _ =
            this.debugging.begin(this.mainCommands, "TransferQueueUpload")) {
@@ -691,18 +714,28 @@ final class RCTransferImageColorBasicTask
         .setCommandBuffer(this.mainCommands)
         .build();
 
+    final var semaphoreSignal =
+      VulkanSemaphoreSubmitInfo.builder()
+        .addStageMask(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT)
+        .setSemaphore(semaphoreEnd)
+        .setValue(1L)
+        .build();
+
     final var submission =
       VulkanSubmitInfo.builder()
         .addCommandBuffers(commandSubmission)
+        .addSignalSemaphores(semaphoreSignal)
         .build();
 
     this.device.submit(
       this.targetQueue,
       List.of(submission),
-      Optional.of(fence)
+      Optional.empty()
     );
 
-    return this.fences.registerTransferFence(fence);
+    return this.notifications.registerTimelineSemaphore(
+      new VulkanSemaphoreTimelineWait(semaphoreEnd, 1L)
+    );
   }
 
   @RCThread(GPU)
