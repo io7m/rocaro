@@ -28,11 +28,11 @@ import com.io7m.rocaro.api.render_pass.RCRenderPassType;
 
 import java.util.Map;
 
-final class RcRenderPassTriangle
+final class RCRenderPassTriangle
   extends RCGNodeRenderPassAbstract<RCUnit>
   implements RCRenderPassType<RCUnit>
 {
-  RcRenderPassTriangle(
+  RCRenderPassTriangle(
     final RCGNodeName inName,
     final RCUnit inParameters,
     final Map<RCGPortName, RCGPortType<?>> inPorts)

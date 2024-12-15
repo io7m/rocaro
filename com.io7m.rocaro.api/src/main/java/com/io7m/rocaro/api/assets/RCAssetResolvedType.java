@@ -19,8 +19,17 @@ package com.io7m.rocaro.api.assets;
 
 import java.lang.foreign.MemorySegment;
 
+/**
+ * A resolved asset; an untyped block of memory that can be transformed
+ * into an asset by an appropriate loader.
+ */
+
 public interface RCAssetResolvedType
   extends AutoCloseable
 {
+  /**
+   * @return The memory segment
+   */
+
   MemorySegment data();
 }

@@ -20,11 +20,26 @@ package com.io7m.rocaro.api.assets;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * An asset in the process of loading.
+ *
+ * @param fallback The fallback asset value
+ * @param progress The approximate loading progress
+ * @param <A>      The type of asset
+ */
+
 public record RCAssetValueLoading<A extends RCAssetType>(
   double progress,
   Optional<A> fallback)
   implements RCAssetValueType<A>
 {
+  /**
+   * An asset in the process of loading.
+   *
+   * @param fallback The fallback asset value
+   * @param progress The approximate loading progress
+   */
+
   public RCAssetValueLoading
   {
     progress = Math.clamp(progress, 0.0, 1.0);

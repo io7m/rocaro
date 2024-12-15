@@ -17,9 +17,23 @@
 
 package com.io7m.rocaro.api.assets;
 
+/**
+ * A loader factory for a particular class of asset.
+ *
+ * @param <A> The asset type
+ */
+
 public interface RCAssetLoaderFactoryType<A extends RCAssetType>
 {
+  /**
+   * @return The asset class
+   */
+
   Class<A> assetClass();
+
+  /**
+   * @return A new asset loader
+   */
 
   RCAssetLoaderType<A> createLoader();
 }

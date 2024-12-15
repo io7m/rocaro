@@ -13,7 +13,4 @@
             checks="RedundantModifier"/>
   <suppress files=".*"
             checks="RedundantModifier"/>
-
-  <suppress files="RCAsset.*"
-            checks=".*"/>
 </suppressions>

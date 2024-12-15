@@ -33,6 +33,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * The default asset loader directory.
+ */
+
 public final class RCAssetLoaderDirectory
   extends RCObject
   implements RCAssetLoaderDirectoryType
@@ -49,6 +53,14 @@ public final class RCAssetLoaderDirectory
     this.loaders =
       Objects.requireNonNull(inLoaders, "loaders");
   }
+
+  /**
+   * Create an asset loader directory builder.
+   *
+   * @param locale The locale
+   *
+   * @return The builder
+   */
 
   public static RCAssetLoaderDirectoryBuilderType builder(
     final Locale locale)
@@ -108,14 +120,14 @@ public final class RCAssetLoaderDirectory
 
     @Override
     public RCAssetLoaderDirectoryBuilderType addLoader(
-      final RCAssetLoaderFactoryType<?> loader)
+      final RCAssetLoaderFactoryType<?> factory)
       throws RCAssetException
     {
-      final var clazz = loader.assetClass();
+      final var clazz = factory.assetClass();
       if (this.loaders.containsKey(clazz)) {
         throw this.errorClassAlreadyUsed(clazz);
       }
-      this.loaders.put(clazz, loader);
+      this.loaders.put(clazz, factory);
       return this;
     }
 

@@ -17,8 +17,20 @@
 
 package com.io7m.rocaro.api.assets;
 
+/**
+ * The type of asset values.
+ *
+ * @param <A> The type of asset
+ */
+
 public sealed interface RCAssetValueType<A extends RCAssetType>
-  permits RCAssetValueFailed, RCAssetValueLoaded, RCAssetValueLoading
+  permits RCAssetValueFailed,
+  RCAssetValueLoaded,
+  RCAssetValueLoading
 {
+  /**
+   * @return The asset loading progress in the range {@code [0, 1]}
+   */
+
   double progress();
 }

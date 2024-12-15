@@ -17,6 +17,9 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.images.RCImageColorBlendableType;
+import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
+
 /**
  * The context provided to each node in a render graph during the
  * rendering of a frame.
@@ -82,4 +85,15 @@ public interface RCGNodeRenderContextType
 
   <T> T portRead(
     RCGPortModifier<T> port);
+
+  /**
+   * Obtain a Vulkan render target for writing to the given image.
+   *
+   * @param image The image
+   *
+   * @return A render target
+   */
+
+  RCRenderTargetType renderTargetFor(
+    RCImageColorBlendableType image);
 }

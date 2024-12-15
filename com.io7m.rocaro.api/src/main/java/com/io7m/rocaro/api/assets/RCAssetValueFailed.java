@@ -21,10 +21,23 @@ import com.io7m.rocaro.api.RocaroException;
 
 import java.util.Objects;
 
+/**
+ * An asset that has failed to load.
+ *
+ * @param exception The exception
+ * @param <A>       The type of asset
+ */
+
 public record RCAssetValueFailed<A extends RCAssetType>(
   RocaroException exception)
   implements RCAssetValueType<A>
 {
+  /**
+   * An asset that has failed to load.
+   *
+   * @param exception The exception
+   */
+
   public RCAssetValueFailed
   {
     Objects.requireNonNull(exception, "exception");

@@ -40,9 +40,11 @@ module com.io7m.rocaro.api
   exports com.io7m.rocaro.api.assets;
   exports com.io7m.rocaro.api.devices;
   exports com.io7m.rocaro.api.displays;
+  exports com.io7m.rocaro.api.graph2;
   exports com.io7m.rocaro.api.graph;
   exports com.io7m.rocaro.api.images;
   exports com.io7m.rocaro.api.render_pass;
+  exports com.io7m.rocaro.api.render_targets;
   exports com.io7m.rocaro.api.transfers;
   exports com.io7m.rocaro.api;
 }

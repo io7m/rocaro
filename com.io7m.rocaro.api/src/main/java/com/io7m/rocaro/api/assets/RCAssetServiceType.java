@@ -26,6 +26,16 @@ import com.io7m.repetoir.core.RPServiceType;
 public interface RCAssetServiceType
   extends RPServiceType
 {
+  /**
+   * Asynchronously start loading an asset.
+   *
+   * @param identifier The asset identifier
+   * @param assetClass The asset class
+   * @param <A>        The asset type
+   *
+   * @return The asset reference
+   */
+
   <A extends RCAssetType> RCAssetReferenceType<A> openAsset(
     RCAssetIdentifier identifier,
     Class<A> assetClass);

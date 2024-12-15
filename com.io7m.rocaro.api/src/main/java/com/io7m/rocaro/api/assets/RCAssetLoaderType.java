@@ -20,10 +20,25 @@ package com.io7m.rocaro.api.assets;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 
+/**
+ * An asset loader.
+ *
+ * @param <A> The asset type
+ */
+
 public interface RCAssetLoaderType<A extends RCAssetType>
   extends RCCloseableType
 {
-  A load(
+  /**
+   * Load an asset.
+   *
+   * @param device The device
+   * @param asset  The asset
+   *
+   * @return The loaded asset
+   */
+
+  RCAssetValueType<A> load(
     RCDeviceType device,
     RCAssetResolvedType asset
   );

@@ -71,7 +71,7 @@ final class RCRenderPassTriangleDescription
   @Override
   public RCRenderPassType<RCUnit> createNode()
   {
-    return new RcRenderPassTriangle(
+    return new RCRenderPassTriangle(
       this.name,
       RCUnit.UNIT,
       this.ports

@@ -19,9 +19,24 @@ package com.io7m.rocaro.api.assets;
 
 import com.io7m.repetoir.core.RPServiceType;
 
+/**
+ * A directory of asset loaders.
+ */
+
 public interface RCAssetLoaderDirectoryType
   extends RPServiceType
 {
+  /**
+   * Find a loader that can load assets of the given class.
+   *
+   * @param clazz The asset class
+   * @param <A>   The asset type
+   *
+   * @return A loader
+   *
+   * @throws RCAssetException On errors
+   */
+
   <A extends RCAssetType>
   RCAssetLoaderFactoryType<A> findLoaderForClass(
     Class<A> clazz)

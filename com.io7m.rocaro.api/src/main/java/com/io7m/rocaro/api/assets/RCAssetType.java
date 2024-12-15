@@ -17,8 +17,18 @@
 
 package com.io7m.rocaro.api.assets;
 
-public sealed interface RCAssetType
-  permits RCAssetShaderModule
-{
+import com.io7m.rocaro.api.RCCloseableType;
 
+/**
+ * The type of assets.
+ */
+
+public interface RCAssetType
+  extends RCCloseableType
+{
+  /**
+   * @return The asset identifier
+   */
+
+  RCAssetIdentifier identifier();
 }

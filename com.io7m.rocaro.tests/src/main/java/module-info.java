@@ -52,4 +52,5 @@ open module com.io7m.rocaro.tests
 
   exports com.io7m.rocaro.tests;
   exports com.io7m.rocaro.tests.integration;
+  exports com.io7m.rocaro.tests.graph2;
 }

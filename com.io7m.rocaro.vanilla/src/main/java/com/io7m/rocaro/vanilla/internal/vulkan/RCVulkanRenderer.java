@@ -47,6 +47,7 @@ import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacadeType;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
@@ -707,12 +708,12 @@ public final class RCVulkanRenderer
     implements RCVulkanFrameContextType
   {
     private final RCWindowFrameContextType windowFrameContext;
-    private final RCDevice logicalDevice;
+    private final RCDeviceType logicalDevice;
     private final RCVulkanFrameStateType frameState;
 
     private FrameContext(
       final RCWindowFrameContextType inWindowFrameContext,
-      final RCDevice inLogicalDevice,
+      final RCDeviceType inLogicalDevice,
       final RCVulkanFrameStateType inFrameState)
     {
       this.windowFrameContext =
@@ -724,7 +725,7 @@ public final class RCVulkanRenderer
     }
 
     @Override
-    public RCDevice device()
+    public RCDeviceType device()
     {
       return this.logicalDevice;
     }

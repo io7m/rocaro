@@ -39,7 +39,7 @@ final class RCRenderPassEmptyDescription
 {
   private final RCUnit parameters;
   private final RCGNodeName name;
-  private final RCGPortModifier<RCImageColorBlendableType> port;
+  private final RCGPortModifier<RCImageColorBlendableType> imagePort;
   private final Map<RCGPortName, RCGPortType<?>> ports;
 
   RCRenderPassEmptyDescription(
@@ -50,7 +50,7 @@ final class RCRenderPassEmptyDescription
       inParameters;
     this.name =
       inName;
-    this.port =
+    this.imagePort =
       new RCGPortModifier<>(
         this.name,
         new RCGPortName("Image"),
@@ -61,7 +61,7 @@ final class RCRenderPassEmptyDescription
       );
 
     this.ports =
-      Map.ofEntries(Map.entry(this.port.name(), this.port));
+      Map.ofEntries(Map.entry(this.imagePort.name(), this.imagePort));
   }
 
   @Override
@@ -73,7 +73,11 @@ final class RCRenderPassEmptyDescription
   @Override
   public RCRenderPassType<RCUnit> createNode()
   {
-    return new RCRenderPassEmpty(this.name, this.ports);
+    return new RCRenderPassEmpty(
+      this.name, 
+      this.ports,
+      this.imagePort
+    );
   }
 
   @Override

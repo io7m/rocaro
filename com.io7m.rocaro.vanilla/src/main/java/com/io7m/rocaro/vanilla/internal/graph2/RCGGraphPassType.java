@@ -15,30 +15,25 @@
  */
 
 
-package com.io7m.rocaro.api.assets;
+package com.io7m.rocaro.vanilla.internal.graph2;
 
-import com.io7m.jcoronado.api.VulkanShaderModuleType;
-
-import java.util.Objects;
+import com.io7m.rocaro.api.graph2.RCGGraphException;
 
 /**
- * A shader module asset.
- *
- * @param shaders The shader module
+ * A check executed over a graph builder.
  */
 
-public record RCAssetShaderModule(
-  VulkanShaderModuleType shaders)
-  implements RCAssetType
+public interface RCGGraphPassType
 {
   /**
-   * A shader module asset.
+   * Check the graph builder.
    *
-   * @param shaders The shader module
+   * @param builder The builder
+   *
+   * @throws RCGGraphException On errors
    */
 
-  public RCAssetShaderModule
-  {
-    Objects.requireNonNull(shaders, "shaders");
-  }
+  void check(
+    RCGGraphBuilder builder)
+    throws RCGGraphException;
 }

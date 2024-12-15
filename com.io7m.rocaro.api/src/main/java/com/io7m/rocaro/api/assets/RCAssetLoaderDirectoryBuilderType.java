@@ -17,11 +17,29 @@
 
 package com.io7m.rocaro.api.assets;
 
+/**
+ * A mutable builder for constructing asset loader directories.
+ */
+
 public interface RCAssetLoaderDirectoryBuilderType
 {
+  /**
+   * Add a loader factory.
+   *
+   * @param factory The factory
+   *
+   * @return this
+   *
+   * @throws RCAssetException On errors
+   */
+
   RCAssetLoaderDirectoryBuilderType addLoader(
-    RCAssetLoaderFactoryType<?> loader)
+    RCAssetLoaderFactoryType<?> factory)
     throws RCAssetException;
+
+  /**
+   * @return An immutable asset loader directory
+   */
 
   RCAssetLoaderDirectoryType build();
 }

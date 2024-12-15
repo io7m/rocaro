@@ -32,6 +32,7 @@ import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
 import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
 import com.io7m.jcoronado.api.VulkanQueueType;
+import com.io7m.jcoronado.api.VulkanSemaphoreBinaryType;
 import com.io7m.jcoronado.api.VulkanSemaphoreType;
 import com.io7m.jcoronado.api.VulkanSharingMode;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType;
@@ -43,7 +44,13 @@ import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanExtKHRSwapChainType
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentInfoKHR;
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeKHR;
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainCreateInfo;
+import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainNotReady;
+import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainOK;
+import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainOutOfDate;
+import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainSubOptimal;
+import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainTimedOut;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
+import com.io7m.junreachable.UnimplementedCodeException;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RocaroException;
@@ -109,8 +116,8 @@ public final class RCWindowWithSurface
   private final CloseableCollectionType<RocaroException> resources;
   private final CloseableCollectionType<RocaroException> resourcesPerSwapChain;
   private final Map<SwapChainIndex, VulkanImageType> swapChainImages;
-  private final Map<RCFrameIndex, VulkanSemaphoreType> swapChainImageReadySemaphores;
-  private final Map<RCFrameIndex, VulkanSemaphoreType> swapChainImageRenderingDoneSemaphores;
+  private final Map<RCFrameIndex, VulkanSemaphoreBinaryType> swapChainImageReadySemaphores;
+  private final Map<RCFrameIndex, VulkanSemaphoreBinaryType> swapChainImageRenderingDoneSemaphores;
   private final Map<RCFrameIndex, VulkanFenceType> swapChainImageRenderingDoneFences;
   private VulkanSurfaceCapabilitiesKHR surfaceCaps;
   private VulkanPresentModeKHR surfacePresent;
@@ -223,14 +230,14 @@ public final class RCWindowWithSurface
     private final RCWindowWithSurface windowWithSurface;
     private final SwapChainIndex index;
     private final VulkanFenceType imageRenderingIsFinishedFence;
-    private final VulkanSemaphoreType imageIsReadySemaphore;
-    private final VulkanSemaphoreType imageRenderingIsFinishedSemaphore;
+    private final VulkanSemaphoreBinaryType imageIsReadySemaphore;
+    private final VulkanSemaphoreBinaryType imageRenderingIsFinishedSemaphore;
 
     private FrameContext(
       final RCWindowWithSurface inWindowWithSurface,
       final SwapChainIndex inIndex,
-      final VulkanSemaphoreType inImageIsReadySemaphore,
-      final VulkanSemaphoreType inImageRenderingIsFinishedSemaphore,
+      final VulkanSemaphoreBinaryType inImageIsReadySemaphore,
+      final VulkanSemaphoreBinaryType inImageRenderingIsFinishedSemaphore,
       final VulkanFenceType inImageRenderingIsFinishedFence,
       final RCImageColorBlendableType inImage)
     {
@@ -363,12 +370,24 @@ public final class RCWindowWithSurface
           readySemaphore
         );
 
-      if (acquisition.timedOut()) {
-        throw new TimeoutException("Image acquisition timed out.");
+      final SwapChainIndex swapIndex;
+      switch (acquisition) {
+        case final VulkanSwapChainNotReady notReady -> {
+          throw new UnimplementedCodeException();
+        }
+        case final VulkanSwapChainOK ok -> {
+          swapIndex = new SwapChainIndex(ok.imageIndex());
+        }
+        case final VulkanSwapChainOutOfDate outOfDate -> {
+          throw new UnimplementedCodeException();
+        }
+        case final VulkanSwapChainSubOptimal subOptimal -> {
+          throw new UnimplementedCodeException();
+        }
+        case final VulkanSwapChainTimedOut timedOut -> {
+          throw new TimeoutException("Image acquisition timed out.");
+        }
       }
-
-      final var swapIndex =
-        new SwapChainIndex(acquisition.imageIndex().orElseThrow());
 
       if (LOG.isTraceEnabled()) {
         LOG.trace("Swapchain image index {}", swapIndex);

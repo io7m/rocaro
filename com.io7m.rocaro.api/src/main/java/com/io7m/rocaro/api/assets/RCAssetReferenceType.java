@@ -19,10 +19,24 @@ package com.io7m.rocaro.api.assets;
 
 import com.io7m.rocaro.api.RCCloseableType;
 
+/**
+ * A reference to an asset.
+ *
+ * @param <A> The type of asset
+ */
+
 public interface RCAssetReferenceType<A extends RCAssetType>
   extends RCCloseableType
 {
+  /**
+   * @return The asset identifier
+   */
+
   RCAssetIdentifier identifier();
+
+  /**
+   * @return The actual asset value
+   */
 
   RCAssetValueType<A> get();
 }

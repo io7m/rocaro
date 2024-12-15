@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.vanilla.internal.graph;
 
+import com.io7m.junreachable.UnimplementedCodeException;
 import com.io7m.junreachable.UnreachableCodeException;
 import com.io7m.rocaro.api.RCFrameInformation;
 import com.io7m.rocaro.api.graph.RCGFrameScopedServiceType;
@@ -26,6 +27,8 @@ import com.io7m.rocaro.api.graph.RCGPortConsumer;
 import com.io7m.rocaro.api.graph.RCGPortModifier;
 import com.io7m.rocaro.api.graph.RCGPortProducer;
 import com.io7m.rocaro.api.graph.RCGPortType;
+import com.io7m.rocaro.api.images.RCImageColorBlendableType;
+import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameContextType;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 
@@ -149,5 +152,12 @@ public final class RCGNodeRenderContext
     }
 
     throw new UnreachableCodeException();
+  }
+
+  @Override
+  public RCRenderTargetType renderTargetFor(
+    final RCImageColorBlendableType image)
+  {
+    throw new UnimplementedCodeException();
   }
 }

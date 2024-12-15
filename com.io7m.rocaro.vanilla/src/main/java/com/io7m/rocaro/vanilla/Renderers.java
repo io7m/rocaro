@@ -61,11 +61,17 @@ public final class Renderers implements RendererFactoryType
       builder.declareRenderGraph("Empty");
     final var frameSource =
       graphBuilder.declareFrameSource("FrameSource");
+    final var render =
+      graphBuilder.declareEmptyRenderPass("Empty");
     final var frameTarget =
       graphBuilder.declareFrameTarget("FrameTarget");
 
     graphBuilder.connect(
       frameSource.imageSource(),
+      render.targetPort("Image")
+    );
+    graphBuilder.connect(
+      render.sourcePort("Image"),
       frameTarget.imageTarget()
     );
     return builder;

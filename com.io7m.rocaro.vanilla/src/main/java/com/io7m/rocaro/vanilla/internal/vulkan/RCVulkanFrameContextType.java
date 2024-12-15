@@ -19,6 +19,7 @@ package com.io7m.rocaro.vanilla.internal.vulkan;
 
 import com.io7m.jcoronado.api.VulkanCommandPoolType;
 import com.io7m.rocaro.api.RCCloseableType;
+import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.graph.RCGFrameScopedServiceType;
 
 /**
@@ -32,7 +33,7 @@ public interface RCVulkanFrameContextType
    * @return The logical device
    */
 
-  RCDevice device();
+  RCDeviceType device();
 
   /**
    * @return The window frame context

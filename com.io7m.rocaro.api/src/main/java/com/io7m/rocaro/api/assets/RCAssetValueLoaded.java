@@ -19,10 +19,23 @@ package com.io7m.rocaro.api.assets;
 
 import java.util.Objects;
 
+/**
+ * A fully-loaded asset.
+ *
+ * @param value The asset value
+ * @param <A>   The type of asset
+ */
+
 public record RCAssetValueLoaded<A extends RCAssetType>(
   A value)
   implements RCAssetValueType<A>
 {
+  /**
+   * A fully-loaded asset.
+   *
+   * @param value The asset value
+   */
+
   public RCAssetValueLoaded
   {
     Objects.requireNonNull(value, "value");
