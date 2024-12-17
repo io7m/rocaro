@@ -15,25 +15,14 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph2;
-
-import com.io7m.rocaro.api.graph2.RCGGraphException;
+package com.io7m.rocaro.api.graph2;
 
 /**
- * A check executed over a graph builder.
+ * The type of resources that are frame images.
  */
 
-public interface RCGGraphPassType
+public interface RCGResourceFrameImageType
+  extends RCGResourceRenderTargetType
 {
-  /**
-   * Check the graph builder.
-   *
-   * @param builder The builder
-   *
-   * @throws RCGGraphException On errors
-   */
 
-  void process(
-    RCGGraphBuilderInternalType builder)
-    throws RCGGraphException;
 }

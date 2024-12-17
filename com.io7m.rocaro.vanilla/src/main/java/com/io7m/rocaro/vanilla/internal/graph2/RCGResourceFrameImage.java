@@ -17,23 +17,41 @@
 
 package com.io7m.rocaro.vanilla.internal.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGGraphException;
+import com.io7m.rocaro.api.graph2.RCGResourceFrameImageType;
+import com.io7m.rocaro.api.graph2.RCGResourceName;
+
+import java.util.Objects;
 
 /**
- * A check executed over a graph builder.
+ * A resource representing the frame image.
  */
 
-public interface RCGGraphPassType
+public final class RCGResourceFrameImage
+  implements RCGResourceFrameImageType
 {
+  private final RCGResourceName name;
+
   /**
-   * Check the graph builder.
+   * A resource representing the frame image.
    *
-   * @param builder The builder
-   *
-   * @throws RCGGraphException On errors
+   * @param inName The resource name
    */
 
-  void process(
-    RCGGraphBuilderInternalType builder)
-    throws RCGGraphException;
+  public RCGResourceFrameImage(
+    final RCGResourceName inName)
+  {
+    this.name = Objects.requireNonNull(inName, "name");
+  }
+
+  @Override
+  public String toString()
+  {
+    return "[RCGResourceFrameImage %s]".formatted(this.name);
+  }
+
+  @Override
+  public RCGResourceName name()
+  {
+    return this.name;
+  }
 }

@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.tests.graph2;
 
+import com.io7m.rocaro.api.graph2.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph2.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph2.RCGOperationName;
 import com.io7m.rocaro.api.graph2.RCGOperationParametersType;
@@ -32,13 +33,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-final class OpImageTransition0
+final class OpImageModifier0
   implements RCGOperationType
 {
   private final RCGOperationName name;
   private final Parameters parameters;
 
-  public OpImageTransition0(
+  public OpImageModifier0(
     final RCGOperationName inName,
     final Parameters inParameters)
   {
@@ -48,31 +49,29 @@ final class OpImageTransition0
       Objects.requireNonNull(inParameters, "parameters");
   }
 
-  public static RCGOperationFactoryType<Parameters, OpImageTransition0> factory()
+  public static RCGOperationFactoryType<Parameters, OpImageModifier0> factory()
   {
-    return OpImageTransition0::new;
+    return OpImageModifier0::new;
   }
 
   record Parameters(
     Optional<RCGResourceImageLayout> requiresLayout,
+    Set<RCGCommandPipelineStage> readsOnStages,
+    Set<RCGCommandPipelineStage> writesOnStages,
     Optional<RCGResourceImageLayout> ensuresLayout)
     implements RCGOperationParametersType
   {
-    Parameters
-    {
-      Objects.requireNonNull(requiresLayout, "requiresLayout");
-      Objects.requireNonNull(ensuresLayout, "ensuresLayout");
-    }
+
   }
 
-  public RCGPortModifies port0()
+  public RCGPortModifies port()
   {
     return new RCGPortModifies(
       this,
       new RCGPortName("Port0"),
       RCGResourceImageType.class,
-      Set.of(),
-      Set.of(),
+      this.parameters.readsOnStages(),
+      this.parameters.writesOnStages(),
       this.parameters.requiresLayout(),
       this.parameters.ensuresLayout()
     );
@@ -87,6 +86,6 @@ final class OpImageTransition0
   @Override
   public List<RCGPortType> ports()
   {
-    return List.of(this.port0());
+    return List.of(this.port());
   }
 }

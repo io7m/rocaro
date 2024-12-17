@@ -42,8 +42,8 @@ public final class RCGPassResourcesTrack
   }
 
   @Override
-  public void check(
-    final RCGGraphBuilder builder)
+  public void process(
+    final RCGGraphBuilderInternalType builder)
   {
     final var tracked =
       builder.portResourcesTracked();

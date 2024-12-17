@@ -24,6 +24,82 @@ package com.io7m.rocaro.api.graph2;
 public interface RCGGraphBuilderType
 {
   /**
+   * Declare a frame image resource.
+   *
+   * @param name The name
+   *
+   * @return The resource
+   *
+   * @throws RCGGraphException On errors
+   */
+
+  RCGResourceFrameImageType declareFrameResource(
+    RCGResourceName name)
+    throws RCGGraphException;
+
+  /**
+   * Declare an operation that acquires a frame from the swapchain.
+   *
+   * @param name The operation name
+   *
+   * @return The operation
+   *
+   * @throws RCGGraphException On errors
+   */
+
+  RCGOperationFrameAcquireType declareOpFrameAcquire(
+    RCGOperationName name)
+    throws RCGGraphException;
+
+  /**
+   * Declare an operation that acquires a frame from the swapchain.
+   *
+   * @param name The operation name
+   *
+   * @return The operation
+   *
+   * @throws RCGGraphException On errors
+   */
+
+  default RCGOperationFrameAcquireType declareOpFrameAcquire(
+    final String name)
+    throws RCGGraphException
+  {
+    return this.declareOpFrameAcquire(new RCGOperationName(name));
+  }
+
+  /**
+   * Declare an operation that presents a frame to the swapchain.
+   *
+   * @param name The operation name
+   *
+   * @return The operation
+   *
+   * @throws RCGGraphException On errors
+   */
+
+  RCGOperationFramePresentType declareOpFramePresent(
+    RCGOperationName name)
+    throws RCGGraphException;
+
+  /**
+   * Declare an operation that presents a frame to the swapchain.
+   *
+   * @param name The operation name
+   *
+   * @return The operation
+   *
+   * @throws RCGGraphException On errors
+   */
+
+  default RCGOperationFramePresentType declareOpFramePresent(
+    final String name)
+    throws RCGGraphException
+  {
+    return this.declareOpFramePresent(new RCGOperationName(name));
+  }
+
+  /**
    * Declare an operation.
    *
    * @param name       The operation name

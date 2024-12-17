@@ -15,25 +15,34 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph2;
+package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGGraphException;
+import com.io7m.rocaro.api.graph2.RCGNoParameters;
+import com.io7m.rocaro.api.graph2.RCGResourceBufferType;
+import com.io7m.rocaro.api.graph2.RCGResourceFactoryType;
+import com.io7m.rocaro.api.graph2.RCGResourceName;
 
-/**
- * A check executed over a graph builder.
- */
+import java.util.Objects;
 
-public interface RCGGraphPassType
+final class ResBuffer0
+  implements RCGResourceBufferType
 {
-  /**
-   * Check the graph builder.
-   *
-   * @param builder The builder
-   *
-   * @throws RCGGraphException On errors
-   */
+  private final RCGResourceName name;
 
-  void process(
-    RCGGraphBuilderInternalType builder)
-    throws RCGGraphException;
+  public ResBuffer0(
+    final RCGResourceName inName)
+  {
+    this.name = Objects.requireNonNull(inName, "name");
+  }
+
+  public static RCGResourceFactoryType<RCGNoParameters, ResBuffer0> factory()
+  {
+    return (name, _) -> new ResBuffer0(name);
+  }
+
+  @Override
+  public RCGResourceName name()
+  {
+    return this.name;
+  }
 }

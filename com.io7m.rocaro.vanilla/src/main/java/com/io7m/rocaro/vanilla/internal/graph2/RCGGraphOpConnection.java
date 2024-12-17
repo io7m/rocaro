@@ -17,23 +17,31 @@
 
 package com.io7m.rocaro.vanilla.internal.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGGraphException;
+import com.io7m.rocaro.api.graph2.RCGOperationType;
+
+import java.util.Objects;
 
 /**
- * A check executed over a graph builder.
+ * A connection in the render graph.
+ *
+ * @param source The source operation
+ * @param target The target operation
  */
 
-public interface RCGGraphPassType
+public record RCGGraphOpConnection(
+  RCGOperationType source,
+  RCGOperationType target)
 {
   /**
-   * Check the graph builder.
+   * A connection in the render graph.
    *
-   * @param builder The builder
-   *
-   * @throws RCGGraphException On errors
+   * @param source The source operation
+   * @param target The target operation
    */
 
-  void process(
-    RCGGraphBuilderInternalType builder)
-    throws RCGGraphException;
+  public RCGGraphOpConnection
+  {
+    Objects.requireNonNull(source, "sourcePort");
+    Objects.requireNonNull(target, "targetPort");
+  }
 }

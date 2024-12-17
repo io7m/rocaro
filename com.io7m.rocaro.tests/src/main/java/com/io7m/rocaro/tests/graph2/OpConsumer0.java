@@ -17,9 +17,10 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGNoParameters;
+import com.io7m.rocaro.api.graph2.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph2.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph2.RCGOperationName;
+import com.io7m.rocaro.api.graph2.RCGOperationParametersType;
 import com.io7m.rocaro.api.graph2.RCGOperationType;
 import com.io7m.rocaro.api.graph2.RCGPortConsumes;
 import com.io7m.rocaro.api.graph2.RCGPortName;
@@ -35,26 +36,43 @@ final class OpConsumer0
   implements RCGOperationType
 {
   private final RCGOperationName name;
+  private final Parameters parameters;
 
   public OpConsumer0(
-    final RCGOperationName inName)
+    final RCGOperationName inName,
+    final Parameters inParameters)
   {
-    this.name = Objects.requireNonNull(inName, "name");
+    this.name =
+      Objects.requireNonNull(inName, "name");
+    this.parameters =
+      Objects.requireNonNull(inParameters, "parameters");
   }
 
-  public static RCGOperationFactoryType<RCGNoParameters, OpConsumer0> factory()
+  public static RCGOperationFactoryType<Parameters, OpConsumer0> factory()
   {
-    return (name, _) -> new OpConsumer0(name);
+    return OpConsumer0::new;
   }
 
-  public RCGPortConsumes port0()
+  record Parameters(
+    Set<RCGCommandPipelineStage> reads,
+    Set<RCGCommandPipelineStage> writes)
+    implements RCGOperationParametersType
+  {
+    Parameters
+    {
+      reads = Set.copyOf(reads);
+      writes = Set.copyOf(writes);
+    }
+  }
+
+  public RCGPortConsumes port()
   {
     return new RCGPortConsumes(
       this,
       new RCGPortName("Port0"),
       RCGResourceBufferType.class,
-      Set.of(),
-      Set.of(),
+      this.parameters.reads(),
+      this.parameters.writes(),
       Optional.empty()
     );
   }
@@ -68,6 +86,6 @@ final class OpConsumer0
   @Override
   public List<RCGPortType> ports()
   {
-    return List.of(this.port0());
+    return List.of(this.port());
   }
 }

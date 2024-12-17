@@ -94,13 +94,15 @@ public sealed interface RCGOperationImageLayoutTransitionType
   /**
    * An operation performs image layout transitions before and after executing.
    *
-   * @param pre  The pre-operation layout transition
-   * @param post The post-operation layout transition
+   * @param layoutFrom   The pre-operation layout transition
+   * @param layoutDuring The during-execution layout
+   * @param layoutTo     The post-operation layout transition
    */
 
   record PreAndPost(
-    Pre pre,
-    Post post)
+    RCGResourceImageLayout layoutFrom,
+    RCGResourceImageLayout layoutDuring,
+    RCGResourceImageLayout layoutTo)
     implements RCGOperationImageLayoutTransitionType
   {
     /**
@@ -109,8 +111,9 @@ public sealed interface RCGOperationImageLayoutTransitionType
 
     public PreAndPost
     {
-      Objects.requireNonNull(pre, "pre");
-      Objects.requireNonNull(post, "post");
+      Objects.requireNonNull(layoutFrom, "layoutFrom");
+      Objects.requireNonNull(layoutDuring, "layoutDuring");
+      Objects.requireNonNull(layoutTo, "layoutTo");
     }
   }
 }

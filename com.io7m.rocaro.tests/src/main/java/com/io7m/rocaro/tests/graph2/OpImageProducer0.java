@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.tests.graph2;
 
+import com.io7m.rocaro.api.graph2.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph2.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph2.RCGOperationName;
 import com.io7m.rocaro.api.graph2.RCGOperationParametersType;
@@ -54,23 +55,22 @@ final class OpImageProducer0
   }
 
   record Parameters(
+    Set<RCGCommandPipelineStage> readsOnStages,
+    Set<RCGCommandPipelineStage> writesOnStages,
     Optional<RCGResourceImageLayout> ensuresLayout)
     implements RCGOperationParametersType
   {
-    Parameters
-    {
-      Objects.requireNonNull(ensuresLayout, "ensuresLayout");
-    }
+
   }
 
-  public RCGPortProduces port0()
+  public RCGPortProduces port()
   {
     return new RCGPortProduces(
       this,
       new RCGPortName("Port0"),
       RCGResourceImageType.class,
-      Set.of(),
-      Set.of(),
+      this.parameters.readsOnStages(),
+      this.parameters.writesOnStages(),
       this.parameters.ensuresLayout()
     );
   }
@@ -84,6 +84,6 @@ final class OpImageProducer0
   @Override
   public List<RCGPortType> ports()
   {
-    return List.of(this.port0());
+    return List.of(this.port());
   }
 }

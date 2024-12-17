@@ -39,8 +39,8 @@ public final class RCGPassCheckNonEmpty
   }
 
   @Override
-  public void check(
-    final RCGGraphBuilder builder)
+  public void process(
+    final RCGGraphBuilderInternalType builder)
     throws RCGGraphException
   {
     if (builder.graph().vertexSet().isEmpty()) {

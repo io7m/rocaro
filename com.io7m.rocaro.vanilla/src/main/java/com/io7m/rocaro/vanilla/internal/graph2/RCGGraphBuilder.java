@@ -17,10 +17,13 @@
 
 package com.io7m.rocaro.vanilla.internal.graph2;
 
+import com.io7m.rocaro.api.graph2.RCGCommandType;
 import com.io7m.rocaro.api.graph2.RCGGraphBuilderType;
 import com.io7m.rocaro.api.graph2.RCGGraphException;
 import com.io7m.rocaro.api.graph2.RCGGraphType;
 import com.io7m.rocaro.api.graph2.RCGOperationFactoryType;
+import com.io7m.rocaro.api.graph2.RCGOperationFrameAcquireType;
+import com.io7m.rocaro.api.graph2.RCGOperationFramePresentType;
 import com.io7m.rocaro.api.graph2.RCGOperationImageLayoutTransitionType;
 import com.io7m.rocaro.api.graph2.RCGOperationImageLayoutTransitionType.Constant;
 import com.io7m.rocaro.api.graph2.RCGOperationName;
@@ -33,6 +36,7 @@ import com.io7m.rocaro.api.graph2.RCGPortProducerType;
 import com.io7m.rocaro.api.graph2.RCGPortProduces;
 import com.io7m.rocaro.api.graph2.RCGPortType;
 import com.io7m.rocaro.api.graph2.RCGResourceFactoryType;
+import com.io7m.rocaro.api.graph2.RCGResourceFrameImageType;
 import com.io7m.rocaro.api.graph2.RCGResourceName;
 import com.io7m.rocaro.api.graph2.RCGResourceParametersType;
 import com.io7m.rocaro.api.graph2.RCGResourceType;
@@ -46,23 +50,28 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.io7m.rocaro.api.graph2.RCGNoParameters.NO_PARAMETERS;
 import static com.io7m.rocaro.api.graph2.RCGResourceImageLayout.LAYOUT_UNDEFINED;
 
 /**
  * The default mutable graph builder.
  */
 
-public final class RCGGraphBuilder implements RCGGraphBuilderType
+public final class RCGGraphBuilder
+  implements RCGGraphBuilderType, RCGGraphBuilderInternalType
 {
   private final AtomicBoolean built;
   private final HashMap<RCGOperationName, RCGOperationType> ops;
   private final HashMap<RCGResourceName, RCGResourceType> resources;
   private final DirectedAcyclicGraph<RCGPortType, RCGGraphConnection> graph;
+  private final DirectedAcyclicGraph<RCGOperationType, RCGGraphOpConnection> opGraph;
   private final HashMap<RCGPortProduces, RCGResourceType> portResources;
   private final HashMap<RCGResourceType, RCGPortProduces> resourcePorts;
   private final List<RCGGraphPassType> passes;
   private final HashMap<RCGPortType, RCGResourceType> portResourcesTracked;
   private final HashMap<RCGPortType, RCGOperationImageLayoutTransitionType> portImageLayouts;
+  private final HashMap<RCGOperationType, List<RCGCommandType>> opCommands;
+  private final HashMap<RCGOperationName, RCGOperationPrimitiveBarriers> opPrimitiveBarriers;
 
   /**
    * The default mutable graph builder.
@@ -79,11 +88,15 @@ public final class RCGGraphBuilder implements RCGGraphBuilderType
         new RCGPassCheckPortsConnected(),
         new RCGPassCheckPortResourcesAssigned(),
         new RCGPassResourcesTrack(),
-        new RCGPassImageLayoutTransitions()
+        new RCGPassImageLayoutTransitions(),
+        new RCGPassPrimitiveBarriers()
       );
 
     this.graph =
       new DirectedAcyclicGraph<>(RCGGraphConnection.class);
+    this.opGraph =
+      new DirectedAcyclicGraph<>(RCGGraphOpConnection.class);
+
     this.ops =
       new HashMap<>();
     this.resources =
@@ -95,6 +108,10 @@ public final class RCGGraphBuilder implements RCGGraphBuilderType
     this.portResourcesTracked =
       new HashMap<>();
     this.portImageLayouts =
+      new HashMap<>();
+    this.opCommands =
+      new HashMap<>();
+    this.opPrimitiveBarriers =
       new HashMap<>();
   }
 
@@ -195,64 +212,61 @@ public final class RCGGraphBuilder implements RCGGraphBuilderType
     );
   }
 
-  /**
-   * @return The resource at each port
-   */
+  @Override
+  public HashMap<RCGOperationType, List<RCGCommandType>> opCommands()
+  {
+    return this.opCommands;
+  }
 
+  @Override
   public HashMap<RCGPortType, RCGResourceType> portResourcesTracked()
   {
     return this.portResourcesTracked;
   }
 
-  /**
-   * @return The graph
-   */
+  @Override
+  public DirectedAcyclicGraph<RCGOperationType, RCGGraphOpConnection> opGraph()
+  {
+    return this.opGraph;
+  }
 
+  @Override
   public DirectedAcyclicGraph<RCGPortType, RCGGraphConnection> graph()
   {
     return this.graph;
   }
 
-  /**
-   * @return The operations
-   */
-
+  @Override
   public HashMap<RCGOperationName, RCGOperationType> operations()
   {
     return this.ops;
   }
 
-  /**
-   * @return The resource for each port
-   */
+  @Override
+  public HashMap<RCGOperationName, RCGOperationPrimitiveBarriers> operationPrimitiveBarriers()
+  {
+    return this.opPrimitiveBarriers;
+  }
 
+  @Override
   public HashMap<RCGPortProduces, RCGResourceType> portResources()
   {
     return this.portResources;
   }
 
-  /**
-   * @return The port for each resource
-   */
-
+  @Override
   public HashMap<RCGResourceType, RCGPortProduces> resourcePorts()
   {
     return this.resourcePorts;
   }
 
-  /**
-   * @return The resources
-   */
-
+  @Override
   public HashMap<RCGResourceName, RCGResourceType> resources()
   {
     return this.resources;
   }
 
-  /**
-   * @return The image layouts per port
-   */
-
+  @Override
   public HashMap<RCGPortType, RCGOperationImageLayoutTransitionType> portImageLayouts()
   {
     return this.portImageLayouts;
@@ -269,6 +283,42 @@ public final class RCGGraphBuilder implements RCGGraphBuilderType
         Optional.empty()
       );
     }
+  }
+
+  @Override
+  public RCGResourceFrameImageType declareFrameResource(
+    final RCGResourceName name)
+    throws RCGGraphException
+  {
+    return this.declareResource(
+      name,
+      (n, _) -> new RCGResourceFrameImage(n),
+      NO_PARAMETERS
+    );
+  }
+
+  @Override
+  public RCGOperationFrameAcquireType declareOpFrameAcquire(
+    final RCGOperationName name)
+    throws RCGGraphException
+  {
+    return this.declareOperation(
+      name,
+      (n, _) -> new RCGOperationFrameAcquire(n),
+      NO_PARAMETERS
+    );
+  }
+
+  @Override
+  public RCGOperationFramePresentType declareOpFramePresent(
+    final RCGOperationName name)
+    throws RCGGraphException
+  {
+    return this.declareOperation(
+      name,
+      (n, _) -> new RCGOperationFramePresent(n),
+      NO_PARAMETERS
+    );
   }
 
   @Override
@@ -291,6 +341,7 @@ public final class RCGGraphBuilder implements RCGGraphBuilderType
 
     final var op = factory.create(name, parameters);
     this.ops.put(name, op);
+    this.opGraph.addVertex(op);
 
     for (final var p : op.ports()) {
       this.graph.addVertex(p);
@@ -377,11 +428,13 @@ public final class RCGGraphBuilder implements RCGGraphBuilderType
     if (!RCGResourceTypes.targetCanAcceptSource(source, target)) {
       throw errorSourceTargetPortsIncompatible(source, target);
     }
-    if (!this.operationIsDeclared(source.owner())) {
-      throw errorOperationNonexistent(source.owner());
+    final var sourceOp = source.owner();
+    if (!this.operationIsDeclared(sourceOp)) {
+      throw errorOperationNonexistent(sourceOp);
     }
-    if (!this.operationIsDeclared(target.owner())) {
-      throw errorOperationNonexistent(target.owner());
+    final var targetOp = target.owner();
+    if (!this.operationIsDeclared(targetOp)) {
+      throw errorOperationNonexistent(targetOp);
     }
     if (this.portIsConnected(source)) {
       throw errorPortAlreadyConnected(source);
@@ -390,10 +443,21 @@ public final class RCGGraphBuilder implements RCGGraphBuilderType
       throw errorPortAlreadyConnected(target);
     }
 
-    final var connection = new RCGGraphConnection(source, target);
-    this.graph.addVertex(source);
-    this.graph.addVertex(target);
-    this.graph.addEdge(source, target, connection);
+    {
+      final var connection = new RCGGraphOpConnection(sourceOp, targetOp);
+      this.opGraph.addVertex(sourceOp);
+      this.opGraph.addVertex(targetOp);
+      if (!this.opGraph.containsEdge(connection)) {
+        this.opGraph.addEdge(sourceOp, targetOp, connection);
+      }
+    }
+
+    {
+      final var connection = new RCGGraphConnection(source, target);
+      this.graph.addVertex(source);
+      this.graph.addVertex(target);
+      this.graph.addEdge(source, target, connection);
+    }
   }
 
   private boolean operationIsDeclared(
@@ -427,7 +491,7 @@ public final class RCGGraphBuilder implements RCGGraphBuilderType
     this.checkNotBuilt();
 
     for (final var check : this.passes) {
-      check.check(this);
+      check.process(this);
     }
 
     this.built.set(true);

@@ -51,8 +51,8 @@ public final class RCGPassImageLayoutTransitions
   }
 
   @Override
-  public void check(
-    final RCGGraphBuilder builder)
+  public void process(
+    final RCGGraphBuilderInternalType builder)
   {
     final var resources =
       builder.portResources();
@@ -124,10 +124,7 @@ public final class RCGPassImageLayoutTransitions
             if (layoutDuring != layoutLeaving) {
               transitions.put(
                 port,
-                new PreAndPost(
-                  new Pre(layoutThen, layoutDuring),
-                  new Post(layoutDuring, layoutLeaving)
-                )
+                new PreAndPost(layoutThen, layoutDuring, layoutLeaving)
               );
             } else {
               transitions.put(port, new Pre(layoutThen, layoutDuring));

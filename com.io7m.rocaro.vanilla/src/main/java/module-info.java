@@ -71,6 +71,8 @@ module com.io7m.rocaro.vanilla
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.graph
     to com.io7m.rocaro.tests;
+  exports com.io7m.rocaro.vanilla.internal.graph2
+    to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.windows
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.images

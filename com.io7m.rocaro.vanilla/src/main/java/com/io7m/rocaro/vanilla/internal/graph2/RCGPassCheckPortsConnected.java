@@ -42,8 +42,8 @@ public final class RCGPassCheckPortsConnected
   }
 
   @Override
-  public void check(
-    final RCGGraphBuilder builder)
+  public void process(
+    final RCGGraphBuilderInternalType builder)
     throws RCGGraphException
   {
     int index = 0;

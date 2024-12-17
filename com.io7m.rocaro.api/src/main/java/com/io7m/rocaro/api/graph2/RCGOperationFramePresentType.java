@@ -15,25 +15,18 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph2;
-
-import com.io7m.rocaro.api.graph2.RCGGraphException;
+package com.io7m.rocaro.api.graph2;
 
 /**
- * A check executed over a graph builder.
+ * The operation representing the presentation of a frame to the swapchain.
  */
 
-public interface RCGGraphPassType
+public interface RCGOperationFramePresentType
+  extends RCGOperationType
 {
   /**
-   * Check the graph builder.
-   *
-   * @param builder The builder
-   *
-   * @throws RCGGraphException On errors
+   * @return The port that consumes a frame
    */
 
-  void process(
-    RCGGraphBuilderInternalType builder)
-    throws RCGGraphException;
+  RCGPortConsumes frame();
 }

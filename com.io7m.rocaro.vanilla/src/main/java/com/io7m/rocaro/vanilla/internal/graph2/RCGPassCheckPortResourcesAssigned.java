@@ -45,8 +45,8 @@ public final class RCGPassCheckPortResourcesAssigned
   }
 
   @Override
-  public void check(
-    final RCGGraphBuilder builder)
+  public void process(
+    final RCGGraphBuilderInternalType builder)
     throws RCGGraphException
   {
     final var failedPorts =

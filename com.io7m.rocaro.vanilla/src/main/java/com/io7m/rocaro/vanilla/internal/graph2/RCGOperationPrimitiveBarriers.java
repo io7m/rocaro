@@ -17,23 +17,27 @@
 
 package com.io7m.rocaro.vanilla.internal.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGGraphException;
+import com.io7m.rocaro.api.graph2.RCGResourceType;
+
+import java.util.Map;
 
 /**
- * A check executed over a graph builder.
+ * The primitive barriers that may surround a given operation.
+ *
+ * @param barriers The barriers
  */
 
-public interface RCGGraphPassType
+public record RCGOperationPrimitiveBarriers(
+  Map<RCGResourceType, RCGResourcePrimitiveBarriersType> barriers)
 {
   /**
-   * Check the graph builder.
+   * The primitive barriers that may surround a given operation.
    *
-   * @param builder The builder
-   *
-   * @throws RCGGraphException On errors
+   * @param barriers The barriers
    */
 
-  void process(
-    RCGGraphBuilderInternalType builder)
-    throws RCGGraphException;
+  public RCGOperationPrimitiveBarriers
+  {
+    barriers = Map.copyOf(barriers);
+  }
 }
