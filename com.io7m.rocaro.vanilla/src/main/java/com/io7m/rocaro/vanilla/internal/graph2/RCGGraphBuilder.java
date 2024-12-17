@@ -42,6 +42,7 @@ import com.io7m.rocaro.api.graph2.RCGResourceParametersType;
 import com.io7m.rocaro.api.graph2.RCGResourceType;
 import com.io7m.rocaro.api.graph2.RCGResourceTypes;
 import org.jgrapht.graph.DirectedAcyclicGraph;
+import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static com.io7m.rocaro.api.graph2.RCGNoParameters.NO_PARAMETERS;
 import static com.io7m.rocaro.api.graph2.RCGResourceImageLayout.LAYOUT_UNDEFINED;
@@ -270,6 +272,18 @@ public final class RCGGraphBuilder
   public HashMap<RCGPortType, RCGOperationImageLayoutTransitionType> portImageLayouts()
   {
     return this.portImageLayouts;
+  }
+
+  @Override
+  public void traverse(
+    final Consumer<RCGOperationType> receiver)
+  {
+    final var iter =
+      new TopologicalOrderIterator<>(this.opGraph);
+
+    while (iter.hasNext()) {
+      receiver.accept(iter.next());
+    }
   }
 
   private void checkNotBuilt()

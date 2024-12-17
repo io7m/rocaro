@@ -41,6 +41,12 @@ final class ResImage0
   }
 
   @Override
+  public String toString()
+  {
+    return "[ResImage0 %s]".formatted(this.name);
+  }
+
+  @Override
   public RCGResourceName name()
   {
     return this.name;

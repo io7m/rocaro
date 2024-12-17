@@ -41,6 +41,12 @@ final class ResBuffer0
   }
 
   @Override
+  public String toString()
+  {
+    return "[ResBuffer0 %s]".formatted(this.name);
+  }
+
+  @Override
   public RCGResourceName name()
   {
     return this.name;

@@ -74,6 +74,12 @@ final class OpEx1
   }
 
   @Override
+  public String toString()
+  {
+    return "[OpEx1 %s]".formatted(this.name);
+  }
+
+  @Override
   public List<RCGPortType> ports()
   {
     return List.of(this.port0(), this.port1());

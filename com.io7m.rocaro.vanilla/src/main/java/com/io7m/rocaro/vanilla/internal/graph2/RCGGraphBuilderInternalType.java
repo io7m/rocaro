@@ -30,6 +30,7 @@ import org.jgrapht.graph.DirectedAcyclicGraph;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * The internal interface exposed by the graph builder.
@@ -97,4 +98,12 @@ public interface RCGGraphBuilderInternalType
    */
 
   HashMap<RCGPortType, RCGOperationImageLayoutTransitionType> portImageLayouts();
+
+  /**
+   * Traverse the graph in topological order.
+   *
+   * @param receiver The receiver
+   */
+
+  void traverse(Consumer<RCGOperationType> receiver);
 }

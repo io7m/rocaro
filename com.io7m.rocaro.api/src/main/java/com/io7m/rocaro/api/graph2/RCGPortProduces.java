@@ -64,6 +64,13 @@ public record RCGPortProduces(
     readsOnStages = Set.copyOf(readsOnStages);
     writesOnStages = Set.copyOf(writesOnStages);
 
+    if (RCGResourceTypes.isImage(type)) {
+      Preconditions.checkPreconditionV(
+        ensuresImageLayout.isPresent(),
+        "Pure producer ports must provide image layout assurances."
+      );
+    }
+
     if (ensuresImageLayout.isPresent()) {
       Preconditions.checkPreconditionV(
         type,

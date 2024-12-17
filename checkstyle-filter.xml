@@ -13,4 +13,13 @@
             checks="RedundantModifier"/>
   <suppress files=".*"
             checks="RedundantModifier"/>
+
+  <suppress files="RCGGraphExplain\.java"
+            checks="CyclomaticComplexity"/>
+  <suppress files="RCGGraphExplain\.java"
+            checks="JavaNCSS"/>
+  <suppress files="RCGGraphExplain\.java"
+            checks="NPathComplexity"/>
+  <suppress files="RCGGraphExplain\.java"
+            checks="ExecutableStatementCount"/>
 </suppressions>

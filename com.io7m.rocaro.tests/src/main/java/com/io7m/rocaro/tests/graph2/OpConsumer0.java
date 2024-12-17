@@ -78,6 +78,12 @@ final class OpConsumer0
   }
 
   @Override
+  public String toString()
+  {
+    return "[OpConsumer0 %s]".formatted(this.name);
+  }
+
+  @Override
   public RCGOperationName name()
   {
     return this.name;
