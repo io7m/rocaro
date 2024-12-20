@@ -17,13 +17,14 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGGraphException;
+import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.rocaro.api.graph.RCGGraphException;
 import com.io7m.rocaro.vanilla.RCGraph;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static com.io7m.rocaro.api.graph2.RCGNoParameters.NO_PARAMETERS;
+import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -34,7 +35,7 @@ public final class RCGraphResourcesTest
     throws RCGGraphException
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder(new RCGraphName("Main"));
 
     b.declareResource(
       "Example0",
@@ -58,7 +59,7 @@ public final class RCGraphResourcesTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder(new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -82,7 +83,7 @@ public final class RCGraphResourcesTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder(new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -110,7 +111,7 @@ public final class RCGraphResourcesTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder(new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -131,7 +132,7 @@ public final class RCGraphResourcesTest
         new OpConsumer0.Parameters(Set.of(), Set.of())
       );
     final var r =
-      b.declareResource("Res0", ResExample0.factory(), NO_PARAMETERS);
+      b.declareResource("Res0", ResBuffer0.factory(), NO_PARAMETERS);
 
     b.resourceAssign(op0.port(), r);
     b.connect(op0.port(), op1.port());

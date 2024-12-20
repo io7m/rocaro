@@ -43,6 +43,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.jgrapht</groupId>
+      <artifactId>jgrapht-core</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.io7m.jcoronado</groupId>
       <artifactId>com.io7m.jcoronado.api</artifactId>
     </dependency>

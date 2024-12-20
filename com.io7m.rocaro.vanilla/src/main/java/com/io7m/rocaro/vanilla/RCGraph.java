@@ -17,8 +17,9 @@
 
 package com.io7m.rocaro.vanilla;
 
-import com.io7m.rocaro.api.graph2.RCGGraphBuilderType;
-import com.io7m.rocaro.vanilla.internal.graph2.RCGGraphBuilder;
+import com.io7m.rocaro.api.graph.RCGGraphBuilderType;
+import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.rocaro.vanilla.internal.graph.RCGGraphBuilder;
 
 /**
  * The default render graph implementation.
@@ -34,11 +35,28 @@ public final class RCGraph
   /**
    * Create a new render graph builder.
    *
+   * @param name The name of the graph
+   *
    * @return The builder
    */
 
-  public static RCGGraphBuilderType builder()
+  public static RCGGraphBuilderType builder(
+    final RCGraphName name)
   {
-    return new RCGGraphBuilder();
+    return new RCGGraphBuilder(name);
+  }
+
+  /**
+   * Create a new render graph builder.
+   *
+   * @param name The name of the graph
+   *
+   * @return The builder
+   */
+
+  public static RCGGraphBuilderType builder(
+    final String name)
+  {
+    return builder(new RCGraphName(name));
   }
 }

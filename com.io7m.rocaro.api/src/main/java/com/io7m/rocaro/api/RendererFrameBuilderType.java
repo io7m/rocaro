@@ -17,7 +17,9 @@
 
 package com.io7m.rocaro.api;
 
-import com.io7m.rocaro.api.graph.RCGStatusType;
+
+
+import com.io7m.rocaro.api.graph.RCGGraphStatusType;
 import com.io7m.rocaro.api.graph.RCGraphName;
 
 import java.util.Objects;
@@ -69,7 +71,7 @@ public interface RendererFrameBuilderType
    * @throws RocaroException On errors
    */
 
-  default RCGStatusType graphStatus(
+  default RCGGraphStatusType graphStatus(
     final String graphName)
     throws RocaroException
   {
@@ -84,7 +86,7 @@ public interface RendererFrameBuilderType
    * @throws RocaroException On errors
    */
 
-  RCGStatusType graphStatus(
+  RCGGraphStatusType graphStatus(
     RCGraphName graphName)
     throws RocaroException;
 

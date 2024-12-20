@@ -17,15 +17,15 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGNoParameters;
-import com.io7m.rocaro.api.graph2.RCGResourceBufferType;
-import com.io7m.rocaro.api.graph2.RCGResourceFactoryType;
-import com.io7m.rocaro.api.graph2.RCGResourceName;
+import com.io7m.rocaro.api.graph.RCGNoParameters;
+import com.io7m.rocaro.api.graph.RCGResourcePlaceholderBufferType;
+import com.io7m.rocaro.api.graph.RCGResourceFactoryType;
+import com.io7m.rocaro.api.graph.RCGResourceName;
 
 import java.util.Objects;
 
 final class ResBuffer0
-  implements RCGResourceBufferType
+  implements RCGResourcePlaceholderBufferType
 {
   private final RCGResourceName name;
 

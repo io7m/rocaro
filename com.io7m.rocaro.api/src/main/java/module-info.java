@@ -36,15 +36,15 @@ module com.io7m.rocaro.api
   requires com.io7m.seltzer.api;
   requires com.io7m.verona.core;
   requires jdk.jfr;
+  requires org.jgrapht.core;
 
   exports com.io7m.rocaro.api.assets;
   exports com.io7m.rocaro.api.devices;
   exports com.io7m.rocaro.api.displays;
-  exports com.io7m.rocaro.api.graph2;
   exports com.io7m.rocaro.api.graph;
   exports com.io7m.rocaro.api.images;
-  exports com.io7m.rocaro.api.render_pass;
   exports com.io7m.rocaro.api.render_targets;
+  exports com.io7m.rocaro.api.resources;
   exports com.io7m.rocaro.api.transfers;
   exports com.io7m.rocaro.api;
 }

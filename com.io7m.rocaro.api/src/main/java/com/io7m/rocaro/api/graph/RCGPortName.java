@@ -14,26 +14,26 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.rocaro.api.graph;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * The name of a port on a node in the render graph.
+ * The name of a port on a graph node.
  *
  * @param value The name value
  */
 
 public record RCGPortName(
   String value)
+  implements Comparable<RCGPortName>
 {
   private static final Pattern VALID_NAME =
     Pattern.compile("[A-Za-z0-9_]{1,128}");
 
   /**
-   * The name of a port on a node in the render graph.
+   * The name of a port on a graph node.
    *
    * @param value The name value
    */
@@ -53,5 +53,12 @@ public record RCGPortName(
   public String toString()
   {
     return this.value;
+  }
+
+  @Override
+  public int compareTo(
+    final RCGPortName other)
+  {
+    return this.value.compareTo(other.value);
   }
 }

@@ -14,12 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.rocaro.api.graph;
-
-/**
- * The type of frame-scoped services.
- */
 
 public interface RCGFrameScopedServiceType
 {

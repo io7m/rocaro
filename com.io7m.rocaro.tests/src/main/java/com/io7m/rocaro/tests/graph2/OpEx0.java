@@ -17,30 +17,57 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGNoParameters;
-import com.io7m.rocaro.api.graph2.RCGOperationFactoryType;
-import com.io7m.rocaro.api.graph2.RCGOperationName;
-import com.io7m.rocaro.api.graph2.RCGOperationType;
-import com.io7m.rocaro.api.graph2.RCGPortConsumes;
-import com.io7m.rocaro.api.graph2.RCGPortName;
-import com.io7m.rocaro.api.graph2.RCGPortProduces;
-import com.io7m.rocaro.api.graph2.RCGPortType;
-import com.io7m.rocaro.api.graph2.RCGResourceBufferType;
+import com.io7m.rocaro.api.graph.RCGNoParameters;
+import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
+import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
+import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
+import com.io7m.rocaro.api.graph.RCGOperationName;
+import com.io7m.rocaro.api.graph.RCGOperationType;
+import com.io7m.rocaro.api.graph.RCGPortConsumes;
+import com.io7m.rocaro.api.graph.RCGPortName;
+import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGResourcePlaceholderBufferType;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
+
 final class OpEx0
+  extends RCGOperationAbstract
   implements RCGOperationType
 {
-  private final RCGOperationName name;
+  private final RCGPortProduces port0;
+  private final RCGPortConsumes port1;
 
   public OpEx0(
     final RCGOperationName inName)
   {
-    this.name = Objects.requireNonNull(inName, "name");
+    super(inName, GRAPHICS);
+
+    this.port0 =
+      new RCGPortProduces(
+        this,
+        new RCGPortName("Port0"),
+        RCGResourcePlaceholderBufferType.class,
+        Set.of(),
+        Set.of(),
+        Optional.empty()
+      );
+
+    this.port1 =
+      new RCGPortConsumes(
+        this,
+        new RCGPortName("Port1"),
+        RCGResourcePlaceholderBufferType.class,
+        Set.of(),
+        Set.of(),
+        Optional.empty()
+      );
+
+    this.addPort(this.port0);
+    this.addPort(this.port1);
   }
 
   public static RCGOperationFactoryType<RCGNoParameters, OpEx0> factory()
@@ -50,43 +77,32 @@ final class OpEx0
 
   public RCGPortProduces port0()
   {
-    return new RCGPortProduces(
-      this,
-      new RCGPortName("Port0"),
-      RCGResourceBufferType.class,
-      Set.of(),
-      Set.of(),
-      Optional.empty()
-    );
+    return this.port0;
   }
 
   public RCGPortConsumes port1()
   {
-    return new RCGPortConsumes(
-      this,
-      new RCGPortName("Port1"),
-      RCGResourceBufferType.class,
-      Set.of(),
-      Set.of(),
-      Optional.empty()
-    );
+    return this.port1;
   }
 
   @Override
-  public String toString()
+  protected void onPrepare(
+    final RCGOperationPreparationContextType context)
   {
-    return "[OpEx0 %s]".formatted(this.name);
+
   }
 
   @Override
-  public RCGOperationName name()
+  protected void onPrepareCheck(
+    final RCGOperationPreparationContextType context)
   {
-    return this.name;
+
   }
 
   @Override
-  public List<RCGPortType> ports()
+  protected void onExecute(
+    final RCGOperationExecutionContextType context)
   {
-    return List.of(this.port0(), this.port1());
+
   }
 }

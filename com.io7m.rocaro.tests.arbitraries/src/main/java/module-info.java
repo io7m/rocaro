@@ -31,7 +31,6 @@ open module com.io7m.rocaro.tests.arbitraries
   requires com.io7m.jtensors.core;
 
   provides ArbitraryProvider with
-    com.io7m.rocaro.tests.arbitraries.RCArbImageConstraint,
     com.io7m.rocaro.tests.arbitraries.RCArbImageSizeExpression;
 
   exports com.io7m.rocaro.tests.arbitraries;

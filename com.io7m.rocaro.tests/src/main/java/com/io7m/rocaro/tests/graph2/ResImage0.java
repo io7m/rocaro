@@ -17,15 +17,15 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGNoParameters;
-import com.io7m.rocaro.api.graph2.RCGResourceFactoryType;
-import com.io7m.rocaro.api.graph2.RCGResourceImageType;
-import com.io7m.rocaro.api.graph2.RCGResourceName;
+import com.io7m.rocaro.api.graph.RCGNoParameters;
+import com.io7m.rocaro.api.graph.RCGResourceFactoryType;
+import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
+import com.io7m.rocaro.api.graph.RCGResourceName;
 
 import java.util.Objects;
 
 final class ResImage0
-  implements RCGResourceImageType
+  implements RCGResourcePlaceholderImageType
 {
   private final RCGResourceName name;
 

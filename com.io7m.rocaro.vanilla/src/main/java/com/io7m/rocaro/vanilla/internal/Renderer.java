@@ -18,6 +18,7 @@
 package com.io7m.rocaro.vanilla.internal;
 
 import com.io7m.jmulticlose.core.CloseableCollectionType;
+import com.io7m.junreachable.UnimplementedCodeException;
 import com.io7m.repetoir.core.RPServiceDirectoryType;
 import com.io7m.repetoir.core.RPServiceType;
 import com.io7m.rocaro.api.RCFrameIndex;
@@ -31,12 +32,11 @@ import com.io7m.rocaro.api.RendererFrameBuilderType;
 import com.io7m.rocaro.api.RendererGraphProcedureType;
 import com.io7m.rocaro.api.RendererType;
 import com.io7m.rocaro.api.RocaroException;
-import com.io7m.rocaro.api.graph.RCGStatusType;
-import com.io7m.rocaro.api.graph.RCGraphDescriptionException;
+import com.io7m.rocaro.api.graph.RCGGraphException;
+import com.io7m.rocaro.api.graph.RCGGraphStatusType;
+import com.io7m.rocaro.api.graph.RCGGraphType;
 import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameServiceType;
-import com.io7m.rocaro.vanilla.internal.graph.RCGraph;
-import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescription;
 import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameContextType;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
@@ -69,8 +69,7 @@ public final class Renderer
   private final RCVulkanRendererType vulkanRenderer;
   private final RCFrameServiceType frameService;
   private final CloseableCollectionType<RocaroException> resources;
-  private final Map<RCGraphName, RCGraphDescription> graphDescriptions;
-  private final Map<RCGraphName, RCGraph> graphs;
+  private final Map<RCGraphName, RCGGraphType> graphs;
   private final AtomicBoolean closed;
   private final RCStandardExecutors executors;
   private RCFrameNumber frameNumber;
@@ -83,8 +82,7 @@ public final class Renderer
     final RCVulkanRendererType inVulkanRenderer,
     final RCFrameServiceType inFrameService,
     final CloseableCollectionType<RocaroException> inResources,
-    final Map<RCGraphName, RCGraphDescription> inGraphDescriptions,
-    final Map<RCGraphName, RCGraph> inGraphs,
+    final Map<RCGraphName, RCGGraphType> inGraphs,
     final RCRendererID inId)
   {
     this.services =
@@ -99,8 +97,6 @@ public final class Renderer
       Objects.requireNonNull(inFrameService, "inFrameService");
     this.resources =
       Objects.requireNonNull(inResources, "resources");
-    this.graphDescriptions =
-      Map.copyOf(inGraphDescriptions);
     this.graphs =
       Map.copyOf(inGraphs);
     this.id =
@@ -240,16 +236,15 @@ public final class Renderer
       final RCGraphName graphName)
       throws RocaroException
     {
-      this.renderer.graph(graphName)
-        .prepare(this.frameInformation);
+      throw new UnimplementedCodeException();
     }
 
     @Override
-    public RCGStatusType graphStatus(
+    public RCGGraphStatusType graphStatus(
       final RCGraphName graphName)
       throws RocaroException
     {
-      return this.renderer.graph(graphName).status();
+      throw new UnimplementedCodeException();
     }
 
     @Override
@@ -258,16 +253,11 @@ public final class Renderer
       final RendererGraphProcedureType f)
       throws RocaroException
     {
-      this.renderer.graph(graphName)
-        .evaluate(
-          this.frameInformation,
-          this.frameContext,
-          this.renderer.strings
-        );
+      throw new UnimplementedCodeException();
     }
   }
 
-  private RCGraph graph(
+  private RCGGraphType graph(
     final RCGraphName name)
     throws RocaroException
   {
@@ -282,7 +272,7 @@ public final class Renderer
     final RCStrings strings,
     final RCGraphName graphName)
   {
-    return new RCGraphDescriptionException(
+    return new RCGGraphException(
       strings.format(ERROR_GRAPH_NONEXISTENT),
       Map.ofEntries(
         Map.entry(strings.format(GRAPH), graphName.value())

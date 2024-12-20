@@ -17,31 +17,48 @@
 
 package com.io7m.rocaro.api.graph;
 
+import java.util.Set;
+
 /**
- * A port in the render graph specification.
- *
- * @param <T> The base type of port data
+ * The type of ports on operations.
  */
 
-public sealed interface RCGPortType<T>
-  permits RCGPortTargetType,
-  RCGPortSourceType
+public sealed interface RCGPortType
+  permits RCGPortConsumerType, RCGPortProducerType
 {
   /**
-   * @return The port name
+   * @return The operation that owns the port
+   */
+
+  RCGOperationType owner();
+
+  /**
+   * @return The name of the port
    */
 
   RCGPortName name();
 
   /**
-   * @return The owner of the port
+   * @return The precise type of resource
    */
 
-  RCGNodeName owner();
+  Class<? extends RCGResourcePlaceholderType> type();
 
   /**
-   * @return The constraint on data produced or consumed by this port
+   * A set of stages at which the operation that owns this port will read
+   * from the resource connected to the port.
+   *
+   * @return The read stages
    */
 
-  RCGPortDataConstraintType<T> dataConstraint();
+  Set<RCGCommandPipelineStage> readsOnStages();
+
+  /**
+   * A set of stages at which the operation that owns this port will write
+   * to the resource connected to the port.
+   *
+   * @return The write stages
+   */
+
+  Set<RCGCommandPipelineStage> writesOnStages();
 }

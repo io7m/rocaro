@@ -14,15 +14,13 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.rocaro.api.graph;
 
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * The name of a render graph.
+ * The name of a graph.
  *
  * @param value The name value
  */
@@ -35,7 +33,7 @@ public record RCGraphName(
     Pattern.compile("[A-Za-z0-9_]{1,128}");
 
   /**
-   * The name of a render graph.
+   * The name of a graph.
    *
    * @param value The name value
    */
@@ -61,7 +59,6 @@ public record RCGraphName(
   public int compareTo(
     final RCGraphName other)
   {
-    return Comparator.comparing(RCGraphName::value)
-      .compare(this, other);
+    return this.value.compareTo(other.value);
   }
 }

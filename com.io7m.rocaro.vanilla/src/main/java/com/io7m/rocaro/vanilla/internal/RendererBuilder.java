@@ -38,18 +38,17 @@ import com.io7m.rocaro.api.assets.RCAssetResolverType;
 import com.io7m.rocaro.api.assets.RCAssetServiceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionFullscreenPrimary;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
-import com.io7m.rocaro.api.graph.RCGraphDescriptionBuilderType;
-import com.io7m.rocaro.api.graph.RCGraphDescriptionException;
+import com.io7m.rocaro.api.graph.RCGGraphBuilderType;
+import com.io7m.rocaro.api.graph.RCGGraphException;
+import com.io7m.rocaro.api.graph.RCGGraphType;
 import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.api.transfers.RCTransferServiceType;
 import com.io7m.rocaro.vanilla.RCAssetLoaderDirectory;
 import com.io7m.rocaro.vanilla.RCAssetResolvers;
+import com.io7m.rocaro.vanilla.RCGraph;
 import com.io7m.rocaro.vanilla.internal.assets.RCAssetService;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameService;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameServiceType;
-import com.io7m.rocaro.vanilla.internal.graph.RCGraph;
-import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescription;
-import com.io7m.rocaro.vanilla.internal.graph.RCGraphDescriptionBuilder;
 import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationService;
 import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.renderdoc.RCRenderDocService;
@@ -87,7 +86,7 @@ public final class RendererBuilder
   private static final AtomicLong INSTANCE_IDS =
     new AtomicLong(0);
 
-  private final TreeMap<RCGraphName, RCGraphDescriptionBuilder> graphs;
+  private final TreeMap<RCGraphName, RCGGraphBuilderType> graphs;
   private final RCStrings strings;
   private final RCVersions versions;
   private final RCGLFWFacadeType glfw;
@@ -140,9 +139,9 @@ public final class RendererBuilder
   }
 
   @Override
-  public RCGraphDescriptionBuilderType declareRenderGraph(
+  public RCGGraphBuilderType declareRenderGraph(
     final RCGraphName name)
-    throws RCGraphDescriptionException
+    throws RCGGraphException
   {
     Objects.requireNonNull(name, "name");
 
@@ -150,7 +149,7 @@ public final class RendererBuilder
       throw this.errorGraphAlreadyExists(name);
     }
 
-    final var builder = new RCGraphDescriptionBuilder(this.strings, name);
+    final var builder = RCGraph.builder(name);
     this.graphs.put(name, builder);
     return builder;
   }
@@ -278,13 +277,13 @@ public final class RendererBuilder
         );
       }
 
-      final var builtGraphDescriptions =
-        this.buildGraphDescriptions(exceptions);
+      final var builtGraphs =
+        this.buildGraphs(exceptions);
 
       final var featuresRequired =
-        builtGraphDescriptions.values()
+        builtGraphs.values()
           .stream()
-          .map(RCGraphDescription::requiredDeviceFeatures)
+          .map(RCGGraphType::requiredDeviceFeatures)
           .reduce(
             VulkanPhysicalDeviceFeaturesFunctions.none(),
             VulkanPhysicalDeviceFeaturesFunctions::or
@@ -348,9 +347,6 @@ public final class RendererBuilder
         }
       );
 
-      final var instantiatedGraphs =
-        this.instantiateGraphs(exceptions, builtGraphDescriptions);
-
       exceptions.throwIfNecessary();
 
       LOG.debug("Created renderer.");
@@ -361,8 +357,7 @@ public final class RendererBuilder
         services.requireService(RCVulkanRendererType.class),
         services.requireService(RCFrameServiceType.class),
         resources,
-        builtGraphDescriptions,
-        instantiatedGraphs,
+        builtGraphs,
         rendererId
       );
 
@@ -407,17 +402,6 @@ public final class RendererBuilder
     }
   }
 
-  private TreeMap<RCGraphName, RCGraph> instantiateGraphs(
-    final ExceptionTracker<RocaroException> tracker,
-    final TreeMap<RCGraphName, RCGraphDescription> descriptions)
-  {
-    final var builtGraphs = new TreeMap<RCGraphName, RCGraph>();
-    for (final var description : descriptions.values()) {
-      builtGraphs.put(description.name(), description.instantiate());
-    }
-    return builtGraphs;
-  }
-
   private static long freshID()
   {
     return INSTANCE_IDS.incrementAndGet();
@@ -446,24 +430,24 @@ public final class RendererBuilder
     return renderer;
   }
 
-  private TreeMap<RCGraphName, RCGraphDescription> buildGraphDescriptions(
+  private TreeMap<RCGraphName, RCGGraphType> buildGraphs(
     final ExceptionTracker<RocaroException> tracker)
   {
-    final var builtGraphs = new TreeMap<RCGraphName, RCGraphDescription>();
+    final var builtGraphs = new TreeMap<RCGraphName, RCGGraphType>();
     for (final var graph : this.graphs.values()) {
       try {
-        builtGraphs.put(graph.name(), graph.build());
-      } catch (final RCGraphDescriptionException e) {
+        builtGraphs.put(graph.name(), graph.compile());
+      } catch (final RCGGraphException e) {
         tracker.addException(e);
       }
     }
     return builtGraphs;
   }
 
-  private RCGraphDescriptionException errorGraphAlreadyExists(
+  private RCGGraphException errorGraphAlreadyExists(
     final RCGraphName name)
   {
-    return new RCGraphDescriptionException(
+    return new RCGGraphException(
       this.strings.format(ERROR_GRAPH_NAME_ALREADY_USED),
       Map.of(this.strings.format(GRAPH), name.value()),
       DUPLICATE_GRAPH.codeName(),

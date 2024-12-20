@@ -20,8 +20,8 @@ package com.io7m.rocaro.api;
 import com.io7m.rocaro.api.assets.RCAssetLoaderDirectoryType;
 import com.io7m.rocaro.api.assets.RCAssetResolverType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
-import com.io7m.rocaro.api.graph.RCGraphDescriptionBuilderType;
-import com.io7m.rocaro.api.graph.RCGraphDescriptionException;
+import com.io7m.rocaro.api.graph.RCGGraphBuilderType;
+import com.io7m.rocaro.api.graph.RCGGraphException;
 import com.io7m.rocaro.api.graph.RCGraphName;
 
 /**
@@ -37,12 +37,12 @@ public interface RendererBuilderType
    *
    * @return A graph builder
    *
-   * @throws RCGraphDescriptionException On errors
+   * @throws RCGGraphException On errors
    */
 
-  RCGraphDescriptionBuilderType declareRenderGraph(
+  RCGGraphBuilderType declareRenderGraph(
     RCGraphName name)
-    throws RCGraphDescriptionException;
+    throws RCGGraphException;
 
   /**
    * Declare a new render graph. Graph names must be unique within a renderer.
@@ -51,12 +51,12 @@ public interface RendererBuilderType
    *
    * @return A graph builder
    *
-   * @throws RCGraphDescriptionException On errors
+   * @throws RCGGraphException On errors
    */
 
-  default RCGraphDescriptionBuilderType declareRenderGraph(
+  default RCGGraphBuilderType declareRenderGraph(
     final String name)
-    throws RCGraphDescriptionException
+    throws RCGGraphException
   {
     return this.declareRenderGraph(new RCGraphName(name));
   }

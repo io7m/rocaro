@@ -44,6 +44,8 @@ open module com.io7m.rocaro.tests
   requires com.io7m.percentpass.extension;
   requires net.jqwik.api;
   requires net.jqwik.engine;
+  requires org.jgrapht.core;
+  requires org.jgrapht.io;
   requires org.mockito;
   requires org.slf4j;
 

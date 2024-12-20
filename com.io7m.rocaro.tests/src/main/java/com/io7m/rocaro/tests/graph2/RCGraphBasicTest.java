@@ -17,25 +17,31 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph2.RCGGraphException;
-import com.io7m.rocaro.api.graph2.RCGOperationName;
+import com.io7m.rocaro.api.graph.RCGGraphException;
+import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.vanilla.RCGraph;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.Set;
 
-import static com.io7m.rocaro.api.graph2.RCGNoParameters.NO_PARAMETERS;
+import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public final class RCGraphBasicTest
 {
+  private static final Logger LOG =
+    LoggerFactory.getLogger(RCGraphBasicTest.class);
+
   @Test
   public void testErrorEmpty()
   {
     final var ex =
       assertThrows(RCGGraphException.class, () -> {
-        RCGraph.builder().compile();
+        RCGraph.builder("Main").compile();
       });
 
     assertEquals("error-graph-empty", ex.errorCode());
@@ -49,7 +55,7 @@ public final class RCGraphBasicTest
 
     final var ex =
       assertThrows(RCGGraphException.class, () -> {
-        RCGraph.builder()
+        RCGraph.builder("Main")
           .connect(op0.port0(), op0.port1());
       });
 
@@ -61,7 +67,7 @@ public final class RCGraphBasicTest
     throws RCGGraphException
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder("Main");
 
     b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
 
@@ -78,7 +84,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder("Main");
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -99,7 +105,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder("Main");
 
     final var op1 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -120,7 +126,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder("Main");
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -142,7 +148,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder("Main");
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -166,19 +172,43 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder("Main");
+
+    final var r =
+      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
 
     final var op0 =
-      b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
+      b.declareOperation(
+        "Example0",
+        OpProducer0.factory(),
+        new OpProducer0.Parameters(Set.of(), Set.of())
+      );
     final var op1 =
-      b.declareOperation("Example1", OpEx1.factory(), NO_PARAMETERS);
+      b.declareOperation(
+        "Example1",
+        OpImageConsumer0.factory(),
+        new OpImageConsumer0.Parameters(Set.of(), Set.of(), Optional.empty())
+      );
+
+    b.connect(op0.port(), op1.port());
+    b.resourceAssign(op0.port(), r);
 
     final var ex =
-      assertThrows(RCGGraphException.class, () -> {
-        b.connect(op0.port0(), op1.port1());
-      });
+      assertThrows(RCGGraphException.class, b::compile);
 
-    assertEquals("error-graph-port-type-incompatible", ex.errorCode());
+    show(ex);
+    assertEquals("error-graph-type-incompatible", ex.errorCode());
+  }
+
+  private static void show(
+    final RCGGraphException ex)
+  {
+    LOG.debug("Message: {}", ex.getMessage());
+    LOG.debug("Error Code: {}", ex.errorCode());
+    for (final var entry : ex.attributes().entrySet()) {
+      LOG.debug("Attribute: {}: {}", entry.getKey(), entry.getValue());
+    }
+    LOG.debug("Remediating: {}", ex.remediatingAction());
   }
 
   @Test
@@ -186,7 +216,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder("Main");
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -208,7 +238,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder();
+      RCGraph.builder("Main");
 
     final var op0 =
       b.declareOperation(

@@ -172,7 +172,6 @@ public final class RCLogicalDevices
         transferFamily,
         computeFamily,
         presentationFamilyOpt,
-        window.maximumFramesInFlight(),
         vulkanConfiguration
       );
     } catch (final VulkanException e) {
@@ -217,7 +216,6 @@ public final class RCLogicalDevices
     final VulkanQueueFamilyIndex transferFamily,
     final VulkanQueueFamilyIndex computeFamily,
     final Optional<VulkanQueueFamilyIndex> presentationFamilyOpt,
-    final int maxFrames,
     final RendererVulkanConfiguration configuration)
     throws VulkanException, RocaroException
   {
@@ -279,25 +277,17 @@ public final class RCLogicalDevices
       }
     }
 
-    /*
-     * Set up the allocator.
-     */
-
-    LOG.debug("Creating VMA allocator.");
-    final var vmaAllocator =
-      createVMAAllocator(logicalDevice, maxFrames, configuration);
-
     final var rcDevice =
       new RCDevice(
         strings,
         logicalDevice,
-        vmaAllocator,
         executors.gpuExecutor(),
         graphicsQueue,
         transferQueue,
         computeQueue
       );
 
+    final int maxFrames;
     if (presentationFamilyOpt.isPresent()) {
       final var presentationFamily =
         presentationFamilyOpt.get();
@@ -323,13 +313,20 @@ public final class RCLogicalDevices
             graphicsQueue,
             presentationQueue
           );
+          maxFrames = withSurface.maximumFramesInFlight();
         }
         case final RCWindowWithoutSurface _ -> {
           throw new UnreachableCodeException();
         }
       }
+    } else {
+      maxFrames = 2;
     }
 
+    LOG.debug("Creating VMA allocator.");
+    rcDevice.setAllocator(
+      createVMAAllocator(logicalDevice, maxFrames, configuration)
+    );
     return rcDevice;
   }
 

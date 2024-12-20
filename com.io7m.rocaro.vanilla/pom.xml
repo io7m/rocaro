@@ -86,7 +86,11 @@
     </dependency>
     <dependency>
       <groupId>com.io7m.jcoronado</groupId>
-      <artifactId>com.io7m.jcoronado.allocation_tracker</artifactId>
+      <artifactId>com.io7m.jcoronado.utility.allocation_tracker</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jcoronado</groupId>
+      <artifactId>com.io7m.jcoronado.utility.swapchain</artifactId>
     </dependency>
     <dependency>
       <groupId>com.io7m.jcoronado</groupId>

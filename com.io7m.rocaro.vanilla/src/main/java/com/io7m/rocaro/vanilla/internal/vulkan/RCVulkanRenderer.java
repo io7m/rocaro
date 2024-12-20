@@ -17,7 +17,6 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
-import com.io7m.jcoronado.allocation_tracker.VulkanHostAllocatorTracker;
 import com.io7m.jcoronado.api.VulkanApplicationInfo;
 import com.io7m.jcoronado.api.VulkanCommandPoolType;
 import com.io7m.jcoronado.api.VulkanException;
@@ -40,6 +39,7 @@ import com.io7m.jcoronado.extensions.ext_debug_utils.api.VulkanDebugUtilsType;
 import com.io7m.jcoronado.extensions.ext_layer_settings.api.VulkanLayerSettingType;
 import com.io7m.jcoronado.extensions.ext_layer_settings.api.VulkanLayerSettingsCreateInfo;
 import com.io7m.jcoronado.lwjgl.VulkanLWJGLHostAllocatorJeMalloc;
+import com.io7m.jcoronado.utility.allocation_tracker.VulkanHostAllocatorTracker;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.repetoir.core.RPServiceDirectoryType;
 import com.io7m.rocaro.api.RCFrameIndex;
@@ -327,6 +327,7 @@ public final class RCVulkanRenderer
         rendererId
       );
     } catch (final Throwable e) {
+      LOG.debug("Failed to open renderer: ", e);
       resources.close();
       throw e;
     }

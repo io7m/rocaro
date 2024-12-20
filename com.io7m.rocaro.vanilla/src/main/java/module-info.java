@@ -32,7 +32,6 @@ module com.io7m.rocaro.vanilla
 
   requires com.io7m.jaffirm.core;
   requires com.io7m.jattribute.core;
-  requires com.io7m.jcoronado.allocation.tracker;
   requires com.io7m.jcoronado.api;
   requires com.io7m.jcoronado.extensions.ext_debug_utils.api;
   requires com.io7m.jcoronado.extensions.ext_layer_settings.api;
@@ -40,6 +39,8 @@ module com.io7m.rocaro.vanilla
   requires com.io7m.jcoronado.layers.khronos_validation.api;
   requires com.io7m.jcoronado.layers.lunarg_api_dump.api;
   requires com.io7m.jcoronado.lwjgl;
+  requires com.io7m.jcoronado.utility.allocation_tracker;
+  requires com.io7m.jcoronado.utility.swapchain;
   requires com.io7m.jcoronado.vma;
   requires com.io7m.jdeferthrow.core;
   requires com.io7m.jmulticlose.core;
@@ -70,8 +71,6 @@ module com.io7m.rocaro.vanilla
   exports com.io7m.rocaro.vanilla.internal
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.graph
-    to com.io7m.rocaro.tests;
-  exports com.io7m.rocaro.vanilla.internal.graph2
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.windows
     to com.io7m.rocaro.tests;

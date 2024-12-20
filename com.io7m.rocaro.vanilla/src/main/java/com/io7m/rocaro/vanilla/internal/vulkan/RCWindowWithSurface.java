@@ -17,40 +17,23 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
-import com.io7m.jcoronado.api.VulkanComponentMapping;
 import com.io7m.jcoronado.api.VulkanException;
-import com.io7m.jcoronado.api.VulkanExtent2D;
-import com.io7m.jcoronado.api.VulkanFenceCreateFlag;
-import com.io7m.jcoronado.api.VulkanFenceCreateInfo;
 import com.io7m.jcoronado.api.VulkanFenceType;
-import com.io7m.jcoronado.api.VulkanImageSubresourceRange;
-import com.io7m.jcoronado.api.VulkanImageType;
-import com.io7m.jcoronado.api.VulkanImageViewCreateFlag;
-import com.io7m.jcoronado.api.VulkanImageViewCreateInfo;
-import com.io7m.jcoronado.api.VulkanImageViewType;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
-import com.io7m.jcoronado.api.VulkanQueueFamilyIndex;
 import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.jcoronado.api.VulkanSemaphoreBinaryType;
 import com.io7m.jcoronado.api.VulkanSemaphoreType;
-import com.io7m.jcoronado.api.VulkanSharingMode;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType.VulkanKHRSurfaceType;
-import com.io7m.jcoronado.extensions.khr_surface.api.VulkanSurfaceCapabilitiesKHR;
-import com.io7m.jcoronado.extensions.khr_surface.api.VulkanSurfaceFormatKHR;
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanExtKHRSwapChainType;
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanExtKHRSwapChainType.VulkanKHRSwapChainType;
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentInfoKHR;
-import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeKHR;
-import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainCreateInfo;
-import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainNotReady;
-import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainOK;
-import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainOutOfDate;
-import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainSubOptimal;
-import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanSwapChainTimedOut;
+import com.io7m.jcoronado.utility.swapchain.JCSwapchainConfiguration;
+import com.io7m.jcoronado.utility.swapchain.JCSwapchainManager;
+import com.io7m.jcoronado.utility.swapchain.JCSwapchainManagerType;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
-import com.io7m.junreachable.UnimplementedCodeException;
+import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RocaroException;
@@ -66,30 +49,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.io7m.jcoronado.api.VulkanComponentSwizzle.VK_COMPONENT_SWIZZLE_IDENTITY;
-import static com.io7m.jcoronado.api.VulkanFormat.VK_FORMAT_B8G8R8A8_UNORM;
-import static com.io7m.jcoronado.api.VulkanFormat.VK_FORMAT_UNDEFINED;
-import static com.io7m.jcoronado.api.VulkanImageAspectFlag.VK_IMAGE_ASPECT_COLOR_BIT;
 import static com.io7m.jcoronado.api.VulkanImageUsageFlag.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 import static com.io7m.jcoronado.api.VulkanImageUsageFlag.VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-import static com.io7m.jcoronado.api.VulkanImageViewKind.VK_IMAGE_VIEW_TYPE_2D;
-import static com.io7m.jcoronado.api.VulkanSharingMode.VK_SHARING_MODE_CONCURRENT;
-import static com.io7m.jcoronado.api.VulkanSharingMode.VK_SHARING_MODE_EXCLUSIVE;
-import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanColorSpaceKHR.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanCompositeAlphaFlagKHR.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeKHR.VK_PRESENT_MODE_FIFO_KHR;
-import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeKHR.VK_PRESENT_MODE_IMMEDIATE_KHR;
-import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR;
 import static com.io7m.rocaro.api.RCStandardErrorCodes.VULKAN_EXTENSION_MISSING;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_VULKAN_EXTENSION_MISSING;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.EXTENSION;
@@ -112,23 +79,14 @@ public final class RCWindowWithSurface
   private final VulkanKHRSurfaceType surface;
   private final RCStrings strings;
   private final AtomicBoolean closed;
-  private final Map<SwapChainIndex, VulkanImageViewType> swapChainImageViews;
   private final CloseableCollectionType<RocaroException> resources;
   private final CloseableCollectionType<RocaroException> resourcesPerSwapChain;
-  private final Map<SwapChainIndex, VulkanImageType> swapChainImages;
-  private final Map<RCFrameIndex, VulkanSemaphoreBinaryType> swapChainImageReadySemaphores;
-  private final Map<RCFrameIndex, VulkanSemaphoreBinaryType> swapChainImageRenderingDoneSemaphores;
-  private final Map<RCFrameIndex, VulkanFenceType> swapChainImageRenderingDoneFences;
-  private VulkanSurfaceCapabilitiesKHR surfaceCaps;
-  private VulkanPresentModeKHR surfacePresent;
-  private VulkanSurfaceFormatKHR surfaceFormat;
-  private VulkanExtent2D surfaceExtent;
   private VulkanQueueType presentationQueue;
   private RCDeviceType device;
-  private VulkanQueueType graphicsQueue;
   private VulkanExtKHRSwapChainType khrSwapChainExt;
   private VulkanKHRSwapChainType swapChain;
   private VulkanLogicalDeviceType vkDevice;
+  private JCSwapchainManagerType swapChainManager;
 
   /**
    * Construct a window.
@@ -159,17 +117,6 @@ public final class RCWindowWithSurface
     this.surface =
       Objects.requireNonNull(inSurface, "surface");
 
-    this.swapChainImages =
-      new TreeMap<>();
-    this.swapChainImageViews =
-      new TreeMap<>();
-    this.swapChainImageReadySemaphores =
-      new TreeMap<>();
-    this.swapChainImageRenderingDoneSemaphores =
-      new TreeMap<>();
-    this.swapChainImageRenderingDoneFences =
-      new TreeMap<>();
-
     this.resources =
       RCResourceCollections.create(this.strings);
     this.resourcesPerSwapChain =
@@ -179,30 +126,6 @@ public final class RCWindowWithSurface
 
     this.resources.add(this.surface);
     this.resources.add(this.window);
-  }
-
-  private static void showPreferredFormats(
-    final List<VulkanSurfaceFormatKHR> formats)
-  {
-    for (int index = 0; index < formats.size(); ++index) {
-      LOG.debug(
-        "Preferred surface format [{}]: {}",
-        index,
-        formats.get(index)
-      );
-    }
-  }
-
-  private static void showAvailablePresentationModes(
-    final List<VulkanPresentModeKHR> modes)
-  {
-    for (int index = 0; index < modes.size(); ++index) {
-      LOG.debug(
-        "Available presentation mode [{}]: {}",
-        index,
-        modes.get(index)
-      );
-    }
   }
 
   @RCThread(GPU)
@@ -326,7 +249,7 @@ public final class RCWindowWithSurface
   public RCWindowFrameContextType acquireFrame(
     final RCFrameIndex frameIndex,
     final Duration timeout)
-    throws RCVulkanException, TimeoutException
+    throws RCVulkanException
   {
     Objects.requireNonNull(frameIndex, "frameIndex");
     Objects.requireNonNull(timeout, "timeout");
@@ -336,83 +259,24 @@ public final class RCWindowWithSurface
         LOG.trace("Acquiring frame {}", frameIndex);
       }
 
-      final var readySemaphore =
-        this.swapChainImageReadySemaphores.get(frameIndex);
-      final var renderDoneSemaphore =
-        this.swapChainImageRenderingDoneSemaphores.get(frameIndex);
-      final var renderDoneFence =
-        this.swapChainImageRenderingDoneFences.get(frameIndex);
-
-      Objects.requireNonNull(readySemaphore, "readySemaphore");
-      Objects.requireNonNull(renderDoneSemaphore, "renderDoneSemaphore");
-      Objects.requireNonNull(renderDoneFence, "renderDoneFence");
-
-      final var waitStatus =
-        this.vkDevice.waitForFence(
-          renderDoneFence,
-          timeout.toNanos()
-        );
-
-      switch (waitStatus) {
-        case VK_WAIT_SUCCEEDED -> {
-
-        }
-        case VK_WAIT_TIMED_OUT -> {
-          throw new TimeoutException("Image acquisition fence timed out.");
-        }
-      }
-
-      this.vkDevice.resetFences(List.of(renderDoneFence));
-
-      final var acquisition =
-        this.swapChain.acquireImageWithSemaphore(
-          timeout.toNanos(),
-          readySemaphore
-        );
-
-      final SwapChainIndex swapIndex;
-      switch (acquisition) {
-        case final VulkanSwapChainNotReady notReady -> {
-          throw new UnimplementedCodeException();
-        }
-        case final VulkanSwapChainOK ok -> {
-          swapIndex = new SwapChainIndex(ok.imageIndex());
-        }
-        case final VulkanSwapChainOutOfDate outOfDate -> {
-          throw new UnimplementedCodeException();
-        }
-        case final VulkanSwapChainSubOptimal subOptimal -> {
-          throw new UnimplementedCodeException();
-        }
-        case final VulkanSwapChainTimedOut timedOut -> {
-          throw new TimeoutException("Image acquisition timed out.");
-        }
-      }
-
-      if (LOG.isTraceEnabled()) {
-        LOG.trace("Swapchain image index {}", swapIndex);
-      }
-
-      final var imageData =
-        this.swapChainImages.get(swapIndex);
-      final var imageView =
-        this.swapChainImageViews.get(swapIndex);
-
       final var image =
-        new RCImageColorBlendable(
-          this.window.size(),
-          imageData,
-          imageView,
-          this.surfaceFormat.format()
-        );
+        this.swapChainManager.acquire();
 
       return new FrameContext(
         this,
-        swapIndex,
-        readySemaphore,
-        renderDoneSemaphore,
-        renderDoneFence,
-        image
+        new SwapChainIndex(image.index().value()),
+        image.imageReadySemaphore(),
+        image.renderFinishedSemaphore(),
+        image.renderFinishedFence(),
+        new RCImageColorBlendable(
+          Vector2I.of(
+            (int) image.size().width(),
+            (int) image.size().height()
+          ),
+          image.image(),
+          image.imageView(),
+          image.format()
+        )
       );
     } catch (final VulkanException e) {
       throw RCVulkanException.wrap(e);
@@ -422,7 +286,7 @@ public final class RCWindowWithSurface
   @Override
   public int maximumFramesInFlight()
   {
-    return this.swapChainImages.size();
+    return this.swapChainManager.imageIndices().size();
   }
 
   @Override
@@ -434,50 +298,8 @@ public final class RCWindowWithSurface
   @Override
   public void configureForPhysicalDevice(
     final VulkanPhysicalDeviceType newPhysicalDevice)
-    throws RCVulkanException
   {
-    Objects.requireNonNull(newPhysicalDevice, "device");
 
-    try {
-      this.surfaceFormat = this.pickSurfaceFormat(newPhysicalDevice);
-      LOG.debug("Selected surface format: {}", this.surfaceFormat);
-      Objects.requireNonNull(this.surfaceFormat, "surfaceFormat");
-
-      this.surfacePresent = this.pickPresentationMode(newPhysicalDevice);
-      LOG.debug("Selected presentation mode: {}", this.surfacePresent);
-      Objects.requireNonNull(this.surfacePresent, "surfacePresent");
-
-      this.surfaceCaps =
-        this.khrSurfaceExt.surfaceCapabilities(newPhysicalDevice, this.surface);
-      Objects.requireNonNull(this.surfaceCaps, "surfaceCaps");
-
-      LOG.debug(
-        "Surface [MinImages]               {}",
-        this.surfaceCaps.minImageCount()
-      );
-      LOG.debug(
-        "Surface [MaxImages]               {}",
-        this.surfaceCaps.maxImageCount()
-      );
-      LOG.debug(
-        "Surface [SupportedCompositeAlpha] {}",
-        this.surfaceCaps.supportedCompositeAlpha()
-      );
-      LOG.debug(
-        "Surface [SupportedUsageFlags]     {}",
-        this.surfaceCaps.supportedUsageFlags()
-      );
-      LOG.debug(
-        "Surface [SupportedTransforms]     {}",
-        this.surfaceCaps.supportedTransforms()
-      );
-
-      this.surfaceExtent = this.pickExtent();
-      LOG.debug("Surface extent: {}", this.surfaceExtent);
-      Objects.requireNonNull(this.surfaceExtent, "surfaceExtent");
-    } catch (final VulkanException e) {
-      throw RCVulkanException.wrap(e);
-    }
   }
 
   @Override
@@ -489,17 +311,15 @@ public final class RCWindowWithSurface
   {
     this.device =
       Objects.requireNonNull(newDevice, "device");
-    this.graphicsQueue =
-      Objects.requireNonNull(newGraphicsQueue, "graphicsQueue");
+
+    Objects.requireNonNull(newGraphicsQueue, "graphicsQueue");
+
     this.presentationQueue =
       Objects.requireNonNull(newPresentationQueue, "presentationQueue");
     this.vkDevice =
       this.device.device();
 
     try {
-      final var debugging =
-        this.vkDevice.debugging();
-
       this.khrSwapChainExt =
         this.vkDevice.findEnabledExtension(
             "VK_KHR_swapchain", VulkanExtKHRSwapChainType.class)
@@ -507,163 +327,25 @@ public final class RCWindowWithSurface
             return this.errorMissingRequiredException("VK_KHR_swapchain");
           });
 
-      final var minimumImageCount =
-        this.pickMinimumImageCount();
-      final List<VulkanQueueFamilyIndex> queueIndices =
-        new ArrayList<>();
-      final var imageSharingMode =
-        this.pickImageSharingMode(queueIndices);
-      final var imageUsageFlags =
-        Set.of(
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-          VK_IMAGE_USAGE_TRANSFER_DST_BIT
-        );
-      final var surfaceAlphaFlags =
-        Set.of(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR);
+      final var configuration =
+        JCSwapchainConfiguration.builder()
+          .addImageUsageFlags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+          .addImageUsageFlags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+          .addSurfaceAlphaFlags(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
+          .setDevice(this.vkDevice)
+          .setGraphicsQueue(newGraphicsQueue)
+          .setPresentationQueue(newPresentationQueue)
+          .setSurface(this.surface)
+          .setSurfaceExtension(this.khrSurfaceExt)
+          .setSwapChainExtension(this.khrSwapChainExt)
+          .build();
 
-      LOG.debug("Swap chain (minimum) image count: {}", minimumImageCount);
-      LOG.debug("Swap chain image mode: {}", imageSharingMode);
+      this.swapChainManager =
+        this.resources.add(JCSwapchainManager.create(configuration));
 
-      final var swapChainCreateInfo =
-        VulkanSwapChainCreateInfo.of(
-          this.surface,
-          minimumImageCount,
-          this.surfaceFormat.format(),
-          this.surfaceFormat.colorSpace(),
-          this.surfaceExtent,
-          1,
-          imageUsageFlags,
-          imageSharingMode,
-          queueIndices,
-          this.surfaceCaps.currentTransform(),
-          surfaceAlphaFlags,
-          this.surfacePresent,
-          true,
-          Optional.empty()
-        );
-
-      this.swapChain =
-        this.resourcesPerSwapChain.add(
-          this.khrSwapChainExt.swapChainCreate(
-            this.vkDevice,
-            swapChainCreateInfo
-          )
-        );
-      debugging.setObjectName(this.swapChain, "MainSwapChain");
-
-      this.swapChainImages.clear();
-      final var images = this.swapChain.images();
-      for (int index = 0; index < images.size(); ++index) {
-        final var swIndex = new SwapChainIndex(index);
-        final var image = images.get(index);
-        debugging.setObjectName(
-          image,
-          "SwapChainImage[%d]".formatted(index)
-        );
-
-        this.swapChainImages.put(swIndex, image);
-        final var imageView = this.createImageView(image);
-        debugging.setObjectName(
-          imageView,
-          "SwapChainImageView[%d]".formatted(index)
-        );
-
-        this.swapChainImageViews.put(
-          swIndex,
-          this.resourcesPerSwapChain.add(imageView)
-        );
-      }
-
-      LOG.debug(
-        "Swap chain (actual) image count: {}", this.swapChainImages.size());
-
-      for (int index = 0; index < images.size(); ++index) {
-        final var fIndex = new RCFrameIndex(index);
-
-        final var imageReadySemaphore =
-          this.vkDevice.createBinarySemaphore();
-
-        debugging.setObjectName(
-          imageReadySemaphore,
-          "Semaphore[ImageReady][%d]".formatted(index)
-        );
-
-        this.swapChainImageReadySemaphores.put(
-          fIndex,
-          this.resourcesPerSwapChain.add(imageReadySemaphore)
-        );
-
-        final var renderingDoneSemaphore =
-          this.vkDevice.createBinarySemaphore();
-
-        debugging.setObjectName(
-          renderingDoneSemaphore,
-          "Semaphore[RenderingDone][%d]".formatted(index)
-        );
-
-        this.swapChainImageRenderingDoneSemaphores.put(
-          fIndex,
-          this.resourcesPerSwapChain.add(renderingDoneSemaphore)
-        );
-
-        /*
-         * Create a "rendering done" fence that starts in the signaled state.
-         * The reason for starting in the signaled state is that the fence
-         * is used to wait before fully acquiring a frame for rendering. If
-         * the acquire operation was acquiring a frame for the first time ever,
-         * it would wait forever for a fence that will never be signalled.
-         */
-
-        final var renderingDoneFence =
-          this.vkDevice.createFence(
-            VulkanFenceCreateInfo.builder()
-              .addFlags(VulkanFenceCreateFlag.VK_FENCE_CREATE_SIGNALED_BIT)
-              .build()
-          );
-
-        debugging.setObjectName(
-          renderingDoneFence,
-          "Fence[RenderingDone][%d]".formatted(index)
-        );
-
-        this.swapChainImageRenderingDoneFences.put(
-          fIndex,
-          this.resourcesPerSwapChain.add(renderingDoneFence)
-        );
-      }
     } catch (final VulkanException e) {
       throw RCVulkanException.wrap(e);
     }
-  }
-
-  private VulkanImageViewType createImageView(
-    final VulkanImageType image)
-    throws VulkanException
-  {
-    final var range =
-      VulkanImageSubresourceRange.of(
-        Set.of(VK_IMAGE_ASPECT_COLOR_BIT),
-        0,
-        1,
-        0,
-        1);
-
-    final Set<VulkanImageViewCreateFlag> flags = Set.of();
-    return this.vkDevice.createImageView(
-      VulkanImageViewCreateInfo.of(
-        flags,
-        image,
-        VK_IMAGE_VIEW_TYPE_2D,
-        this.surfaceFormat.format(),
-        VulkanComponentMapping.of(
-          VK_COMPONENT_SWIZZLE_IDENTITY,
-          VK_COMPONENT_SWIZZLE_IDENTITY,
-          VK_COMPONENT_SWIZZLE_IDENTITY,
-          VK_COMPONENT_SWIZZLE_IDENTITY
-        ),
-        range
-      )
-    );
   }
 
   private RCVulkanException errorMissingRequiredException(
@@ -677,160 +359,6 @@ public final class RCWindowWithSurface
       VULKAN_EXTENSION_MISSING.codeName(),
       Optional.empty()
     );
-  }
-
-  private VulkanSharingMode pickImageSharingMode(
-    final List<VulkanQueueFamilyIndex> queueIndices)
-  {
-    /*
-     * If the graphics and presentation queues are separate families, then
-     * add the indices of those families into the given list and enable
-     * concurrent sharing mode. Otherwise, don't add any indices, and use
-     * exclusive sharing mode.
-     */
-
-    final var graphicsFamily =
-      this.graphicsQueue.queueFamilyProperties().queueFamilyIndex();
-    final var presentationFamily =
-      this.presentationQueue.queueFamilyProperties().queueFamilyIndex();
-
-    if (!Objects.equals(graphicsFamily, presentationFamily)) {
-      queueIndices.add(graphicsFamily);
-      queueIndices.add(presentationFamily);
-      return VK_SHARING_MODE_CONCURRENT;
-    }
-    return VK_SHARING_MODE_EXCLUSIVE;
-  }
-
-  private int pickMinimumImageCount()
-  {
-    final var min =
-      this.surfaceCaps.minImageCount();
-    final var max =
-      this.surfaceCaps.maxImageCount();
-    final var minClamped =
-      Math.max(min, 3);
-
-    if (max == 0) {
-      LOG.debug(
-        "Implementation reports no limit on the maximum number of swapchain images.");
-      return minClamped;
-    }
-
-    return Math.min(minClamped, max);
-  }
-
-  /**
-   * Work out the extent of the rendered image based on the
-   * implementation-defined supported limits.
-   */
-
-  private VulkanExtent2D pickExtent()
-  {
-    LOG.debug("Window size: {}", this.window.size());
-
-    if (this.surfaceCaps.currentExtent().width() != 0xffff_ffff) {
-      return this.surfaceCaps.currentExtent();
-    }
-
-    final var width =
-      Math.clamp(
-        this.window.width(),
-        this.surfaceCaps.minImageExtent().width(),
-        this.surfaceCaps.maxImageExtent().width()
-      );
-
-    final var height =
-      Math.clamp(
-        this.window.height(),
-        this.surfaceCaps.minImageExtent().height(),
-        this.surfaceCaps.maxImageExtent().height()
-      );
-
-    return VulkanExtent2D.of(width, height);
-  }
-
-  /**
-   * Pick the best presentation mode available.
-   */
-
-  private VulkanPresentModeKHR pickPresentationMode(
-    final VulkanPhysicalDeviceType physicalDevice)
-    throws VulkanException
-  {
-    final var modes =
-      this.khrSurfaceExt.surfacePresentModes(physicalDevice, this.surface);
-
-    showAvailablePresentationModes(modes);
-
-    var preferred = VK_PRESENT_MODE_FIFO_KHR;
-    for (final var mode : modes) {
-      if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
-        return mode;
-      }
-      if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-        preferred = mode;
-      }
-    }
-
-    return preferred;
-  }
-
-  private VulkanSurfaceFormatKHR pickSurfaceFormat(
-    final VulkanPhysicalDeviceType physicalDevice)
-    throws VulkanException
-  {
-    final var formats =
-      this.khrSurfaceExt.surfaceFormats(physicalDevice, this.surface);
-
-    /*
-     * If there are no formats, try a commonly supported one.
-     */
-
-    if (formats.isEmpty()) {
-      LOG.debug("There are no preferred surface formats.");
-      return VulkanSurfaceFormatKHR.of(
-        VK_FORMAT_B8G8R8A8_UNORM,
-        VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
-      );
-    }
-
-    showPreferredFormats(formats);
-
-    /*
-     * If there's one VK_FORMAT_UNDEFINED format, then this means that the implementation
-     * doesn't have a preferred format and anything can be used.
-     */
-
-    if (formats.size() == 1) {
-      final var format0 = formats.get(0);
-      if (format0.format() == VK_FORMAT_UNDEFINED) {
-        LOG.debug("The one preferred surface format is VK_FORMAT_UNDEFINED.");
-        return VulkanSurfaceFormatKHR.of(
-          VK_FORMAT_B8G8R8A8_UNORM,
-          VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
-        );
-      }
-    }
-
-    /*
-     * Otherwise, look for a linear BGRA unsigned normalized format, with an SRGB color space.
-     */
-
-    LOG.debug("Searching within the preferred surface formats.");
-    for (final var format : formats) {
-      if (format.format() == VK_FORMAT_B8G8R8A8_UNORM
-          && format.colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-        return format;
-      }
-    }
-
-    /*
-     * Otherwise, use whatever was first.
-     */
-
-    LOG.debug("Fell back to first available format.");
-    return formats.get(0);
   }
 
   /**

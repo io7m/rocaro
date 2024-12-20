@@ -17,7 +17,6 @@
 
 package com.io7m.rocaro.tests;
 
-import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanQueueIndex;
 import com.io7m.jcoronado.fake.VFakeExtKHRSurface;
 import com.io7m.jcoronado.fake.VFakeExtKHRSwapChain;

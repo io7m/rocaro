@@ -20,10 +20,12 @@ package com.io7m.rocaro.vanilla;
 import com.io7m.rocaro.api.RendererBuilderType;
 import com.io7m.rocaro.api.RendererFactoryType;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacade;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCVersions;
 import com.io7m.rocaro.vanilla.internal.RendererBuilder;
+import com.io7m.rocaro.vanilla.internal.graph.RCGOperationZero;
 
 import java.util.Locale;
 
@@ -59,21 +61,24 @@ public final class Renderers implements RendererFactoryType
 
     final var graphBuilder =
       builder.declareRenderGraph("Empty");
-    final var frameSource =
-      graphBuilder.declareFrameSource("FrameSource");
-    final var render =
-      graphBuilder.declareEmptyRenderPass("Empty");
-    final var frameTarget =
-      graphBuilder.declareFrameTarget("FrameTarget");
 
-    graphBuilder.connect(
-      frameSource.imageSource(),
-      render.targetPort("Image")
-    );
-    graphBuilder.connect(
-      render.sourcePort("Image"),
-      frameTarget.imageTarget()
-    );
+    final var frameSource =
+      graphBuilder.declareOpFrameAcquire("FrameAcquire");
+    final var frameTarget =
+      graphBuilder.declareOpFramePresent("FramePresent");
+    final var zero =
+      graphBuilder.declareOperation(
+        "Zero",
+        RCGOperationZero.factory(),
+        RCGNoParameters.NO_PARAMETERS
+      );
+    final var frame =
+      graphBuilder.declareFrameResource("Frame");
+
+    graphBuilder.resourceAssign(frameSource.frame(), frame);
+    graphBuilder.connect(frameSource.frame(), zero.frame());
+    graphBuilder.connect(zero.frame(), frameTarget.frame());
+
     return builder;
   }
 }

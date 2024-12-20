@@ -22,6 +22,7 @@ import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanExtent2D;
 import com.io7m.jcoronado.api.VulkanExtent3D;
 import com.io7m.jcoronado.api.VulkanFenceType;
+import com.io7m.jcoronado.api.VulkanFormat;
 import com.io7m.jcoronado.api.VulkanImageType;
 import com.io7m.jcoronado.api.VulkanImageViewType;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceCreateInfo;
@@ -35,10 +36,11 @@ import com.io7m.jcoronado.api.VulkanQueueFamilyPropertyFlag;
 import com.io7m.jcoronado.api.VulkanQueueIndex;
 import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.jcoronado.api.VulkanSemaphoreBinaryType;
-import com.io7m.jcoronado.api.VulkanSemaphoreType;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType.VulkanKHRSurfaceType;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanSurfaceCapabilitiesKHR;
+import com.io7m.jcoronado.extensions.khr_surface.api.VulkanSurfaceFormatKHR;
+import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanColorSpaceKHR;
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanExtKHRSwapChainType;
 import com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanExtKHRSwapChainType.VulkanKHRSwapChainType;
 import com.io7m.jcoronado.fake.VFakeInstances;
@@ -55,7 +57,6 @@ import com.io7m.rocaro.vanilla.internal.vulkan.RCWindowWithSurface;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindow;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -80,32 +81,33 @@ import static org.mockito.Mockito.when;
 
 public final class RCDevicesTest
 {
-  private RCStrings strings;
-  private RCGLFWFacadeType glfw;
-  private VulkanExtKHRSurfaceType surfaceExt;
-  private VulkanKHRSurfaceType surface;
-  private VulkanLogicalDeviceType logicalDevice;
-  private VulkanPhysicalDeviceType physicalDevice;
-  private RCWindowWithSurface window;
-  private TreeMap<VulkanQueueFamilyIndex, VulkanQueueFamilyProperties> queueFamilies;
   private ArrayList<VulkanQueueType> queuesCreated;
-  private VulkanLogicalDeviceCreateInfo deviceCreateInfoLogged;
-  private VulkanExtKHRSwapChainType swapchainExt;
-  private VulkanKHRSwapChainType swapChain;
-  private VulkanImageType swapChainImage;
-  private VulkanImageViewType swapChainImageView;
-  private VulkanSemaphoreBinaryType imageReadySemaphore;
-  private VulkanSemaphoreBinaryType imageRenderDoneSemaphore;
-  private VulkanFenceType imageRenderDoneFence;
+  private RCGLFWFacadeType glfw;
+  private RCStandardExecutors executors;
+  private RCStrings strings;
+  private RCWindowWithSurface window;
   private RendererVulkanConfiguration vulkanConfiguration;
+  private TreeMap<VulkanQueueFamilyIndex, VulkanQueueFamilyProperties> queueFamilies;
   private VMAAllocatorProviderType allocators;
   private VMAAllocatorType allocator;
   private VulkanDebuggingType debugging;
-  private RCStandardExecutors executors;
+  private VulkanExtKHRSurfaceType surfaceExt;
+  private VulkanExtKHRSwapChainType swapchainExt;
+  private VulkanFenceType imagePresentDoneFence;
+  private VulkanFenceType imageRenderDoneFence;
+  private VulkanImageType swapChainImage;
+  private VulkanImageViewType swapChainImageView;
+  private VulkanKHRSurfaceType surface;
+  private VulkanKHRSwapChainType swapChain;
+  private VulkanLogicalDeviceCreateInfo deviceCreateInfoLogged;
+  private VulkanLogicalDeviceType logicalDevice;
+  private VulkanPhysicalDeviceType physicalDevice;
+  private VulkanSemaphoreBinaryType imageReadySemaphore;
+  private VulkanSemaphoreBinaryType imageRenderDoneSemaphore;
 
   @BeforeEach
   public void setup()
-    throws VulkanException, RCVulkanException
+    throws VulkanException
   {
     this.debugging =
       mock(VulkanDebuggingType.class);
@@ -142,6 +144,14 @@ public final class RCDevicesTest
       mock(VulkanSemaphoreBinaryType.class);
     this.imageRenderDoneFence =
       mock(VulkanFenceType.class);
+    this.imagePresentDoneFence =
+      mock(VulkanFenceType.class);
+
+    when(this.surfaceExt.surfaceFormats(any(), any()))
+      .thenReturn(List.of(VulkanSurfaceFormatKHR.of(
+        VulkanFormat.VK_FORMAT_B8G8R8A8_UNORM,
+        VulkanColorSpaceKHR.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+      )));
 
     when(this.surfaceExt.surfaceCapabilities(any(), any()))
       .thenReturn(
@@ -192,17 +202,26 @@ public final class RCDevicesTest
     when(this.logicalDevice.queues())
       .thenReturn(this.queuesCreated);
 
-    when(this.logicalDevice.findEnabledExtension("VK_KHR_surface", VulkanExtKHRSurfaceType.class))
+    when(this.logicalDevice.findEnabledExtension(
+      "VK_KHR_surface",
+      VulkanExtKHRSurfaceType.class))
       .thenReturn(Optional.of(this.surfaceExt));
-    when(this.logicalDevice.findEnabledExtension("VK_KHR_swapchain", VulkanExtKHRSwapChainType.class))
+    when(this.logicalDevice.findEnabledExtension(
+      "VK_KHR_swapchain",
+      VulkanExtKHRSwapChainType.class))
       .thenReturn(Optional.of(this.swapchainExt));
     when(this.logicalDevice.createImageView(any()))
       .thenReturn(this.swapChainImageView);
     when(this.logicalDevice.createBinarySemaphore())
       .thenReturn(this.imageReadySemaphore)
-      .thenReturn(this.imageRenderDoneSemaphore);
+      .thenReturn(this.imageRenderDoneSemaphore)
+      .thenThrow(new IllegalStateException());
     when(this.logicalDevice.createFence(any()))
-      .thenReturn(this.imageRenderDoneFence);
+      .thenReturn(this.imageRenderDoneFence)
+      .thenThrow(new IllegalStateException());
+    when(this.logicalDevice.createFence())
+      .thenReturn(this.imagePresentDoneFence)
+      .thenThrow(new IllegalStateException());
     when(this.logicalDevice.debugging())
       .thenReturn(this.debugging);
 

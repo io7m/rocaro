@@ -56,6 +56,7 @@
     <net.bytebuddy.version>1.15.10</net.bytebuddy.version>
     <net.jqwik.version>1.9.1</net.jqwik.version>
     <org.immutables.value.version>2.10.1</org.immutables.value.version>
+    <org.jgrapht.version>1.5.2</org.jgrapht.version>
     <org.junit.version>5.11.3</org.junit.version>
     <org.lwjgl.version>3.3.5-SNAPSHOT</org.lwjgl.version>
     <org.mockito.version>5.14.2</org.mockito.version>
@@ -183,7 +184,12 @@
       </dependency>
       <dependency>
         <groupId>com.io7m.jcoronado</groupId>
-        <artifactId>com.io7m.jcoronado.allocation_tracker</artifactId>
+        <artifactId>com.io7m.jcoronado.utility.allocation_tracker</artifactId>
+        <version>${com.io7m.jcoronado.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jcoronado</groupId>
+        <artifactId>com.io7m.jcoronado.utility.swapchain</artifactId>
         <version>${com.io7m.jcoronado.version}</version>
       </dependency>
       <dependency>
@@ -332,7 +338,12 @@
       <dependency>
         <groupId>org.jgrapht</groupId>
         <artifactId>jgrapht-core</artifactId>
-        <version>1.5.2</version>
+        <version>${org.jgrapht.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jgrapht</groupId>
+        <artifactId>jgrapht-io</artifactId>
+        <version>${org.jgrapht.version}</version>
       </dependency>
 
       <!-- Strings and localization. -->

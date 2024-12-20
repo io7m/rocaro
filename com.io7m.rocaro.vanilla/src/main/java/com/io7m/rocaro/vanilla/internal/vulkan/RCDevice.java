@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
+import com.io7m.jaffirm.core.Preconditions;
 import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
@@ -63,17 +64,16 @@ public final class RCDevice
 
   private final CloseableCollectionType<RocaroException> allResources;
   private final RCExecutorType executor;
-  private final VMAAllocatorType allocator;
   private final VulkanLogicalDeviceType device;
   private final VulkanQueueType computeQueue;
   private final VulkanQueueType graphicsQueue;
   private final VulkanQueueType transferQueue;
   private final CloseableCollectionType<RocaroException> gpuResources;
+  private VMAAllocatorType allocator;
 
   RCDevice(
     final RCStrings strings,
     final VulkanLogicalDeviceType inDevice,
-    final VMAAllocatorType inAllocator,
     final RCExecutorType inExecutor,
     final VulkanQueueType inGraphicsQueue,
     final VulkanQueueType inTransferQueue,
@@ -81,8 +81,6 @@ public final class RCDevice
   {
     this.device =
       Objects.requireNonNull(inDevice, "device");
-    this.allocator =
-      Objects.requireNonNull(inAllocator, "allocator");
     this.executor =
       Objects.requireNonNull(inExecutor, "inExecutor");
     this.graphicsQueue =
@@ -107,7 +105,6 @@ public final class RCDevice
      */
 
     this.allResources.add(this.device);
-    this.allResources.add(this.allocator);
     this.allResources.add(this.executor);
 
     this.allResources.add(() -> {
@@ -238,6 +235,10 @@ public final class RCDevice
   @Override
   public VMAAllocatorType allocator()
   {
+    Preconditions.checkPreconditionV(
+      this.allocator != null,
+      "Allocator must have been assigned."
+    );
     return this.allocator;
   }
 
@@ -316,5 +317,20 @@ public final class RCDevice
     }
     text.append("End Submission");
     LOG.trace("{}", text);
+  }
+
+  /**
+   * Set the allocator.
+   *
+   * @param vmaAllocator The allocator
+   */
+
+  public void setAllocator(
+    final VMAAllocatorType vmaAllocator)
+  {
+    this.allocator =
+      this.allResources.add(
+        Objects.requireNonNull(vmaAllocator, "vmaAllocator")
+      );
   }
 }

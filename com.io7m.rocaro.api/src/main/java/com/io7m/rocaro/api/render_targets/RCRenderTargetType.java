@@ -17,24 +17,14 @@
 
 package com.io7m.rocaro.api.render_targets;
 
-import com.io7m.jcoronado.api.VulkanFramebufferType;
-import com.io7m.jcoronado.api.VulkanRenderPassType;
+import com.io7m.rocaro.api.resources.RCResourceType;
 
 /**
  * A render target.
  */
 
 public interface RCRenderTargetType
+  extends RCResourceType
 {
-  /**
-   * @return The render pass instance
-   */
 
-  VulkanRenderPassType renderPass();
-
-  /**
-   * @return The framebuffer
-   */
-
-  VulkanFramebufferType frameBuffer();
 }

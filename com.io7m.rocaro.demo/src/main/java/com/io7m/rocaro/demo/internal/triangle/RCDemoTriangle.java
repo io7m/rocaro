@@ -22,23 +22,21 @@ import com.io7m.lanark.core.RDottedName;
 import com.io7m.quarrel.core.QCommandContextType;
 import com.io7m.quarrel.core.QCommandStatus;
 import com.io7m.quarrel.core.QParameterNamedType;
-import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.RendererFactoryType;
 import com.io7m.rocaro.api.RendererType;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
-import com.io7m.rocaro.api.graph.RCGStatusFailed;
-import com.io7m.rocaro.api.graph.RCGStatusInProgress;
-import com.io7m.rocaro.api.graph.RCGStatusReady;
-import com.io7m.rocaro.api.graph.RCGStatusUninitialized;
+import com.io7m.rocaro.api.graph.RCGGraphStatusType.PreparationFailed;
+import com.io7m.rocaro.api.graph.RCGGraphStatusType.Preparing;
+import com.io7m.rocaro.api.graph.RCGGraphStatusType.Ready;
+import com.io7m.rocaro.api.graph.RCGGraphStatusType.Uninitialized;
+import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.demo.internal.RCDemoAbstract;
 import com.io7m.rocaro.vanilla.RCAssetResolvers;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.ServiceLoader;
-
-import static com.io7m.rocaro.demo.internal.triangle.RCRenderPassTriangles.RENDER_PASS_TRIANGLE;
 
 /**
  * A demo.
@@ -78,25 +76,24 @@ public final class RCDemoTriangle
     final var graphBuilder =
       builder.declareRenderGraph("TriangleDemo");
     final var frameSource =
-      graphBuilder.declareFrameSource("FrameSource");
+      graphBuilder.declareOpFrameAcquire("FrameSource");
     final var frameTarget =
-      graphBuilder.declareFrameTarget("FrameTarget");
+      graphBuilder.declareOpFramePresent("FrameTarget");
 
     final var triangle =
-      graphBuilder.declare(
+      graphBuilder.declareOperation(
         "Triangle",
-        RCUnit.UNIT,
-        RENDER_PASS_TRIANGLE
+        RCGRenderPassTriangle.factory(),
+        RCGNoParameters.NO_PARAMETERS
       );
 
     graphBuilder.connect(
-      frameSource.imageSource(),
-      triangle.targetPort("Image")
+      frameSource.frame(),
+      triangle.frame()
     );
-
     graphBuilder.connect(
-      triangle.sourcePort("Image"),
-      frameTarget.imageTarget()
+      triangle.frame(),
+      frameTarget.frame()
     );
 
     builder.setAssetResolver(
@@ -129,12 +126,12 @@ public final class RCDemoTriangle
       c.prepare("TriangleDemo");
 
       switch (c.graphStatus("TriangleDemo")) {
-        case final RCGStatusReady _ -> {
+        case final Ready _ -> {
           c.executeGraph("TriangleDemo");
         }
-        case final RCGStatusInProgress _,
-             final RCGStatusUninitialized _,
-             final RCGStatusFailed _ -> {
+        case final PreparationFailed _,
+             final Preparing _,
+             final Uninitialized _ -> {
           c.executeGraph("Empty");
         }
       }

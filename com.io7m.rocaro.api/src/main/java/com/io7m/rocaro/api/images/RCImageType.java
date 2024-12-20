@@ -20,12 +20,14 @@ package com.io7m.rocaro.api.images;
 import com.io7m.jcoronado.api.VulkanFormat;
 import com.io7m.jcoronado.api.VulkanImageType;
 import com.io7m.jcoronado.api.VulkanImageViewType;
+import com.io7m.rocaro.api.resources.RCResourceType;
 
 /**
  * The base type of images.
  */
 
 public sealed interface RCImageType
+  extends RCResourceType
   permits RCImageColorType,
   RCImageDepthType
 {
