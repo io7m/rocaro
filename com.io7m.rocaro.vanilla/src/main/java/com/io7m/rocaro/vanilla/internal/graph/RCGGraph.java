@@ -61,8 +61,8 @@ public final class RCGGraph implements RCGGraphType
    * @param inName             The graph name
    * @param inGraph            The graph of ports
    * @param inOpGraph          The graph of operations
-   * @param portsOrdered       The ports in topological order
-   * @param opsOrdered         The operations in topological order
+   * @param inPortsOrdered       The ports in topological order
+   * @param inOpsOrdered         The operations in topological order
    * @param inOps              The operations
    * @param inResources        The resources
    * @param inPortResources    The resources at every port
@@ -74,8 +74,8 @@ public final class RCGGraph implements RCGGraphType
     final RCGraphName inName,
     final DirectedAcyclicGraph<RCGPortType, RCGGraphConnection> inGraph,
     final DirectedAcyclicGraph<RCGOperationType, RCGGraphOpConnection> inOpGraph,
-    final List<RCGPortType> portsOrdered,
-    final List<RCGOperationType> opsOrdered,
+    final List<RCGPortType> inPortsOrdered,
+    final List<RCGOperationType> inOpsOrdered,
     final Map<RCGOperationName, RCGOperationType> inOps,
     final Map<RCGResourceName, RCGResourcePlaceholderType> inResources,
     final Map<RCGPortType, RCGResourcePlaceholderType> inPortResources,
@@ -89,9 +89,9 @@ public final class RCGGraph implements RCGGraphType
     this.opGraph =
       Objects.requireNonNull(inOpGraph, "opGraph");
     this.portsOrdered =
-      List.copyOf(portsOrdered);
+      List.copyOf(inPortsOrdered);
     this.opsOrdered =
-      List.copyOf(opsOrdered);
+      List.copyOf(inOpsOrdered);
     this.ops =
       Objects.requireNonNull(inOps, "ops");
     this.resources =

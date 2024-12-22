@@ -20,23 +20,26 @@ package com.io7m.rocaro.tests.graph2;
 import com.io7m.rocaro.api.graph.RCGGraphException;
 import com.io7m.rocaro.tests.graph2.OpConsumer0.Parameters;
 import com.io7m.rocaro.vanilla.RCGraph;
+import com.io7m.rocaro.vanilla.internal.graph.RCGDotExporter;
 import com.io7m.rocaro.vanilla.internal.graph.RCGGraphBuilderInternalType;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType.Execute;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType.ImageReadBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType.ImageWriteBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType.MemoryReadBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType.MemoryWriteBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType.Read;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType.Submission;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncCommandType.Write;
-import com.io7m.rocaro.vanilla.internal.graph.RCGSyncDependency;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncCommandType;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSExecute;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageReadBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageReadBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageWriteBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageWriteBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryReadBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryReadBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryWriteBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryWriteBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSRead;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSWrite;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncDependency;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.AllDirectedPaths;
 import org.jgrapht.graph.DirectedAcyclicGraph;
-import org.jgrapht.nio.DefaultAttribute;
-import org.jgrapht.nio.dot.DOTExporter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,12 +48,15 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.COMPUTE;
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.TRANSFER;
+import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_COMPUTE_SHADER;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_COPY;
 import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
@@ -59,8 +65,6 @@ import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FO
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_SHADER_READ;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET;
 import static java.lang.Integer.MAX_VALUE;
-import static org.jgrapht.nio.AttributeType.DOUBLE;
-import static org.jgrapht.nio.AttributeType.STRING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -71,7 +75,8 @@ public final class RCGraphSyncTest
     LoggerFactory.getLogger(RCGraphSyncTest.class);
 
   @Test
-  public void testBarriersPre()
+  public void testBarriersPre(
+    final TestInfo testInfo)
     throws RCGGraphException
   {
     final var b =
@@ -85,6 +90,7 @@ public final class RCGraphSyncTest
         "Op0",
         OpProducer0.factory(),
         new OpProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(STAGE_TRANSFER_COPY)
         ));
@@ -94,6 +100,7 @@ public final class RCGraphSyncTest
         "Op1",
         OpModifier0.factory(),
         new OpModifier0.Parameters(
+          GRAPHICS,
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT)
         ));
@@ -103,6 +110,7 @@ public final class RCGraphSyncTest
         "Op2",
         OpConsumer0.factory(),
         new Parameters(
+          GRAPHICS,
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
           Set.of()
         ));
@@ -115,7 +123,7 @@ public final class RCGraphSyncTest
     final var sg =
       b.syncGraph();
 
-    show(sg);
+    show(sg, testInfo.getDisplayName());
 
     final var oc =
       b.syncOpCommands();
@@ -129,140 +137,156 @@ public final class RCGraphSyncTest
     final var cmdOp2 = oc.get(op2);
     assertNotNull(cmdOp2);
 
-    /*
-     * Operation 0.
-     */
+    final var paths =
+      finder.getAllPaths(cmdOp0, cmdOp2, false, MAX_VALUE);
 
-    {
-      /*
-       * There are no dependencies on anything.
-       */
+    assertEquals(2, paths.size());
 
-      final var dependencies = List.copyOf(sg.outgoingEdgesOf(cmdOp0));
-      assertEquals(List.of(), dependencies);
+    checkPath(
+      paths.get(0),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(c.writesAt(), STAGE_TRANSFER_COPY);
+          assertEquals(c.operation(), op0);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryWriteBarrier.class,
+        c -> {
+          assertEquals(c.waitsForWriteAt(), STAGE_TRANSFER_COPY);
+          assertEquals(c.blocksWriteAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(c.writesAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryReadBarrier.class,
+        c -> {
+          assertEquals(c.waitsForWriteAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.blocksReadAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op2);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(c.readsAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op2);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp2, c);
+        }
+      )
+    );
 
-      /*
-       * The operation's one and only write operation depends on this operation.
-       */
-
-      final var dependents = List.copyOf(sg.incomingEdgesOf(cmdOp0));
-      assertEquals(1, dependents.size());
-      final var dep = dependents.get(0);
-      assertEquals(cmdOp0, dep.before());
-      final var op0Write = assertInstanceOf(Write.class, dep.after());
-      assertEquals(r, op0Write.resource());
-      assertEquals(STAGE_TRANSFER_COPY, op0Write.writesAt());
-    }
-
-    /*
-     * Operation 1.
-     */
-
-    {
-      /*
-       * We have one read that depends ultimately on the write
-       * performed by operation 0.
-       */
-
-      final var paths =
-        finder.getAllPaths(cmdOp1, cmdOp0, true, MAX_VALUE);
-      assertEquals(1, paths.size());
-
-      checkPath(
-        paths.get(0),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(cmdOp1, c);
-          }
-        ),
-        new CommandCheck<>(
-          Read.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
-          }
-        ),
-        new CommandCheck<>(
-          MemoryReadBarrier.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
-            assertEquals(STAGE_TRANSFER_COPY, c.waitsForWriteAt());
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          c -> {
-            assertEquals(op0, c.operation());
-            assertEquals(STAGE_TRANSFER_COPY, c.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(cmdOp0, c);
-          }
-        )
-      );
-    }
-
-    /*
-     * Operation 2.
-     */
-
-    {
-      /*
-       * We have one read that depends ultimately on the write
-       * performed by operation 1.
-       */
-
-      final var paths =
-        finder.getAllPaths(cmdOp2, cmdOp1, true, MAX_VALUE);
-      assertEquals(1, paths.size());
-
-      checkPath(
-        paths.get(0),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(cmdOp2, c);
-          }
-        ),
-        new CommandCheck<>(
-          Read.class,
-          c -> {
-            assertEquals(op2, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
-          }
-        ),
-        new CommandCheck<>(
-          MemoryReadBarrier.class,
-          c -> {
-            assertEquals(op2, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(cmdOp1, c);
-          }
-        )
-      );
-    }
+    checkPath(
+      paths.get(1),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(c.writesAt(), STAGE_TRANSFER_COPY);
+          assertEquals(c.operation(), op0);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryReadBarrier.class,
+        c -> {
+          assertEquals(c.waitsForWriteAt(), STAGE_TRANSFER_COPY);
+          assertEquals(c.blocksReadAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(c.readsAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp1, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(c.writesAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryReadBarrier.class,
+        c -> {
+          assertEquals(c.waitsForWriteAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.blocksReadAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op2);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(c.readsAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op2);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp2, c);
+        }
+      )
+    );
   }
 
   @Test
-  public void testBarriersImageLayoutPre()
+  public void testBarriersImageLayoutPre(
+    final TestInfo testInfo)
     throws RCGGraphException
   {
     final var b =
@@ -276,6 +300,7 @@ public final class RCGraphSyncTest
         "Op0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(STAGE_TRANSFER_COPY),
           Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET)
@@ -286,6 +311,7 @@ public final class RCGraphSyncTest
         "Op1",
         OpImageModifier0.factory(),
         new OpImageModifier0.Parameters(
+          GRAPHICS,
           Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
@@ -297,6 +323,7 @@ public final class RCGraphSyncTest
         "Op2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
           Set.of(),
           Optional.of(LAYOUT_OPTIMAL_FOR_PRESENTATION)
@@ -310,7 +337,7 @@ public final class RCGraphSyncTest
     final var sg =
       b.syncGraph();
 
-    show(sg);
+    show(sg, testInfo.getDisplayName());
 
     final var oc =
       b.syncOpCommands();
@@ -324,231 +351,159 @@ public final class RCGraphSyncTest
     final var cmdOp2 = oc.get(op2);
     assertNotNull(cmdOp2);
 
-    final Write op0Write;
-    final Write op1Write;
+    final var paths =
+      finder.getAllPaths(cmdOp0, cmdOp2, false, MAX_VALUE);
 
-    /*
-     * Operation 0.
-     */
+    assertEquals(2, paths.size());
 
-    {
-      /*
-       * There are no dependencies on anything.
-       */
+    checkPath(
+      paths.get(0),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(c.writesAt(), STAGE_TRANSFER_COPY);
+          assertEquals(c.operation(), op0);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageWriteBarrier.class,
+        c -> {
+          assertEquals(c.waitsForWriteAt(), STAGE_TRANSFER_COPY);
+          assertEquals(c.blocksWriteAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_ATTACHMENT, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(c.writesAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageReadBarrier.class,
+        c -> {
+          assertEquals(c.waitsForWriteAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.blocksReadAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op2);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_ATTACHMENT, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_PRESENTATION, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(c.readsAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op2);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp2, c);
+        }
+      )
+    );
 
-      final var dependencies = List.copyOf(sg.outgoingEdgesOf(cmdOp0));
-      assertEquals(List.of(), dependencies);
-
-      /*
-       * The operation's one and only write operation depends on this operation.
-       */
-
-      final var dependents = List.copyOf(sg.incomingEdgesOf(cmdOp0));
-      assertEquals(1, dependents.size());
-      final var dep = dependents.get(0);
-      assertEquals(cmdOp0, dep.before());
-      op0Write = assertInstanceOf(Write.class, dep.after());
-      assertEquals(r, op0Write.resource());
-      assertEquals(STAGE_TRANSFER_COPY, op0Write.writesAt());
-    }
-
-    /*
-     * Operation 1.
-     */
-
-    {
-      /*
-       * We have one write that depends ultimately on the write
-       * performed by operation 0. There are two paths by which it can
-       * get there.
-       */
-
-      final var dependencies =
-        List.copyOf(sg.incomingEdgesOf(cmdOp1));
-
-      assertEquals(1, dependencies.size());
-
-      final var dep = dependencies.get(0);
-      assertEquals(cmdOp1, dep.before());
-
-      op1Write = assertInstanceOf(Write.class, dep.after());
-
-      final var paths =
-        finder.getAllPaths(op1Write, cmdOp0, true, MAX_VALUE);
-      assertEquals(2, paths.size());
-
-      /*
-       * The first path reaches the write via the read barrier.
-       */
-
-      checkPath(
-        paths.get(0),
-        new CommandCheck<>(
-          Write.class,
-          e -> {
-            assertEquals(op1Write, e);
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          e -> {
-            assertEquals(op1, e.operation());
-          }
-        ),
-        new CommandCheck<>(
-          Read.class,
-          e -> {
-            assertEquals(op1, e.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, e.readsAt());
-          }
-        ),
-        new CommandCheck<>(
-          ImageReadBarrier.class,
-          e -> {
-            assertEquals(op1, e.operation());
-            assertEquals(STAGE_TRANSFER_COPY, e.waitsForWriteAt());
-            assertEquals(
-              STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT,
-              e.blocksReadAt()
-            );
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET,
-              e.layoutFrom()
-            );
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_ATTACHMENT,
-              e.layoutTo()
-            );
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          e -> {
-            assertEquals(op0, e.operation());
-            assertEquals(STAGE_TRANSFER_COPY, e.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          e -> {
-            assertEquals(cmdOp0, e);
-          }
-        )
-      );
-
-      /*
-       * The second path reaches the write via the write barrier.
-       */
-
-      checkPath(
-        paths.get(1),
-        new CommandCheck<>(
-          Write.class,
-          e -> {
-            assertEquals(op1Write, e);
-          }
-        ),
-        new CommandCheck<>(
-          ImageWriteBarrier.class,
-          e -> {
-            assertEquals(op1, e.operation());
-            assertEquals(STAGE_TRANSFER_COPY, e.waitsForWriteAt());
-            assertEquals(
-              STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT,
-              e.blocksWriteAt()
-            );
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET,
-              e.layoutFrom()
-            );
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_ATTACHMENT,
-              e.layoutTo()
-            );
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          e -> {
-            assertEquals(op0, e.operation());
-            assertEquals(STAGE_TRANSFER_COPY, e.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          e -> {
-            assertEquals(cmdOp0, e);
-          }
-        )
-      );
-    }
-
-    /*
-     * Operation 2.
-     */
-
-    {
-      /*
-       * We have one read that depends ultimately on the write
-       * performed by operation 1.
-       */
-
-      final var paths =
-        finder.getAllPaths(cmdOp2, cmdOp1, true, MAX_VALUE);
-      assertEquals(1, paths.size());
-
-      checkPath(
-        paths.get(0),
-        new CommandCheck<>(
-          Execute.class,
-          e -> {
-            assertEquals(cmdOp2, e);
-          }
-        ),
-        new CommandCheck<>(
-          Read.class,
-          e -> {
-            assertEquals(op2, e.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, e.readsAt());
-          }
-        ),
-        new CommandCheck<>(
-          ImageReadBarrier.class,
-          e -> {
-            assertEquals(op2, e.operation());
-            assertEquals(
-              STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT,
-              e.blocksReadAt()
-            );
-            assertEquals(
-              STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT,
-              e.waitsForWriteAt()
-            );
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_ATTACHMENT,
-              e.layoutFrom()
-            );
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_PRESENTATION,
-              e.layoutTo()
-            );
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          e -> {
-            assertEquals(op1, e.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, e.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          e -> {
-            assertEquals(cmdOp1, e);
-          }
-        )
-      );
-    }
+    checkPath(
+      paths.get(1),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(c.writesAt(), STAGE_TRANSFER_COPY);
+          assertEquals(c.operation(), op0);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageReadBarrier.class,
+        c -> {
+          assertEquals(c.waitsForWriteAt(), STAGE_TRANSFER_COPY);
+          assertEquals(c.blocksReadAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_ATTACHMENT, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(c.readsAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp1, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(c.writeStage(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op1);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageReadBarrier.class,
+        c -> {
+          assertEquals(c.waitsForWriteAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.blocksReadAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op2);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_ATTACHMENT, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_PRESENTATION, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(c.readsAt(), STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT);
+          assertEquals(c.operation(), op2);
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp2, c);
+        }
+      )
+    );
   }
 
   private record CommandCheck<C extends RCGSyncCommandType>(
@@ -581,6 +536,7 @@ public final class RCGraphSyncTest
       final var check =
         checks[index];
 
+      LOG.trace("Check [{}] {}", index, vertex);
       assertEquals(check.clazz, vertex.getClass());
       if (vertex.getClass() == check.clazz) {
         final Consumer<Object> f = (Consumer<Object>) check.check;
@@ -597,7 +553,8 @@ public final class RCGraphSyncTest
   }
 
   @Test
-  public void testBarriersImageLayoutPost()
+  public void testBarriersImageLayoutPost(
+    final TestInfo testInfo)
     throws RCGGraphException
   {
     final var b =
@@ -611,6 +568,7 @@ public final class RCGraphSyncTest
         "Op0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(STAGE_TRANSFER_COPY),
           Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET)
@@ -621,6 +579,7 @@ public final class RCGraphSyncTest
         "Op1",
         OpImageModifier0.factory(),
         new OpImageModifier0.Parameters(
+          GRAPHICS,
           Optional.empty(),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
@@ -632,6 +591,7 @@ public final class RCGraphSyncTest
         "Op2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
           Set.of(),
           Optional.of(LAYOUT_OPTIMAL_FOR_PRESENTATION)
@@ -645,7 +605,7 @@ public final class RCGraphSyncTest
     final var sg =
       b.syncGraph();
 
-    show(sg);
+    show(sg, testInfo.getDisplayName());
 
     final var oc =
       b.syncOpCommands();
@@ -659,177 +619,168 @@ public final class RCGraphSyncTest
     final var cmdOp2 = oc.get(op2);
     assertNotNull(cmdOp2);
 
-    /*
-     * Operation 0.
-     */
+    final var paths =
+      finder.getAllPaths(cmdOp0, cmdOp2, false, MAX_VALUE);
 
-    {
-      /*
-       * There are no dependencies on anything.
-       */
+    checkPath(
+      paths.get(0),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_TRANSFER_COPY, c.writesAt());
+          assertEquals(op0, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
+          assertEquals(STAGE_TRANSFER_COPY, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
+          assertEquals(op1, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageReadBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
+          assertEquals(op2, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_PRESENTATION, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
+          assertEquals(op2, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp2, c);
+        }
+      )
 
-      final var dependencies = List.copyOf(sg.outgoingEdgesOf(cmdOp0));
-      assertEquals(List.of(), dependencies);
+    );
 
-      /*
-       * The operation's one and only write operation depends on this operation.
-       */
-
-      final var dependents = List.copyOf(sg.incomingEdgesOf(cmdOp0));
-      assertEquals(1, dependents.size());
-      final var dep = dependents.get(0);
-      assertEquals(cmdOp0, dep.before());
-      final var op0Write = assertInstanceOf(Write.class, dep.after());
-      assertEquals(r, op0Write.resource());
-      assertEquals(STAGE_TRANSFER_COPY, op0Write.writesAt());
-    }
-
-    /*
-     * Operation 1.
-     */
-
-    {
-      /*
-       * We have one write that depends ultimately on the write
-       * performed by operation 0.
-       */
-
-      final var dependents =
-        List.copyOf(sg.incomingEdgesOf(cmdOp1));
-
-      final var cmd1Write =
-        assertInstanceOf(Write.class, dependents.get(0).after());
-
-      final var paths =
-        finder.getAllPaths(cmd1Write, cmdOp0, true, MAX_VALUE);
-      assertEquals(1, paths.size());
-
-      checkPath(
-        paths.get(0),
-        new CommandCheck<>(
-          Write.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(op1, c.operation());
-          }
-        ),
-        new CommandCheck<>(
-          Read.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
-          }
-        ),
-        new CommandCheck<>(
-          MemoryReadBarrier.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
-            assertEquals(STAGE_TRANSFER_COPY, c.waitsForWriteAt());
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          c -> {
-            assertEquals(op0, c.operation());
-            assertEquals(STAGE_TRANSFER_COPY, c.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(op0, c.operation());
-          }
-        )
-      );
-    }
-
-    /*
-     * Operation 2.
-     */
-
-    {
-      /*
-       * We have one read that depends ultimately on the write
-       * performed by operation 1.
-       */
-
-      final var paths =
-        finder.getAllPaths(cmdOp2, cmdOp1, true, MAX_VALUE);
-      assertEquals(1, paths.size());
-
-      checkPath(
-        paths.get(0),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(op2, c.operation());
-          }
-        ),
-        new CommandCheck<>(
-          Read.class,
-          c -> {
-            assertEquals(op2, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
-          }
-        ),
-        new CommandCheck<>(
-          ImageReadBarrier.class,
-          c -> {
-            assertEquals(op2, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_SHADER_READ,
-              c.layoutFrom()
-            );
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_PRESENTATION,
-              c.layoutTo()
-            );
-          }
-        ),
-        new CommandCheck<>(
-          ImageWriteBarrier.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET,
-              c.layoutFrom()
-            );
-            assertEquals(
-              LAYOUT_OPTIMAL_FOR_SHADER_READ,
-              c.layoutTo()
-            );
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(op1, c.operation());
-          }
-        )
-      );
-    }
+    checkPath(
+      paths.get(1),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_TRANSFER_COPY, c.writesAt());
+          assertEquals(op0, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryReadBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
+          assertEquals(STAGE_TRANSFER_COPY, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
+          assertEquals(op1, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp1, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
+          assertEquals(op1, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageReadBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
+          assertEquals(op2, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_PRESENTATION, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
+          assertEquals(op2, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp2, c);
+        }
+      )
+    );
   }
 
   @Test
-  public void testBarriersImageLayoutPrePost()
+  public void testBarriersImageLayoutPrePost(
+    final TestInfo testInfo)
     throws RCGGraphException
   {
     final var b =
@@ -843,6 +794,7 @@ public final class RCGraphSyncTest
         "Op0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(STAGE_TRANSFER_COPY),
           Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET)
@@ -853,6 +805,7 @@ public final class RCGraphSyncTest
         "Op1",
         OpImageModifier0.factory(),
         new OpImageModifier0.Parameters(
+          GRAPHICS,
           Optional.of(LAYOUT_OPTIMAL_FOR_SHADER_READ),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
@@ -864,6 +817,7 @@ public final class RCGraphSyncTest
         "Op2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
           Set.of(),
           Optional.of(LAYOUT_OPTIMAL_FOR_PRESENTATION)
@@ -877,7 +831,7 @@ public final class RCGraphSyncTest
     final var sg =
       b.syncGraph();
 
-    show(sg);
+    show(sg, testInfo.getDisplayName());
 
     final var oc =
       b.syncOpCommands();
@@ -891,343 +845,792 @@ public final class RCGraphSyncTest
     final var cmdOp2 = oc.get(op2);
     assertNotNull(cmdOp2);
 
-    /*
-     * Operation 0.
-     */
+    final var paths =
+      finder.getAllPaths(cmdOp0, cmdOp2, false, MAX_VALUE);
 
-    {
-      /*
-       * There are no dependencies on anything.
-       */
+    checkPath(
+      paths.get(0),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_TRANSFER_COPY, c.writesAt());
+          assertEquals(op0, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
+          assertEquals(STAGE_TRANSFER_COPY, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutTo());
+        }
+      ),new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
+          assertEquals(op1, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_PRESENTATION, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryReadBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
+          assertEquals(op2, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
+          assertEquals(op2, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp2, c);
+        }
+      )
 
-      final var dependencies = List.copyOf(sg.outgoingEdgesOf(cmdOp0));
-      assertEquals(List.of(), dependencies);
+    );
 
-      /*
-       * The operation's one and only write operation depends on this operation.
-       */
+    checkPath(
+      paths.get(1),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_TRANSFER_COPY, c.writesAt());
+          assertEquals(op0, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageReadBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
+          assertEquals(STAGE_TRANSFER_COPY, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
+          assertEquals(op1, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp1, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
+          assertEquals(op1, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_PRESENTATION, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryReadBarrier.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
+          assertEquals(op2, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
+          assertEquals(op2, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp2, c);
+        }
+      )
+    );
+  }
 
-      final var dependents = List.copyOf(sg.incomingEdgesOf(cmdOp0));
-      assertEquals(1, dependents.size());
-      final var dep = dependents.get(0);
-      assertEquals(cmdOp0, dep.before());
-      final var op0Write = assertInstanceOf(Write.class, dep.after());
-      assertEquals(r, op0Write.resource());
-      assertEquals(STAGE_TRANSFER_COPY, op0Write.writesAt());
-    }
+  @Test
+  public void testBarriersComputeGraphicsTransfer(
+    final TestInfo testInfo)
+    throws RCGGraphException
+  {
+    final var b =
+      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
 
-    /*
-     * Operation 1.
-     */
+    final var r =
+      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
 
-    {
-      /*
-       * The operation depends on a write made by operation 0, and must go
-       * through a read barrier to see it.
-       */
+    final var op0 =
+      b.declareOperation(
+        "Op0",
+        OpProducer0.factory(),
+        new OpProducer0.Parameters(
+          COMPUTE,
+          Set.of(),
+          Set.of(STAGE_COMPUTE_SHADER)
+        ));
 
-      final var paths =
-        finder.getAllPaths(cmdOp1, cmdOp0, true, MAX_VALUE);
-      assertEquals(1, paths.size());
+    final var op1 =
+      b.declareOperation(
+        "Op1",
+        OpConsumer0.factory(),
+        new OpConsumer0.Parameters(
+          GRAPHICS,
+          Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
+          Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT)
+        ));
 
-      checkPath(
-        paths.get(0),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(op1, c.operation());
-          }
-        ),
-        new CommandCheck<>(
-          Read.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
-          }
-        ),
-        new CommandCheck<>(
-          ImageReadBarrier.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
-            assertEquals(STAGE_TRANSFER_COPY, c.waitsForWriteAt());
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          c -> {
-            assertEquals(op0, c.operation());
-            assertEquals(STAGE_TRANSFER_COPY, c.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(op0, c.operation());
-          }
-        )
-      );
-    }
+    b.resourceAssign(op0.port(), r);
+    b.connect(op0.port(), op1.port());
+    b.compile();
 
-    /*
-     * Operation 2.
-     */
+    final var sg =
+      b.syncGraph();
 
-    {
-      /*
-       * The operation depends on a write made by operation 1, and must go
-       * through a read barrier to see it.
-       */
+    show(sg, testInfo.getDisplayName());
 
-      final var paths =
-        finder.getAllPaths(cmdOp2, cmdOp1, true, MAX_VALUE);
-      assertEquals(1, paths.size());
+    final var oc =
+      b.syncOpCommands();
+    final var finder =
+      new AllDirectedPaths<>(sg);
 
-      checkPath(
-        paths.get(0),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(op2, c.operation());
-          }
-        ),
-        new CommandCheck<>(
-          Read.class,
-          c -> {
-            assertEquals(op2, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
-          }
-        ),
-        new CommandCheck<>(
-          MemoryReadBarrier.class,
-          c -> {
-            assertEquals(op2, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
-          }
-        ),
-        new CommandCheck<>(
-          ImageWriteBarrier.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.waitsForWriteAt());
-            assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutFrom());
-            assertEquals(LAYOUT_OPTIMAL_FOR_PRESENTATION, c.layoutTo());
-          }
-        ),
-        new CommandCheck<>(
-          Write.class,
-          c -> {
-            assertEquals(op1, c.operation());
-            assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
-          }
-        ),
-        new CommandCheck<>(
-          Execute.class,
-          c -> {
-            assertEquals(op1, c.operation());
-          }
-        )
-      );
-    }
+    final var cmdOp0 = oc.get(op0);
+    assertNotNull(cmdOp0);
+    final var cmdOp1 = oc.get(op1);
+    assertNotNull(cmdOp1);
+
+    final var op1Write =
+      List.copyOf(sg.outgoingEdgesOf(cmdOp1)).getFirst().target();
+
+    final var paths =
+      finder.getAllPaths(cmdOp0, op1Write, false, MAX_VALUE);
+
+    checkPath(
+      paths.get(0),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(op0, c.operation());
+          assertEquals(COMPUTE, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryWriteBarrierWithQueueTransfer.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksWriteAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+          assertEquals(COMPUTE, c.queueSource());
+          assertEquals(GRAPHICS, c.queueTarget());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      )
+    );
+
+    checkPath(
+      paths.get(1),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(op0, c.operation());
+          assertEquals(COMPUTE, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryReadBarrierWithQueueTransfer.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.blocksReadAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+          assertEquals(COMPUTE, c.queueSource());
+          assertEquals(GRAPHICS, c.queueTarget());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.readsAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp1, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT, c.writesAt());
+          assertEquals(op1, c.operation());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      )
+    );
+  }
+
+  @Test
+  public void testBarriersComputeTransfer(
+    final TestInfo testInfo)
+    throws RCGGraphException
+  {
+    final var b =
+      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+
+    final var r =
+      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+
+    final var op0 =
+      b.declareOperation(
+        "Op0",
+        OpProducer0.factory(),
+        new OpProducer0.Parameters(
+          COMPUTE,
+          Set.of(),
+          Set.of(STAGE_COMPUTE_SHADER)
+        ));
+
+    final var op1 =
+      b.declareOperation(
+        "Op1",
+        OpConsumer0.factory(),
+        new OpConsumer0.Parameters(
+          TRANSFER,
+          Set.of(STAGE_TRANSFER_COPY),
+          Set.of(STAGE_COMPUTE_SHADER)
+        ));
+
+    b.resourceAssign(op0.port(), r);
+    b.connect(op0.port(), op1.port());
+    b.compile();
+
+    final var sg =
+      b.syncGraph();
+
+    show(sg, testInfo.getDisplayName());
+
+    final var oc =
+      b.syncOpCommands();
+    final var finder =
+      new AllDirectedPaths<>(sg);
+
+    final var cmdOp0 = oc.get(op0);
+    assertNotNull(cmdOp0);
+    final var cmdOp1 = oc.get(op1);
+    assertNotNull(cmdOp1);
+
+    final var cmd1Write =
+      sg.outgoingEdgesOf(cmdOp1).iterator().next().target();
+
+    final var paths =
+      finder.getAllPaths(cmdOp0, cmd1Write, false, MAX_VALUE);
+
+    checkPath(
+      paths.get(0),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(op0, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(COMPUTE, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryWriteBarrierWithQueueTransfer.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.blocksWriteAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(TRANSFER, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+          assertEquals(COMPUTE, c.queueSource());
+          assertEquals(TRANSFER, c.queueTarget());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(TRANSFER, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      )
+    );
+
+    checkPath(
+      paths.get(1),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(op0, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(COMPUTE, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryReadBarrierWithQueueTransfer.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_TRANSFER_COPY, c.blocksReadAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(TRANSFER, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+          assertEquals(COMPUTE, c.queueSource());
+          assertEquals(TRANSFER, c.queueTarget());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_TRANSFER_COPY, c.readsAt());
+          assertEquals(TRANSFER, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp1, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(TRANSFER, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      )
+    );
+  }
+
+  @Test
+  public void testBarriersComputeModify(
+    final TestInfo testInfo)
+    throws RCGGraphException
+  {
+    final var b =
+      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+
+    final var r =
+      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+
+    final var op0 =
+      b.declareOperation(
+        "Op0",
+        OpProducer0.factory(),
+        new OpProducer0.Parameters(
+          COMPUTE,
+          Set.of(),
+          Set.of(STAGE_COMPUTE_SHADER)
+        ));
+
+    final var op1 =
+      b.declareOperation(
+        "Op1",
+        OpModifier0.factory(),
+        new OpModifier0.Parameters(
+          COMPUTE,
+          Set.of(),
+          Set.of(STAGE_COMPUTE_SHADER)
+        ));
+
+    final var op2 =
+      b.declareOperation(
+        "Op2",
+        OpModifier0.factory(),
+        new OpModifier0.Parameters(
+          COMPUTE,
+          Set.of(),
+          Set.of(STAGE_COMPUTE_SHADER)
+        ));
+
+    final var op3 =
+      b.declareOperation(
+        "Op3",
+        OpConsumer0.factory(),
+        new OpConsumer0.Parameters(
+          COMPUTE,
+          Set.of(),
+          Set.of(STAGE_COMPUTE_SHADER)
+        ));
+
+    b.resourceAssign(op0.port(), r);
+    b.connect(op0.port(), op1.port());
+    b.connect(op1.port(), op2.port());
+    b.connect(op2.port(), op3.port());
+    b.compile();
+
+    final var sg =
+      b.syncGraph();
+    final var oc =
+      b.syncOpCommands();
+    final var finder =
+      new AllDirectedPaths<>(sg);
+
+    show(sg, testInfo.getDisplayName());
+
+    final var cmdOp0 = oc.get(op0);
+    assertNotNull(cmdOp0);
+    final var cmdOp1 = oc.get(op1);
+    assertNotNull(cmdOp1);
+    final var cmdOp2 = oc.get(op2);
+    assertNotNull(cmdOp2);
+    final var cmdOp3 = oc.get(op3);
+    assertNotNull(cmdOp3);
+
+    final var op3Write =
+      List.copyOf(sg.outgoingEdgesOf(cmdOp3)).getFirst().target();
+
+    final var paths =
+      finder.getAllPaths(cmdOp0, op3Write, false, MAX_VALUE);
+
+    checkPath(
+      paths.get(0),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(op0, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.blocksWriteAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(op1, c.operation());
+          assertEquals(COMPUTE, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(op1, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.blocksWriteAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(op2, c.operation());
+          assertEquals(COMPUTE, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(op2, c.operation());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSMemoryWriteBarrier.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.blocksWriteAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(op3, c.operation());
+          assertEquals(COMPUTE, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(op3, c.operation());
+        }
+      )
+    );
+  }
+
+  @Test
+  public void testBarriersImageQueueTransfer0(
+    final TestInfo testInfo)
+    throws RCGGraphException
+  {
+    final var b =
+      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+
+    final var r =
+      b.declareResource("R", ResImage0.factory(), NO_PARAMETERS);
+
+    final var op0 =
+      b.declareOperation(
+        "Op0",
+        OpImageProducer0.factory(),
+        new OpImageProducer0.Parameters(
+          TRANSFER,
+          Set.of(),
+          Set.of(STAGE_COMPUTE_SHADER),
+          Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET)
+        ));
+
+    final var op1 =
+      b.declareOperation(
+        "Op1",
+        OpImageConsumer0.factory(),
+        new OpImageConsumer0.Parameters(
+          GRAPHICS,
+          Set.of(STAGE_TRANSFER_COPY),
+          Set.of(STAGE_COMPUTE_SHADER),
+          Optional.of(LAYOUT_OPTIMAL_FOR_SHADER_READ)
+        ));
+
+    b.resourceAssign(op0.port(), r);
+    b.connect(op0.port(), op1.port());
+    b.compile();
+
+    final var sg =
+      b.syncGraph();
+
+    show(sg, testInfo.getDisplayName());
+
+    final var oc =
+      b.syncOpCommands();
+    final var finder =
+      new AllDirectedPaths<>(sg);
+
+    final var cmdOp0 = oc.get(op0);
+    assertNotNull(cmdOp0);
+    final var cmdOp1 = oc.get(op1);
+    assertNotNull(cmdOp1);
+
+    final var cmd1Write =
+      sg.outgoingEdgesOf(cmdOp1).iterator().next().target();
+
+    final var paths =
+      finder.getAllPaths(cmdOp0, cmd1Write, false, MAX_VALUE);
+
+    checkPath(
+      paths.get(0),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(op0, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(TRANSFER, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageWriteBarrierWithQueueTransfer.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.blocksWriteAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+          assertEquals(TRANSFER, c.queueSource());
+          assertEquals(GRAPHICS, c.queueTarget());
+          assertEquals(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      )
+    );
+
+    checkPath(
+      paths.get(1),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp0, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(op0, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(TRANSFER, c.submission().queue());
+          assertEquals(0, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSImageReadBarrierWithQueueTransfer.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_TRANSFER_COPY, c.blocksReadAt());
+          assertEquals(STAGE_COMPUTE_SHADER, c.waitsForWriteAt());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+          assertEquals(TRANSFER, c.queueSource());
+          assertEquals(GRAPHICS, c.queueTarget());
+          assertEquals(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET, c.layoutFrom());
+          assertEquals(LAYOUT_OPTIMAL_FOR_SHADER_READ, c.layoutTo());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSRead.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_TRANSFER_COPY, c.readsAt());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      ),
+      new CommandCheck<>(
+        RCGSExecute.class,
+        c -> {
+          assertEquals(cmdOp1, c);
+        }
+      ),
+      new CommandCheck<>(
+        RCGSWrite.class,
+        c -> {
+          assertEquals(op1, c.operation());
+          assertEquals(STAGE_COMPUTE_SHADER, c.writesAt());
+          assertEquals(GRAPHICS, c.submission().queue());
+          assertEquals(1, c.submission().submissionId());
+        }
+      )
+    );
   }
 
   private static void show(
-    final DirectedAcyclicGraph<RCGSyncCommandType, RCGSyncDependency> g)
+    final DirectedAcyclicGraph<RCGSyncCommandType, RCGSyncDependency> g,
+    final String name)
   {
     try (final var writer = new StringWriter()) {
-      final var exporter =
-        new DOTExporter<RCGSyncCommandType, RCGSyncDependency>();
-
-      exporter.setEdgeAttributeProvider(c -> {
-        return Map.ofEntries(
-
-        );
-      });
-
-      exporter.setGraphAttributeProvider(() -> {
-        return Map.ofEntries(
-          Map.entry(
-            "fontname", new DefaultAttribute<>("Monospaced", STRING)
-          ),
-          Map.entry(
-            "fontsize", new DefaultAttribute<>(9.0, DOUBLE)
-          ),
-          Map.entry(
-            "splines", new DefaultAttribute<>("ortho", STRING)
-          ),
-          Map.entry(
-            "rankdir", new DefaultAttribute<>("TB", STRING)
-          ),
-          Map.entry(
-            "size", new DefaultAttribute<>("12.0", DOUBLE)
-          )
-        );
-      });
-
-      exporter.setVertexAttributeProvider(c -> {
-        final String subName =
-          "(%s,%s)".formatted(
-            c.submission().queue(),
-            c.submission().id()
-          );
-
-        final String opName =
-          switch (c) {
-            case final Execute cc -> {
-              yield cc.operation().name().value();
-            }
-            case final Submission cc -> {
-              yield "";
-            }
-            case final ImageReadBarrier cc -> {
-              yield cc.operation().name().value();
-            }
-            case final ImageWriteBarrier cc -> {
-              yield cc.operation().name().value();
-            }
-            case final Read cc -> {
-              yield cc.operation().name().value();
-            }
-            case final MemoryReadBarrier cc -> {
-              yield cc.operation().name().value();
-            }
-            case final Write cc -> {
-              yield cc.operation().name().value();
-            }
-            case final MemoryWriteBarrier cc -> {
-              yield cc.operation().name().value();
-            }
-          };
-
-        final String resName =
-          switch (c) {
-            case final Execute cc -> {
-              yield "";
-            }
-            case final ImageWriteBarrier cc -> {
-              yield cc.resource().name().value();
-            }
-            case final ImageReadBarrier cc -> {
-              yield cc.resource().name().value();
-            }
-            case final Read cc -> {
-              yield cc.resource().name().value();
-            }
-            case final MemoryReadBarrier cc -> {
-              yield cc.resource().name().value();
-            }
-            case final Write cc -> {
-              yield cc.resource().name().value();
-            }
-            case final MemoryWriteBarrier cc -> {
-              yield cc.resource().name().value();
-            }
-            case final Submission cc -> {
-              yield "";
-            }
-          };
-
-        final String label =
-          switch (c) {
-            case final Submission cc -> {
-              yield "{<f0> Submission %s}".formatted(subName);
-            }
-            case final Execute cc -> {
-              yield "{<f0> [%s] Execute | <f1> Submission %s}".formatted(
-                opName,
-                subName);
-            }
-            case final ImageWriteBarrier cc -> {
-              yield "{<f0> [%s] ImageWriteBarrier (%s → %s) | <f1> Submission %s | <f2> Resource %s | <f3> WAITS FOR WRITE %s | <f4> BLOCKS WRITE %s}"
-                .formatted(
-                  opName,
-                  cc.layoutFrom(),
-                  cc.layoutTo(),
-                  subName,
-                  resName,
-                  cc.waitsForWriteAt(),
-                  cc.blocksWriteAt()
-                );
-            }
-            case final ImageReadBarrier cc -> {
-              yield "{<f0> [%s] ImageReadBarrier (%s → %s) | <f1> Submission %s | <f2> Resource %s | <f3> WAITS FOR WRITE %s | <f4> BLOCKS READ %s}"
-                .formatted(
-                  opName,
-                  cc.layoutFrom(),
-                  cc.layoutTo(),
-                  subName,
-                  resName,
-                  cc.waitsForWriteAt(),
-                  cc.blocksReadAt()
-                );
-            }
-            case final Read cc -> {
-              yield "{<f0> [%s] Read | <f1> Submission %s | <f2> Resource %s | <f3> %s}"
-                .formatted(
-                  opName,
-                  subName,
-                  resName,
-                  cc.readsAt()
-                );
-            }
-            case final MemoryReadBarrier cc -> {
-              yield "{<f0> [%s] MemoryReadBarrier | <f1> Submission %s | <f2> Resource %s | <f3> WAITS FOR WRITE %s | <f4> BLOCKS READ %s}"
-                .formatted(
-                  opName,
-                  subName,
-                  resName,
-                  cc.waitsForWriteAt(),
-                  cc.blocksReadAt()
-                );
-            }
-            case final Write cc -> {
-              yield "{<f0> [%s] Write | <f1> Submission %s | <f2> Resource %s | <f3> %s}"
-                .formatted(
-                  opName,
-                  subName,
-                  resName,
-                  cc.writesAt()
-                );
-            }
-            case final MemoryWriteBarrier cc -> {
-              yield "{<f0> [%s] MemoryWriteBarrier | <f1> Submission %s | <f2> Resource %s | <f3> WAITS FOR WRITE %s | <f4> BLOCKS WRITE %s}"
-                .formatted(
-                  opName,
-                  subName,
-                  resName,
-                  cc.waitsForWriteAt(),
-                  cc.blocksWriteAt()
-                );
-            }
-          };
-
-        return Map.ofEntries(
-          Map.entry(
-            "label", new DefaultAttribute<>(label, STRING)
-          ),
-          Map.entry(
-            "fontname", new DefaultAttribute<>("Terminus", STRING)
-          ),
-          Map.entry(
-            "fontsize", new DefaultAttribute<>(9.0, DOUBLE)
-          ),
-          Map.entry(
-            "shape", new DefaultAttribute<>("record", STRING)
-          ),
-          Map.entry(
-            "group", new DefaultAttribute<>(opName, STRING)
-          )
-        );
-      });
-
-      exporter.exportGraph(g, writer);
+      try (final var exporter = RCGDotExporter.open(writer, g, name)) {
+        exporter.execute();
+      }
       writer.append('\n');
       writer.flush();
 
       try {
-        Files.writeString(Paths.get("/tmp/graph.dot"), writer.toString());
+        Files.writeString(
+          Paths.get("/tmp/%s.dot".formatted(name)),
+          writer.toString());
       } catch (final IOException e) {
         // Don't care.
       }

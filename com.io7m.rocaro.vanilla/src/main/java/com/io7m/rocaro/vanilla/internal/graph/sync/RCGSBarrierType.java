@@ -14,13 +14,22 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.rocaro.api.graph;
+
+package com.io7m.rocaro.vanilla.internal.graph.sync;
 
 /**
- * A service scoped to the current frame.
+ * The base type of commands that are barriers.
  */
 
-public interface RCGFrameScopedServiceType
+public sealed interface RCGSBarrierType
+  extends RCGSyncCommandType
+  permits RCGSBarrierWithQueueTransferType,
+  RCGSReadBarrierType,
+  RCGSWriteBarrierType
 {
+  /**
+   * @return The execution that owns the barrier
+   */
 
+  RCGSExecute owner();
 }

@@ -55,6 +55,7 @@ module com.io7m.rocaro.vanilla
   requires com.io7m.verona.core;
   requires jdk.jfr;
   requires org.jgrapht.core;
+  requires org.jgrapht.io;
   requires org.lwjgl.glfw;
   requires org.slf4j;
 
@@ -86,4 +87,6 @@ module com.io7m.rocaro.vanilla
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.frames
     to com.io7m.rocaro.tests, com.io7m.rocaro.demo;
+  exports com.io7m.rocaro.vanilla.internal.graph.sync
+    to com.io7m.rocaro.tests;
 }

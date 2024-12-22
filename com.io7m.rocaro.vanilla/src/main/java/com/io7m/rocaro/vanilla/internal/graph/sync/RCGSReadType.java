@@ -14,13 +14,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.rocaro.api.graph;
+
+package com.io7m.rocaro.vanilla.internal.graph.sync;
+
+import com.io7m.rocaro.api.graph.RCGOperationType;
+import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 
 /**
- * A service scoped to the current frame.
+ * The type of commands that perform read accesses at a particular stage.
  */
 
-public interface RCGFrameScopedServiceType
+public sealed interface RCGSReadType
+  extends RCGSyncCommandType permits RCGSImageReadBarrier,
+  RCGSImageReadBarrierWithQueueTransfer,
+  RCGSMemoryReadBarrier,
+  RCGSMemoryReadBarrierWithQueueTransfer,
+  RCGSRead
 {
+  /**
+   * @return The operation that owns this command
+   */
 
+  default RCGOperationType operation()
+  {
+    return this.owner().operation();
+  }
+
+  /**
+   * @return The execution command that owns the read access
+   */
+
+  RCGSExecute owner();
+
+  /**
+   * @return The resource
+   */
+
+  RCGResourcePlaceholderType resource();
 }

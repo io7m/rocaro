@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_ATTACHMENT;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET;
@@ -53,6 +54,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.of(LAYOUT_UNDEFINED)
@@ -63,6 +65,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example1",
         OpImageModifier0.factory(),
         new Parameters(
+          GRAPHICS,
           Optional.empty(),
           Set.of(),
           Set.of(),
@@ -74,6 +77,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.empty()
@@ -117,6 +121,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.of(LAYOUT_UNDEFINED)
@@ -127,6 +132,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example1",
         OpImageModifier0.factory(),
         new Parameters(
+          GRAPHICS,
           Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT),
           Set.of(),
           Set.of(),
@@ -138,6 +144,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.empty()
@@ -181,6 +188,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.of(LAYOUT_UNDEFINED)
@@ -191,6 +199,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example1",
         OpImageModifier0.factory(),
         new Parameters(
+          GRAPHICS,
           Optional.empty(),
           Set.of(),
           Set.of(),
@@ -202,6 +211,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT)
@@ -245,6 +255,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.of(LAYOUT_UNDEFINED)
@@ -255,6 +266,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example1",
         OpImageModifier0.factory(),
         new Parameters(
+          GRAPHICS,
           Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT),
           Set.of(),
           Set.of(),
@@ -266,6 +278,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT)
@@ -309,6 +322,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.of(LAYOUT_UNDEFINED)
@@ -319,6 +333,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example1",
         OpImageModifier0.factory(),
         new Parameters(
+          GRAPHICS,
           Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET),
           Set.of(),
           Set.of(),
@@ -330,6 +345,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.empty()
@@ -377,6 +393,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example0",
         OpImageProducer0.factory(),
         new OpImageProducer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET)
@@ -387,6 +404,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example1",
         OpImageModifier0.factory(),
         new Parameters(
+          GRAPHICS,
           Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET),
           Set.of(),
           Set.of(),
@@ -398,6 +416,7 @@ public final class RCGraphImageLayoutTransitionsTest
         "Example2",
         OpImageConsumer0.factory(),
         new OpImageConsumer0.Parameters(
+          GRAPHICS,
           Set.of(),
           Set.of(),
           Optional.empty()

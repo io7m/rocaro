@@ -45,6 +45,10 @@ import com.io7m.rocaro.api.graph.RCGResourceParametersType;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderFrameImageType;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGPassSync;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSExecute;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncCommandType;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncDependency;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
@@ -82,10 +86,12 @@ public final class RCGGraphBuilder
   private VulkanPhysicalDeviceFeatures requiredFeatures;
   private List<RCGPortType> portsOrdered;
   private List<RCGOperationType> opsOrdered;
-  private final HashMap<RCGOperationType, RCGSyncCommandType.Execute> syncOpCommands;
+  private final HashMap<RCGOperationType, RCGSExecute> syncOpCommands;
 
   /**
    * The default mutable graph builder.
+   *
+   * @param inName The graph name
    */
 
   public RCGGraphBuilder(
@@ -248,7 +254,7 @@ public final class RCGGraphBuilder
   }
 
   @Override
-  public HashMap<RCGOperationType, RCGSyncCommandType.Execute> syncOpCommands()
+  public HashMap<RCGOperationType, RCGSExecute> syncOpCommands()
   {
     return this.syncOpCommands;
   }
@@ -349,11 +355,11 @@ public final class RCGGraphBuilder
 
   @Override
   public RCGResourcePlaceholderFrameImageType declareFrameResource(
-    final RCGResourceName name)
+    final RCGResourceName resourceName)
     throws RCGGraphException
   {
     return this.declareResource(
-      name,
+      resourceName,
       (n, _) -> new RCGResourcePlaceholderFrameImage(n),
       NO_PARAMETERS
     );
@@ -361,11 +367,11 @@ public final class RCGGraphBuilder
 
   @Override
   public RCGOperationFrameAcquireType declareOpFrameAcquire(
-    final RCGOperationName name)
+    final RCGOperationName operationName)
     throws RCGGraphException
   {
     return this.declareOperation(
-      name,
+      operationName,
       (n, _) -> new RCGOperationFrameAcquire(n),
       NO_PARAMETERS
     );
@@ -373,11 +379,11 @@ public final class RCGGraphBuilder
 
   @Override
   public RCGOperationFramePresentType declareOpFramePresent(
-    final RCGOperationName name)
+    final RCGOperationName operationName)
     throws RCGGraphException
   {
     return this.declareOperation(
-      name,
+      operationName,
       (n, _) -> new RCGOperationFramePresent(n),
       NO_PARAMETERS
     );
@@ -386,23 +392,23 @@ public final class RCGGraphBuilder
   @Override
   public <P extends RCGOperationParametersType, O extends RCGOperationType> O
   declareOperation(
-    final RCGOperationName name,
+    final RCGOperationName operationName,
     final RCGOperationFactoryType<P, O> factory,
     final P parameters)
     throws RCGGraphException
   {
-    Objects.requireNonNull(name, "name");
+    Objects.requireNonNull(operationName, "name");
     Objects.requireNonNull(factory, "factory");
     Objects.requireNonNull(parameters, "parameters");
 
     this.checkNotBuilt();
 
-    if (this.ops.containsKey(name)) {
-      throw errorOperationNameUsed(name);
+    if (this.ops.containsKey(operationName)) {
+      throw errorOperationNameUsed(operationName);
     }
 
-    final var op = factory.create(name, parameters);
-    this.ops.put(name, op);
+    final var op = factory.create(operationName, parameters);
+    this.ops.put(operationName, op);
     this.opGraph.addVertex(op);
 
     for (final var p : op.ports().values()) {
@@ -415,23 +421,23 @@ public final class RCGGraphBuilder
   @Override
   public <P extends RCGResourceParametersType, R extends RCGResourcePlaceholderType> R
   declareResource(
-    final RCGResourceName name,
+    final RCGResourceName operationName,
     final RCGResourceFactoryType<P, R> factory,
     final P parameters)
     throws RCGGraphException
   {
-    Objects.requireNonNull(name, "name");
+    Objects.requireNonNull(operationName, "name");
     Objects.requireNonNull(factory, "factory");
     Objects.requireNonNull(parameters, "parameters");
 
     this.checkNotBuilt();
 
-    if (this.resources.containsKey(name)) {
-      throw errorResourceNameUsed(name);
+    if (this.resources.containsKey(operationName)) {
+      throw errorResourceNameUsed(operationName);
     }
 
-    final var r = factory.create(name, parameters);
-    this.resources.put(name, r);
+    final var r = factory.create(operationName, parameters);
+    this.resources.put(operationName, r);
     return r;
   }
 

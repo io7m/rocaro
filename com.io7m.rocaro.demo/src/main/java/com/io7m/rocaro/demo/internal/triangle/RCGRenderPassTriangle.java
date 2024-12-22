@@ -18,7 +18,6 @@
 package com.io7m.rocaro.demo.internal.triangle;
 
 import com.io7m.rocaro.api.RocaroException;
-import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
@@ -36,10 +35,20 @@ import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_ATTACHMENT;
 
+/**
+ * A simple triangle render pass.
+ */
+
 public final class RCGRenderPassTriangle
   extends RCGOperationAbstract
 {
   private final RCGPortModifies frame;
+
+  /**
+   * A simple triangle render pass.
+   *
+   * @param inName The name
+   */
 
   public RCGRenderPassTriangle(
     final RCGOperationName inName)
@@ -68,6 +77,10 @@ public final class RCGRenderPassTriangle
   {
     return this.frame;
   }
+
+  /**
+   * @return  A simple triangle render pass.
+   */
 
   public static RCGOperationFactoryType<RCGNoParameters, RCGRenderPassTriangle> factory()
   {

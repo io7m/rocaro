@@ -14,13 +14,33 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.rocaro.api.graph;
+
+package com.io7m.rocaro.vanilla.internal.graph.sync;
+
+import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
+
+import java.util.Objects;
 
 /**
- * A service scoped to the current frame.
+ * A queue submission identifier.
+ *
+ * @param queue        The queue category
+ * @param submissionId The submission ID
  */
 
-public interface RCGFrameScopedServiceType
+public record RCGSSubmission(
+  RCDeviceQueueCategory queue,
+  int submissionId)
 {
+  /**
+   * A queue submission identifier.
+   *
+   * @param queue        The queue category
+   * @param submissionId The submission ID
+   */
 
+  public RCGSSubmission
+  {
+    Objects.requireNonNull(queue, "queue");
+  }
 }

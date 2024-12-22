@@ -17,8 +17,16 @@
 
 package com.io7m.rocaro.api.graph;
 
+/**
+ * An operation that zeroes out the primary color attachment.
+ */
+
 public interface RCGOperationZeroType
   extends RCGOperationType
 {
+  /**
+   * @return The image to which rendering will occur
+   */
+
   RCGPortModifies frame();
 }

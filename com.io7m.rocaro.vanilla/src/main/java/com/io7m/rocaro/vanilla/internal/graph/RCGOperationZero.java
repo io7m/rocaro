@@ -37,11 +37,21 @@ import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_CLEAR;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET;
 
+/**
+ * An operation that zeroes out the primary color attachment.
+ */
+
 public final class RCGOperationZero
   extends RCGOperationAbstract
   implements RCGOperationZeroType
 {
   private final RCGPortModifies frame;
+
+  /**
+   * An operation that zeroes out the primary color attachment.
+   *
+   * @param inName The operation name
+   */
 
   public RCGOperationZero(
     final RCGOperationName inName)
@@ -61,6 +71,10 @@ public final class RCGOperationZero
         )
       );
   }
+
+  /**
+   * @return An operation that zeroes out the primary color attachment.
+   */
 
   public static RCGOperationFactoryType<RCGNoParameters, RCGOperationZeroType> factory()
   {

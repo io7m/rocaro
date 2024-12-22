@@ -17,6 +17,10 @@
 
 package com.io7m.rocaro.api.graph;
 
+/**
+ * The context provided to operations that are being prepared.
+ */
+
 public interface RCGOperationPreparationContextType
 {
 

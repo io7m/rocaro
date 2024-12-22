@@ -14,13 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.rocaro.api.graph;
-
 /**
- * A service scoped to the current frame.
+ * 3D rendering system (Vanilla implementation [Render graph [sync]]).
  */
 
-public interface RCGFrameScopedServiceType
-{
+@Version("1.0.0")
+package com.io7m.rocaro.vanilla.internal.graph.sync;
 
-}
+import org.osgi.annotation.versioning.Version;

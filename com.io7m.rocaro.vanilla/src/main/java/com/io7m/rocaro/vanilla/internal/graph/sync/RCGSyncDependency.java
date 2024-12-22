@@ -15,33 +15,39 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph;
+package com.io7m.rocaro.vanilla.internal.graph.sync;
 
 import java.util.Objects;
 
 /**
- * An indication that the source operation depends on the target operation.
- * That is, {@code before} <i>happens before</i> {@code after}.
+ * An indication that the source operation <i>happens before</i> the target
+ * operation.
  *
- * @param before The before operation
- * @param after  The after operation
+ * @param source The source operation
+ * @param target The target operation
  */
 
 public record RCGSyncDependency(
-  RCGSyncCommandType before,
-  RCGSyncCommandType after)
+  RCGSyncCommandType source,
+  RCGSyncCommandType target)
 {
   /**
-   * An indication that the source operation depends on the target operation.
-   * That is, {@code before} <i>happens before</i> {@code after}.
+   * An indication that the source operation <i>happens before</i> the target
+   * operation.
    *
-   * @param before The before operation
-   * @param after  The after operation
+   * @param source The source operation
+   * @param target The target operation
    */
 
   public RCGSyncDependency
   {
-    Objects.requireNonNull(before, "before");
-    Objects.requireNonNull(after, "after");
+    Objects.requireNonNull(source, "before");
+    Objects.requireNonNull(target, "after");
+  }
+
+  @Override
+  public String toString()
+  {
+    return "[%s → %s]".formatted(this.source, this.target);
   }
 }

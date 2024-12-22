@@ -14,13 +14,18 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.rocaro.api.graph;
+
+package com.io7m.rocaro.vanilla.internal.graph.sync;
 
 /**
- * A service scoped to the current frame.
+ * The type of write barriers.
  */
 
-public interface RCGFrameScopedServiceType
+public sealed interface RCGSWriteBarrierType
+  extends RCGSBarrierType permits RCGSImageWriteBarrier,
+  RCGSImageWriteBarrierWithQueueTransfer,
+  RCGSMemoryWriteBarrier,
+  RCGSMemoryWriteBarrierWithQueueTransfer
 {
 
 }

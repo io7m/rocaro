@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.tests.graph2;
 
+import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
@@ -47,7 +48,7 @@ final class OpImageProducer0
     final RCGOperationName inName,
     final Parameters inParameters)
   {
-    super(inName, GRAPHICS);
+    super(inName, inParameters.queueCategory());
 
     this.parameters =
       Objects.requireNonNull(inParameters, "p");
@@ -97,6 +98,7 @@ final class OpImageProducer0
   }
 
   record Parameters(
+    RCDeviceQueueCategory queueCategory,
     Set<RCGCommandPipelineStage> readsOnStages,
     Set<RCGCommandPipelineStage> writesOnStages,
     Optional<RCGResourceImageLayout> ensuresLayout)

@@ -48,7 +48,7 @@ final class OpImageModifier0
     final RCGOperationName inName,
     final Parameters inParameters)
   {
-    super(inName, GRAPHICS);
+    super(inName, inParameters.queueCategory());
 
     this.parameters =
       Objects.requireNonNull(inParameters, "parameters");
@@ -99,6 +99,7 @@ final class OpImageModifier0
   }
 
   record Parameters(
+    RCDeviceQueueCategory queueCategory,
     Optional<RCGResourceImageLayout> requiresLayout,
     Set<RCGCommandPipelineStage> readsOnStages,
     Set<RCGCommandPipelineStage> writesOnStages,

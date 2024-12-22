@@ -47,7 +47,7 @@ final class OpConsumer0
     final RCGOperationName inName,
     final Parameters inParameters)
   {
-    super(inName, GRAPHICS);
+    super(inName, inParameters.queueCategory());
 
     this.parameters =
       Objects.requireNonNull(inParameters, "parameters");
@@ -97,6 +97,7 @@ final class OpConsumer0
   }
 
   record Parameters(
+    RCDeviceQueueCategory queueCategory,
     Set<RCGCommandPipelineStage> reads,
     Set<RCGCommandPipelineStage> writes)
     implements RCGOperationParametersType

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -181,13 +182,18 @@ public final class RCGraphBasicTest
       b.declareOperation(
         "Example0",
         OpProducer0.factory(),
-        new OpProducer0.Parameters(Set.of(), Set.of())
+        new OpProducer0.Parameters(GRAPHICS, Set.of(), Set.of())
       );
     final var op1 =
       b.declareOperation(
         "Example1",
         OpImageConsumer0.factory(),
-        new OpImageConsumer0.Parameters(Set.of(), Set.of(), Optional.empty())
+        new OpImageConsumer0.Parameters(
+          GRAPHICS,
+          Set.of(),
+          Set.of(),
+          Optional.empty()
+        )
       );
 
     b.connect(op0.port(), op1.port());
@@ -244,7 +250,7 @@ public final class RCGraphBasicTest
       b.declareOperation(
         "Example0",
         OpProducer0.factory(),
-        new OpProducer0.Parameters(Set.of(), Set.of())
+        new OpProducer0.Parameters(GRAPHICS, Set.of(), Set.of())
       );
 
     final var ex =

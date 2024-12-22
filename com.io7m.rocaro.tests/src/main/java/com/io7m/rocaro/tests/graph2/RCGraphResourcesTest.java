@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
+import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -89,13 +90,13 @@ public final class RCGraphResourcesTest
       b.declareOperation(
         "Example0",
         OpProducer0.factory(),
-        new OpProducer0.Parameters(Set.of(), Set.of())
+        new OpProducer0.Parameters(GRAPHICS, Set.of(), Set.of())
       );
     final var op1 =
       b.declareOperation(
         "Example1",
         OpConsumer0.factory(),
-        new OpConsumer0.Parameters(Set.of(), Set.of())
+        new OpConsumer0.Parameters(GRAPHICS, Set.of(), Set.of())
       );
 
     b.connect(op0.port(), op1.port());
@@ -117,19 +118,19 @@ public final class RCGraphResourcesTest
       b.declareOperation(
         "Example0",
         OpProducer0.factory(),
-        new OpProducer0.Parameters(Set.of(), Set.of())
+        new OpProducer0.Parameters(GRAPHICS, Set.of(), Set.of())
       );
     final var op1 =
       b.declareOperation(
         "Example1",
         OpModifier0.factory(),
-        new OpModifier0.Parameters(Set.of(), Set.of())
+        new OpModifier0.Parameters(GRAPHICS, Set.of(), Set.of())
       );
     final var op2 =
       b.declareOperation(
         "Example2",
         OpConsumer0.factory(),
-        new OpConsumer0.Parameters(Set.of(), Set.of())
+        new OpConsumer0.Parameters(GRAPHICS, Set.of(), Set.of())
       );
     final var r =
       b.declareResource("Res0", ResBuffer0.factory(), NO_PARAMETERS);

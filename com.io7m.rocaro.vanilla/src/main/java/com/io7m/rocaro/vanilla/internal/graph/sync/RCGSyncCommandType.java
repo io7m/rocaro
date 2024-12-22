@@ -14,13 +14,45 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.rocaro.api.graph;
+
+package com.io7m.rocaro.vanilla.internal.graph.sync;
+
+import com.io7m.rocaro.api.graph.RCGOperationType;
 
 /**
- * A service scoped to the current frame.
+ * The base type of synchronization commands.
  */
 
-public interface RCGFrameScopedServiceType
+public sealed interface RCGSyncCommandType
+  permits RCGSBarrierType,
+  RCGSReadType,
+  RCGSWriteType,
+  RCGSExecute
 {
+  /**
+   * @return The unique-within-a-graph command ID
+   */
 
+  long commandId();
+
+  /**
+   * @return The queue submission to which the command belongs
+   */
+
+  RCGSSubmission submission();
+
+  /**
+   * @return The operation that owns the command
+   */
+
+  RCGOperationType operation();
+
+  /**
+   * Set the queue submission for the command.
+   *
+   * @param submission The queue submission
+   */
+
+  void setSubmission(
+    RCGSSubmission submission);
 }

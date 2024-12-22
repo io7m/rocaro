@@ -14,13 +14,31 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.rocaro.api.graph;
+
+package com.io7m.rocaro.vanilla.internal.graph.sync;
+
+import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 
 /**
- * A service scoped to the current frame.
+ * The base type of barriers that involve semaphore-based queue transfers.
  */
 
-public interface RCGFrameScopedServiceType
+public sealed interface RCGSBarrierWithQueueTransferType
+  extends RCGSBarrierType
+  permits RCGSImageReadBarrierWithQueueTransfer,
+  RCGSImageWriteBarrierWithQueueTransfer,
+  RCGSMemoryReadBarrierWithQueueTransfer,
+  RCGSMemoryWriteBarrierWithQueueTransfer
 {
+  /**
+   * @return The source queue category
+   */
 
+  RCDeviceQueueCategory queueSource();
+
+  /**
+   * @return The target queue category
+   */
+
+  RCDeviceQueueCategory queueTarget();
 }
