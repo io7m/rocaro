@@ -110,9 +110,6 @@ public final class RCGDotExporter
         ),
         Map.entry(
           "rankdir", new DefaultAttribute<>("TB", STRING)
-        ),
-        Map.entry(
-          "size", new DefaultAttribute<>("12.0", DOUBLE)
         )
       );
     });

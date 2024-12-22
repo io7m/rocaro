@@ -57,8 +57,11 @@ import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.COMPUTE;
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.TRANSFER;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_COMPUTE_SHADER;
+import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_CPU;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT;
+import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_CLEAR;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_COPY;
+import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_RESOLVE;
 import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_ATTACHMENT;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_PRESENTATION;
@@ -1614,6 +1617,88 @@ public final class RCGraphSyncTest
         }
       )
     );
+  }
+
+  @Test
+  public void testBarriersSeparateReadsWrites(
+    final TestInfo testInfo)
+    throws RCGGraphException
+  {
+    final var b =
+      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+
+    final var r =
+      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+
+    final var op0 =
+      b.declareOperation(
+        "Op0",
+        OpProducer0.factory(),
+        new OpProducer0.Parameters(
+          COMPUTE,
+          Set.of(
+            STAGE_TRANSFER_COPY,
+            STAGE_TRANSFER_RESOLVE,
+            STAGE_TRANSFER_CLEAR,
+            STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT,
+            STAGE_CPU
+          ),
+          Set.of(
+            STAGE_TRANSFER_COPY,
+            STAGE_TRANSFER_RESOLVE,
+            STAGE_TRANSFER_CLEAR,
+            STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT,
+            STAGE_CPU
+          )
+        ));
+
+    final var op1 =
+      b.declareOperation(
+        "Op1",
+        OpConsumer0.factory(),
+        new OpConsumer0.Parameters(
+          COMPUTE,
+          Set.of(
+            STAGE_TRANSFER_COPY,
+            STAGE_TRANSFER_RESOLVE,
+            STAGE_TRANSFER_CLEAR,
+            STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT,
+            STAGE_CPU
+          ),
+          Set.of(
+            STAGE_TRANSFER_COPY,
+            STAGE_TRANSFER_RESOLVE,
+            STAGE_TRANSFER_CLEAR,
+            STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT,
+            STAGE_CPU
+          )
+        ));
+
+    b.resourceAssign(op0.port(), r);
+    b.connect(op0.port(), op1.port());
+    b.compile();
+
+    final var sg =
+      b.syncGraph();
+    final var oc =
+      b.syncOpCommands();
+    final var finder =
+      new AllDirectedPaths<>(sg);
+
+    show(sg, testInfo.getDisplayName());
+
+    final var cmdOp0 = oc.get(op0);
+    assertNotNull(cmdOp0);
+    final var cmdOp1 = oc.get(op1);
+    assertNotNull(cmdOp1);
+
+    final var op1Write =
+      List.copyOf(sg.outgoingEdgesOf(cmdOp1)).getFirst().target();
+
+    final var paths =
+      finder.getAllPaths(cmdOp0, op1Write, false, MAX_VALUE);
+
+    assertEquals(30, paths.size());
   }
 
   private static void show(
