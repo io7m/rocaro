@@ -18,6 +18,7 @@
 package com.io7m.rocaro.vanilla.internal.graph.sync;
 
 import com.io7m.rocaro.api.graph.RCGOperationType;
+import com.io7m.rocaro.api.graph.RCGSubmissionID;
 
 /**
  * The base type of synchronization commands.
@@ -39,7 +40,7 @@ public sealed interface RCGSyncCommandType
    * @return The queue submission to which the command belongs
    */
 
-  RCGSSubmission submission();
+  RCGSubmissionID submission();
 
   /**
    * @return The operation that owns the command
@@ -54,5 +55,5 @@ public sealed interface RCGSyncCommandType
    */
 
   void setSubmission(
-    RCGSSubmission submission);
+    RCGSubmissionID submission);
 }

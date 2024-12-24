@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.tests.graph2;
 
+import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
@@ -25,6 +26,7 @@ import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationParametersType;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
+import com.io7m.rocaro.api.graph.RCGOperationRecordingContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortConsumes;
 import com.io7m.rocaro.api.graph.RCGPortName;

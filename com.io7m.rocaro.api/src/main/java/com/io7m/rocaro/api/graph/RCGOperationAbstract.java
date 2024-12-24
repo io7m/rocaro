@@ -122,7 +122,7 @@ public abstract class RCGOperationAbstract
       ),
       "error-operation-preparing",
       Optional.of(
-        "Call prepare() before trying to call execute()."
+        "Call prepare() before trying to call record() or execute()."
       )
     );
   }

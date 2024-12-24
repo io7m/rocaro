@@ -17,6 +17,8 @@
 
 package com.io7m.rocaro.vanilla.internal.graph.sync;
 
+import com.io7m.rocaro.api.graph.RCGSubmissionID;
+
 import java.util.Objects;
 
 /**
@@ -26,7 +28,7 @@ import java.util.Objects;
 public abstract class RCGSAbstractCommand
 {
   private final long commandId;
-  private RCGSSubmission submission;
+  private RCGSubmissionID submission;
 
   /**
    * The abstract base type of commands.
@@ -47,7 +49,7 @@ public abstract class RCGSAbstractCommand
    */
 
   public final void setSubmission(
-    final RCGSSubmission newSubmission)
+    final RCGSubmissionID newSubmission)
   {
     this.submission =
       Objects.requireNonNull(newSubmission, "submission");
@@ -66,7 +68,7 @@ public abstract class RCGSAbstractCommand
    * @return The command submission
    */
 
-  public final RCGSSubmission submission()
+  public final RCGSubmissionID submission()
   {
     Objects.requireNonNull(this.submission, "submission");
     return this.submission;

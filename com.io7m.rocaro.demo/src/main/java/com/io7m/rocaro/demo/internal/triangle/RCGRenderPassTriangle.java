@@ -17,7 +17,6 @@
 
 package com.io7m.rocaro.demo.internal.triangle;
 
-import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
@@ -88,17 +87,8 @@ public final class RCGRenderPassTriangle
   }
 
   @Override
-  protected void onExecute(
-    final RCGOperationExecutionContextType context)
-    throws RocaroException
-  {
-
-  }
-
-  @Override
   protected void onPrepare(
     final RCGOperationPreparationContextType context)
-    throws RocaroException
   {
 
   }
@@ -106,7 +96,13 @@ public final class RCGRenderPassTriangle
   @Override
   protected void onPrepareCheck(
     final RCGOperationPreparationContextType context)
-    throws RocaroException
+  {
+
+  }
+
+  @Override
+  protected void onExecute(
+    final RCGOperationExecutionContextType context)
   {
 
   }

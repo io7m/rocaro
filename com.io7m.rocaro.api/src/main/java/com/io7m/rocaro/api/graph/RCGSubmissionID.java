@@ -15,7 +15,7 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.api.graph;
 
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 
@@ -28,7 +28,7 @@ import java.util.Objects;
  * @param submissionId The submission ID
  */
 
-public record RCGSSubmission(
+public record RCGSubmissionID(
   RCDeviceQueueCategory queue,
   int submissionId)
 {
@@ -39,7 +39,7 @@ public record RCGSSubmission(
    * @param submissionId The submission ID
    */
 
-  public RCGSSubmission
+  public RCGSubmissionID
   {
     Objects.requireNonNull(queue, "queue");
   }

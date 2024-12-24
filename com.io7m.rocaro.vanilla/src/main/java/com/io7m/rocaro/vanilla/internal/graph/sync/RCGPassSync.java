@@ -28,6 +28,7 @@ import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGSubmissionID;
 import com.io7m.rocaro.vanilla.internal.graph.RCGGraphBuilderInternalType;
 import com.io7m.rocaro.vanilla.internal.graph.RCGGraphPassType;
 import org.jgrapht.Graph;
@@ -416,10 +417,10 @@ public final class RCGPassSync
     }
   }
 
-  private RCGSSubmission allocateSubmission(
+  private RCGSubmissionID allocateSubmission(
     final RCDeviceQueueCategory queue)
   {
-    final var submission = new RCGSSubmission(queue, this.submissionIdNext);
+    final var submission = new RCGSubmissionID(queue, this.submissionIdNext);
     this.submissionIdNext = this.submissionIdNext + 1;
     return submission;
   }
