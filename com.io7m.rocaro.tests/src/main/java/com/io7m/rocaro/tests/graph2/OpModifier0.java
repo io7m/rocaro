@@ -20,18 +20,19 @@ package com.io7m.rocaro.tests.graph2;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationParametersType;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGPortModifies;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
 import com.io7m.rocaro.api.graph.RCGPortName;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintBuffer;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderBufferType;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 final class OpModifier0
@@ -39,9 +40,10 @@ final class OpModifier0
   implements RCGOperationType
 {
   private final Parameters parameters;
-  private final RCGPortModifies port;
+  private final RCGPortModifierType port;
 
   public OpModifier0(
+    final RCGOperationCreationContextType context,
     final RCGOperationName inName,
     final Parameters inParameters)
   {
@@ -51,14 +53,13 @@ final class OpModifier0
       Objects.requireNonNull(inParameters, "parameters");
 
     this.port =
-      new RCGPortModifies(
+      context.createModifierPort(
         this,
         new RCGPortName("Port0"),
-        RCGResourcePlaceholderBufferType.class,
         this.parameters.reads(),
+        new RCGPortTypeConstraintBuffer<>(RCGResourcePlaceholderBufferType.class),
         this.parameters.writes(),
-        Optional.empty(),
-        Optional.empty()
+        new RCGPortTypeConstraintBuffer<>(RCGResourcePlaceholderBufferType.class)
       );
 
     this.addPort(this.port);
@@ -90,7 +91,7 @@ final class OpModifier0
 
   }
 
-  public RCGPortModifies port()
+  public RCGPortModifierType port()
   {
     return this.port;
   }

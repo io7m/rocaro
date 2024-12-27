@@ -20,14 +20,16 @@ package com.io7m.rocaro.tests.graph2;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationParametersType;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGPortConsumes;
+import com.io7m.rocaro.api.graph.RCGPortConsumerType;
 import com.io7m.rocaro.api.graph.RCGPortName;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
 
@@ -40,9 +42,10 @@ final class OpImageConsumer0
   implements RCGOperationType
 {
   private final Parameters parameters;
-  private final RCGPortConsumes port;
+  private final RCGPortConsumerType port;
 
   public OpImageConsumer0(
+    final RCGOperationCreationContextType context,
     final RCGOperationName inName,
     final Parameters inParameters)
   {
@@ -52,13 +55,15 @@ final class OpImageConsumer0
       Objects.requireNonNull(inParameters, "inParameters");
 
     this.port =
-      new RCGPortConsumes(
+      context.createConsumerPort(
         this,
         new RCGPortName("Port0"),
-        RCGResourcePlaceholderImageType.class,
         this.parameters.readsOnStages(),
-        this.parameters.writesOnStages(),
-        this.parameters.requiresLayout()
+        new RCGPortTypeConstraintImage<>(
+          RCGResourcePlaceholderImageType.class,
+          this.parameters.requiresLayout()
+        ),
+        this.parameters.writesOnStages()
       );
 
     this.addPort(this.port);
@@ -90,7 +95,7 @@ final class OpImageConsumer0
 
   }
 
-  public RCGPortConsumes port()
+  public RCGPortConsumerType port()
   {
     return this.port;
   }

@@ -18,11 +18,12 @@
 package com.io7m.rocaro.api.graph;
 
 /**
- * The type of resources that are buffers.
+ * The port types that can be sources for connections.
  */
 
-public non-sealed interface RCGResourcePlaceholderBufferType
-  extends RCGResourcePlaceholderType
+public sealed interface RCGPortSourceType
+  extends RCGPortType
+  permits RCGPortModifierType, RCGPortProducerType
 {
 
 }

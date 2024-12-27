@@ -20,6 +20,7 @@ package com.io7m.rocaro.tests.graph2;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
@@ -27,7 +28,8 @@ import com.io7m.rocaro.api.graph.RCGOperationParametersType;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
 
@@ -40,9 +42,10 @@ final class OpImageProducer0
   implements RCGOperationType
 {
   private final Parameters parameters;
-  private final RCGPortProduces port;
+  private final RCGPortProducerType port;
 
   public OpImageProducer0(
+    final RCGOperationCreationContextType context,
     final RCGOperationName inName,
     final Parameters inParameters)
   {
@@ -52,13 +55,15 @@ final class OpImageProducer0
       Objects.requireNonNull(inParameters, "p");
 
     this.port =
-      new RCGPortProduces(
+      context.createProducerPort(
         this,
         new RCGPortName("Port0"),
-        RCGResourcePlaceholderImageType.class,
         this.parameters.readsOnStages(),
-        this.parameters.writesOnStages(),
-        this.parameters.ensuresLayout()
+        new RCGPortTypeConstraintImage<>(
+          RCGResourcePlaceholderImageType.class,
+          this.parameters.ensuresLayout()
+        ),
+        this.parameters.writesOnStages()
       );
 
     this.addPort(this.port);
@@ -90,7 +95,7 @@ final class OpImageProducer0
 
   }
 
-  public RCGPortProduces port()
+  public RCGPortProducerType port()
   {
     return this.port;
   }

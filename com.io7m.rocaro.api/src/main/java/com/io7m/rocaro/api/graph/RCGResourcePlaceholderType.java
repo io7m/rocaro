@@ -21,7 +21,9 @@ package com.io7m.rocaro.api.graph;
  * The base type of resources that may appear in the render graph.
  */
 
-public interface RCGResourcePlaceholderType
+public sealed interface RCGResourcePlaceholderType
+  permits RCGResourcePlaceholderBufferType,
+  RCGResourcePlaceholderImageType
 {
   /**
    * @return The name of the resource

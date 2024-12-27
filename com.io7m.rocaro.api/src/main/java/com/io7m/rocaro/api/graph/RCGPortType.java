@@ -24,7 +24,11 @@ import java.util.Set;
  */
 
 public sealed interface RCGPortType
-  permits RCGPortConsumerType, RCGPortProducerType
+  permits RCGPortConsumerType,
+  RCGPortModifierType,
+  RCGPortProducerType,
+  RCGPortSourceType,
+  RCGPortTargetType
 {
   /**
    * @return The operation that owns the port
@@ -37,12 +41,6 @@ public sealed interface RCGPortType
    */
 
   RCGPortName name();
-
-  /**
-   * @return The precise type of resource
-   */
-
-  Class<? extends RCGResourcePlaceholderType> type();
 
   /**
    * A set of stages at which the operation that owns this port will read

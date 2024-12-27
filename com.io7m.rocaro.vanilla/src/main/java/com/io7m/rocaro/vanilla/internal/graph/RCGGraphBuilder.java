@@ -19,6 +19,7 @@ package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeaturesFunctions;
+import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGCommandType;
 import com.io7m.rocaro.api.graph.RCGGraphBuilderType;
 import com.io7m.rocaro.api.graph.RCGGraphConnection;
@@ -34,11 +35,13 @@ import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationParametersType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortConsumerType;
-import com.io7m.rocaro.api.graph.RCGPortConsumes;
-import com.io7m.rocaro.api.graph.RCGPortModifies;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
+import com.io7m.rocaro.api.graph.RCGPortName;
 import com.io7m.rocaro.api.graph.RCGPortProducerType;
-import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGPortSourceType;
+import com.io7m.rocaro.api.graph.RCGPortTargetType;
 import com.io7m.rocaro.api.graph.RCGPortType;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintType;
 import com.io7m.rocaro.api.graph.RCGResourceFactoryType;
 import com.io7m.rocaro.api.graph.RCGResourceName;
 import com.io7m.rocaro.api.graph.RCGResourceParametersType;
@@ -57,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -68,25 +72,26 @@ import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_UNDEFINED;
  */
 
 public final class RCGGraphBuilder
-  implements RCGGraphBuilderType, RCGGraphBuilderInternalType
+  implements RCGGraphBuilderType,
+  RCGGraphBuilderInternalType
 {
   private final AtomicBoolean built;
   private final HashMap<RCGOperationName, RCGOperationType> ops;
   private final HashMap<RCGResourceName, RCGResourcePlaceholderType> resources;
   private final DirectedAcyclicGraph<RCGPortType, RCGGraphConnection> graph;
   private final DirectedAcyclicGraph<RCGOperationType, RCGGraphOpConnection> opGraph;
-  private final HashMap<RCGPortProduces, RCGResourcePlaceholderType> portResources;
-  private final HashMap<RCGResourcePlaceholderType, RCGPortProduces> resourcePorts;
+  private final HashMap<RCGPortProducerType, RCGResourcePlaceholderType> portResources;
+  private final HashMap<RCGResourcePlaceholderType, RCGPortProducerType> resourcePorts;
   private final List<RCGGraphPassType> passes;
   private final HashMap<RCGPortType, RCGResourcePlaceholderType> portResourcesTracked;
   private final HashMap<RCGPortType, RCGOperationImageLayoutTransitionType> portImageLayouts;
   private final HashMap<RCGOperationType, List<RCGCommandType>> opCommands;
   private final RCGraphName name;
   private final DirectedAcyclicGraph<RCGSyncCommandType, RCGSyncDependency> syncGraph;
+  private final HashMap<RCGOperationType, RCGSExecute> syncOpCommands;
   private VulkanPhysicalDeviceFeatures requiredFeatures;
   private List<RCGPortType> portsOrdered;
   private List<RCGOperationType> opsOrdered;
-  private final HashMap<RCGOperationType, RCGSExecute> syncOpCommands;
 
   /**
    * The default mutable graph builder.
@@ -166,7 +171,7 @@ public final class RCGGraphBuilder
   }
 
   private static RCGGraphException errorResourceAlreadyAssigned(
-    final RCGPortProduces requested,
+    final RCGPortProducerType requested,
     final RCGPortType existing,
     final RCGResourcePlaceholderType resource)
   {
@@ -266,13 +271,13 @@ public final class RCGGraphBuilder
   }
 
   @Override
-  public HashMap<RCGPortProduces, RCGResourcePlaceholderType> portResources()
+  public HashMap<RCGPortProducerType, RCGResourcePlaceholderType> portResources()
   {
     return this.portResources;
   }
 
   @Override
-  public HashMap<RCGResourcePlaceholderType, RCGPortProduces> resourcePorts()
+  public HashMap<RCGResourcePlaceholderType, RCGPortProducerType> resourcePorts()
   {
     return this.resourcePorts;
   }
@@ -372,7 +377,7 @@ public final class RCGGraphBuilder
   {
     return this.declareOperation(
       operationName,
-      (n, _) -> new RCGOperationFrameAcquire(n),
+      (context, n, _) -> new RCGOperationFrameAcquire(context, n),
       NO_PARAMETERS
     );
   }
@@ -384,7 +389,7 @@ public final class RCGGraphBuilder
   {
     return this.declareOperation(
       operationName,
-      (n, _) -> new RCGOperationFramePresent(n),
+      (context, n, _) -> new RCGOperationFramePresent(context, n),
       NO_PARAMETERS
     );
   }
@@ -407,7 +412,7 @@ public final class RCGGraphBuilder
       throw errorOperationNameUsed(operationName);
     }
 
-    final var op = factory.create(operationName, parameters);
+    final var op = factory.create(this, operationName, parameters);
     this.ops.put(operationName, op);
     this.opGraph.addVertex(op);
 
@@ -443,7 +448,7 @@ public final class RCGGraphBuilder
 
   @Override
   public void resourceAssign(
-    final RCGPortProduces port,
+    final RCGPortProducerType port,
     final RCGResourcePlaceholderType resource)
     throws RCGGraphException
   {
@@ -477,15 +482,15 @@ public final class RCGGraphBuilder
   }
 
   private RCGResourcePlaceholderType resourceForPort(
-    final RCGPortProduces port)
+    final RCGPortProducerType port)
   {
     return this.portResources.get(port);
   }
 
   @Override
   public void connect(
-    final RCGPortProducerType source,
-    final RCGPortConsumerType target)
+    final RCGPortSourceType source,
+    final RCGPortTargetType target)
     throws RCGGraphException
   {
     Objects.requireNonNull(source, "source");
@@ -539,13 +544,14 @@ public final class RCGGraphBuilder
     }
 
     return switch (port) {
-      case final RCGPortConsumes _,
-           final RCGPortProduces _ -> {
-        yield this.graph.degreeOf(port) == 1;
-      }
-      case final RCGPortModifies _ -> {
+      case final RCGPortModifierType _ -> {
         yield this.graph.degreeOf(port) == 2;
       }
+      case final RCGPortConsumerType _,
+           final RCGPortProducerType _ -> {
+        yield this.graph.degreeOf(port) == 1;
+      }
+
     };
   }
 
@@ -578,5 +584,80 @@ public final class RCGGraphBuilder
   public RCGraphName name()
   {
     return this.name;
+  }
+
+  @Override
+  public <R extends RCGResourcePlaceholderType> RCGPortProducerType
+  createProducerPort(
+    final RCGOperationType owner,
+    final RCGPortName portName,
+    final Set<RCGCommandPipelineStage> readsAtStages,
+    final RCGPortTypeConstraintType<R> typeConstraint,
+    final Set<RCGCommandPipelineStage> writesAtStages)
+  {
+    Objects.requireNonNull(owner, "owner");
+    Objects.requireNonNull(portName, "name");
+    Objects.requireNonNull(readsAtStages, "readsAtStages");
+    Objects.requireNonNull(typeConstraint, "typeConstraint");
+    Objects.requireNonNull(writesAtStages, "writesAtStages");
+
+    return new RCGPortProducer(
+      owner,
+      portName,
+      readsAtStages,
+      typeConstraint,
+      writesAtStages
+    );
+  }
+
+  @Override
+  public <R extends RCGResourcePlaceholderType> RCGPortModifierType
+  createModifierPort(
+    final RCGOperationType owner,
+    final RCGPortName portName,
+    final Set<RCGCommandPipelineStage> readsAtStages,
+    final RCGPortTypeConstraintType<R> typeConsumes,
+    final Set<RCGCommandPipelineStage> writesAtStages,
+    final RCGPortTypeConstraintType<R> typeProduces)
+  {
+    Objects.requireNonNull(owner, "owner");
+    Objects.requireNonNull(portName, "name");
+    Objects.requireNonNull(readsAtStages, "readsAtStages");
+    Objects.requireNonNull(typeConsumes, "typeConsumes");
+    Objects.requireNonNull(writesAtStages, "writesAtStages");
+    Objects.requireNonNull(typeProduces, "typeProduces");
+
+    return new RCGPortModifier(
+      owner,
+      portName,
+      readsAtStages,
+      typeConsumes,
+      writesAtStages,
+      typeProduces
+    );
+  }
+
+  @Override
+  public <R extends RCGResourcePlaceholderType> RCGPortConsumerType
+  createConsumerPort(
+    final RCGOperationType owner,
+    final RCGPortName portName,
+    final Set<RCGCommandPipelineStage> readsAtStages,
+    final RCGPortTypeConstraintType<R> typeConstraint,
+    final Set<RCGCommandPipelineStage> writesAtStages)
+  {
+    Objects.requireNonNull(owner, "owner");
+    Objects.requireNonNull(portName, "name");
+    Objects.requireNonNull(readsAtStages, "readsAtStages");
+    Objects.requireNonNull(typeConstraint, "typeConstraint");
+    Objects.requireNonNull(writesAtStages, "writesAtStages");
+
+    return new RCGPortConsumer(
+      owner,
+      portName,
+      readsAtStages,
+      typeConstraint,
+      writesAtStages
+    );
   }
 }

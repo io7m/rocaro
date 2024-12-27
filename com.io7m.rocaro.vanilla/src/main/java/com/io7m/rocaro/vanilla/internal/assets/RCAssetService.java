@@ -60,6 +60,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ASSET;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_ASSET_DOES_NOT_EXIST;
 
+/**
+ * The main asset loading service.
+ */
+
 public final class RCAssetService
   extends RCObject
   implements RCAssetServiceType, RCCloseableType
@@ -358,7 +362,7 @@ public final class RCAssetService
 
     RCAssetReference(
       final RCAssetIdentifier inIdentifier,
-      final P parameters,
+      final P inParameters,
       final RCAssetLoaderFactoryType<P, A> inLoaders)
     {
       this.identifier =
@@ -366,7 +370,7 @@ public final class RCAssetService
       this.loaders =
         Objects.requireNonNull(inLoaders, "loader");
       this.parameters =
-        Objects.requireNonNull(parameters, "parameters");
+        Objects.requireNonNull(inParameters, "parameters");
       this.value =
         new AtomicReference<>(
           new RCAssetValueLoading<>(0.0, Optional.empty())
@@ -392,9 +396,9 @@ public final class RCAssetService
     }
 
     public void setValue(
-      final RCAssetValueType<A> value)
+      final RCAssetValueType<A> newValue)
     {
-      this.value.set(Objects.requireNonNull(value, "value"));
+      this.value.set(Objects.requireNonNull(newValue, "value"));
     }
   }
 }

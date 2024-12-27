@@ -20,13 +20,15 @@ package com.io7m.rocaro.vanilla.internal.graph;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationZeroType;
-import com.io7m.rocaro.api.graph.RCGPortModifies;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
 import com.io7m.rocaro.api.graph.RCGPortName;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderRenderTargetType;
 import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
 
@@ -45,29 +47,36 @@ public final class RCGOperationZero
   extends RCGOperationAbstract
   implements RCGOperationZeroType
 {
-  private final RCGPortModifies frame;
+  private final RCGPortModifierType frame;
 
   /**
    * An operation that zeroes out the primary color attachment.
    *
-   * @param inName The operation name
+   * @param context The creation context
+   * @param inName  The operation name
    */
 
   public RCGOperationZero(
+    final RCGOperationCreationContextType context,
     final RCGOperationName inName)
   {
     super(inName, GRAPHICS);
 
     this.frame =
       this.addPort(
-        new RCGPortModifies(
+        context.createModifierPort(
           this,
           new RCGPortName("Frame"),
-          RCGResourcePlaceholderRenderTargetType.class,
           Set.of(),
+          new RCGPortTypeConstraintImage<>(
+            RCGResourcePlaceholderRenderTargetType.class,
+            Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET)
+          ),
           Set.of(STAGE_TRANSFER_CLEAR),
-          Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET),
-          Optional.empty()
+          new RCGPortTypeConstraintImage<>(
+            RCGResourcePlaceholderRenderTargetType.class,
+            Optional.empty()
+          )
         )
       );
   }
@@ -78,7 +87,7 @@ public final class RCGOperationZero
 
   public static RCGOperationFactoryType<RCGNoParameters, RCGOperationZeroType> factory()
   {
-    return (name, _) -> new RCGOperationZero(name);
+    return (context, name, _) -> new RCGOperationZero(context, name);
   }
 
   @Override
@@ -88,6 +97,8 @@ public final class RCGOperationZero
   {
     final var frameImage =
       context.portRead(this.frame, RCRenderTargetType.class);
+
+    
   }
 
   @Override
@@ -107,7 +118,7 @@ public final class RCGOperationZero
   }
 
   @Override
-  public RCGPortModifies frame()
+  public RCGPortModifierType frame()
   {
     return this.frame;
   }

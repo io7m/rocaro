@@ -18,9 +18,7 @@
 package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.rocaro.api.graph.RCGGraphException;
-
-import java.util.Map;
-import java.util.Optional;
+import com.io7m.rocaro.api.graph.RCGResourceCompatibility;
 
 /**
  * Check resource types for the graph.
@@ -44,29 +42,10 @@ public final class RCGPassCheckTypes
     throws RCGGraphException
   {
     for (final var entry : builder.portResourcesTracked().entrySet()) {
-      final var port =
-        entry.getKey();
-      final var resource =
-        entry.getValue();
-      final var requiredType =
-        port.type();
-      final var providedType =
-        resource.getClass();
-
-      if (!requiredType.isAssignableFrom(providedType)) {
-        throw new RCGGraphException(
-          "The assigned resource is type-incompatible with the given port.",
-          Map.ofEntries(
-            Map.entry("Operation", port.owner().name().value()),
-            Map.entry("Port", port.name().value()),
-            Map.entry("Resource", resource.name().value()),
-            Map.entry("Type (Expected)", requiredType.getName()),
-            Map.entry("Type (Provided)", providedType.getName())
-          ),
-          "error-graph-type-incompatible",
-          Optional.empty()
-        );
-      }
+      RCGResourceCompatibility.checkCompatibility(
+        entry.getKey(),
+        entry.getValue()
+      );
     }
   }
 }

@@ -23,12 +23,12 @@ import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Constant;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Post;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Pre;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.PreAndPost;
-import com.io7m.rocaro.api.graph.RCGPortConsumes;
-import com.io7m.rocaro.api.graph.RCGPortModifies;
-import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGPortConsumerType;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
 import com.io7m.rocaro.api.graph.RCGPortType;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
-import com.io7m.rocaro.api.graph.RCGResourceTypes;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 
 import java.util.HashMap;
@@ -73,81 +73,112 @@ public final class RCGPassImageLayoutTransitions
     final RCGResourceImageLayout layoutThen,
     final RCGPortType port)
   {
-    if (RCGResourceTypes.isImage(port.type())) {
-      switch (port) {
-        case final RCGPortProduces p -> {
-          final var layoutNow =
-            p.ensuresImageLayout().orElseThrow();
+    if (!isImage(port)) {
+      return;
+    }
 
-          transitions.put(port, new Constant(layoutNow));
+    switch (port) {
+      case final RCGPortModifierType p -> {
+        final var typeConsumed =
+          (RCGPortTypeConstraintImage<?>) p.typeConsumed();
+        final var typeProduced =
+          (RCGPortTypeConstraintImage<?>) p.typeProduced();
 
-          for (final var connection : graph.outgoingEdgesOf(p)) {
-            tracePortTransitions(
-              graph,
-              transitions,
-              layoutNow,
-              connection.targetPort()
+        var layoutDuring = layoutThen;
+
+        final var requiresOpt =
+          typeConsumed.requiresImageLayout();
+
+        if (requiresOpt.isPresent()) {
+          layoutDuring = requiresOpt.get();
+        }
+
+        var layoutLeaving = layoutDuring;
+
+        final var ensuresOpt =
+          typeProduced.requiresImageLayout();
+
+        if (ensuresOpt.isPresent()) {
+          layoutLeaving = ensuresOpt.get();
+        }
+
+        if (layoutThen != layoutDuring) {
+          if (layoutDuring != layoutLeaving) {
+            transitions.put(
+              port,
+              new PreAndPost(layoutThen, layoutDuring, layoutLeaving)
             );
+          } else {
+            transitions.put(port, new Pre(layoutThen, layoutDuring));
+          }
+        } else {
+          if (layoutDuring != layoutLeaving) {
+            transitions.put(port, new Post(layoutDuring, layoutLeaving));
+          } else {
+            transitions.put(port, new Constant(layoutThen));
           }
         }
 
-        case final RCGPortConsumes p -> {
-          final var requiresOpt =
-            p.requiresImageLayout();
+        for (final var connection : graph.outgoingEdgesOf(p)) {
+          tracePortTransitions(
+            graph,
+            transitions,
+            layoutLeaving,
+            connection.targetPort()
+          );
+        }
+      }
 
-          if (requiresOpt.isPresent()) {
-            final var requires = requiresOpt.get();
-            if (layoutThen != requires) {
-              transitions.put(p, new Pre(layoutThen, requires));
-            } else {
-              transitions.put(p, new Constant(layoutThen));
-            }
+      case final RCGPortProducerType p -> {
+        final var typeProduced =
+          (RCGPortTypeConstraintImage<?>) p.typeProduced();
+
+        final var layoutNow =
+          typeProduced.requiresImageLayout().orElseThrow();
+
+        transitions.put(port, new Constant(layoutNow));
+
+        for (final var connection : graph.outgoingEdgesOf(p)) {
+          tracePortTransitions(
+            graph,
+            transitions,
+            layoutNow,
+            connection.targetPort()
+          );
+        }
+      }
+
+      case final RCGPortConsumerType p -> {
+        final var typeConsumed =
+          (RCGPortTypeConstraintImage<?>) p.typeConsumed();
+
+        final var requiresOpt =
+          typeConsumed.requiresImageLayout();
+
+        if (requiresOpt.isPresent()) {
+          final var requires = requiresOpt.get();
+          if (layoutThen != requires) {
+            transitions.put(p, new Pre(layoutThen, requires));
           } else {
             transitions.put(p, new Constant(layoutThen));
           }
-        }
-
-        case final RCGPortModifies p -> {
-          var layoutDuring = layoutThen;
-
-          final var requiresOpt = p.requiresImageLayout();
-          if (requiresOpt.isPresent()) {
-            layoutDuring = requiresOpt.get();
-          }
-
-          var layoutLeaving = layoutDuring;
-          final var ensuresOpt = p.ensuresImageLayout();
-          if (ensuresOpt.isPresent()) {
-            layoutLeaving = ensuresOpt.get();
-          }
-
-          if (layoutThen != layoutDuring) {
-            if (layoutDuring != layoutLeaving) {
-              transitions.put(
-                port,
-                new PreAndPost(layoutThen, layoutDuring, layoutLeaving)
-              );
-            } else {
-              transitions.put(port, new Pre(layoutThen, layoutDuring));
-            }
-          } else {
-            if (layoutDuring != layoutLeaving) {
-              transitions.put(port, new Post(layoutDuring, layoutLeaving));
-            } else {
-              transitions.put(port, new Constant(layoutThen));
-            }
-          }
-
-          for (final var connection : graph.outgoingEdgesOf(p)) {
-            tracePortTransitions(
-              graph,
-              transitions,
-              layoutLeaving,
-              connection.targetPort()
-            );
-          }
+        } else {
+          transitions.put(p, new Constant(layoutThen));
         }
       }
     }
+  }
+
+  private static boolean isImage(
+    final RCGPortType port)
+  {
+    return switch (port) {
+      case final RCGPortModifierType m ->
+        m.typeConsumed() instanceof RCGPortTypeConstraintImage<?>;
+      case final RCGPortConsumerType c ->
+        c.typeConsumed() instanceof RCGPortTypeConstraintImage<?>;
+      case final RCGPortProducerType p ->
+        p.typeProduced() instanceof RCGPortTypeConstraintImage<?>;
+    };
   }
 }

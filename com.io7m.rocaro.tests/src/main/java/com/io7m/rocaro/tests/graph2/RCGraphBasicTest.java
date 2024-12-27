@@ -18,6 +18,7 @@
 package com.io7m.rocaro.tests.graph2;
 
 import com.io7m.rocaro.api.graph.RCGGraphException;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.vanilla.RCGraph;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,10 @@ public final class RCGraphBasicTest
   public void testErrorOpNotDeclared0()
   {
     final var op0 =
-      new OpEx0(new RCGOperationName("Example0"));
+      new OpEx0(
+        (RCGOperationCreationContextType) RCGraph.builder("Main"),
+        new RCGOperationName("Example0")
+      );
 
     final var ex =
       assertThrows(RCGGraphException.class, () -> {
@@ -91,7 +95,10 @@ public final class RCGraphBasicTest
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
 
     final var op1 =
-      new OpEx0(new RCGOperationName("Example1"));
+      new OpEx0(
+        (RCGOperationCreationContextType) b,
+        new RCGOperationName("Example1")
+      );
 
     final var ex =
       assertThrows(RCGGraphException.class, () -> {
@@ -112,7 +119,10 @@ public final class RCGraphBasicTest
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
 
     final var op0 =
-      new OpEx0(new RCGOperationName("Example1"));
+      new OpEx0(
+        (RCGOperationCreationContextType) b,
+        new RCGOperationName("Example1")
+      );
 
     final var ex =
       assertThrows(RCGGraphException.class, () -> {

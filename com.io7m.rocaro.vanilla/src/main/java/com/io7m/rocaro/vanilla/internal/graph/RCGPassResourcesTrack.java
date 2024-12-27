@@ -17,9 +17,9 @@
 
 package com.io7m.rocaro.vanilla.internal.graph;
 
-import com.io7m.rocaro.api.graph.RCGPortConsumes;
-import com.io7m.rocaro.api.graph.RCGPortModifies;
-import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGPortConsumerType;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 
 import java.util.Objects;
@@ -55,27 +55,28 @@ public final class RCGPassResourcesTrack
     for (final var port : builder.portsOrdered()) {
       for (final var e : graph.incomingEdgesOf(port)) {
         switch (e.targetPort()) {
-          case final RCGPortConsumes v -> {
+          case final RCGPortConsumerType v -> {
             final var r = tracked.get(e.sourcePort());
             Objects.requireNonNull(r, "r");
             tracked.put(v, r);
           }
-          case final RCGPortModifies v -> {
+          case final RCGPortModifierType m -> {
             final var r = tracked.get(e.sourcePort());
             Objects.requireNonNull(r, "r");
-            tracked.put(v, r);
+            tracked.put(m, r);
           }
         }
       }
+
       for (final var e : graph.outgoingEdgesOf(port)) {
         switch (e.sourcePort()) {
-          case final RCGPortProduces v -> {
+          case final RCGPortProducerType v -> {
             final RCGResourcePlaceholderType r = producers.get(v);
             Objects.requireNonNull(r, "r");
             tracked.put(v, r);
           }
-          case final RCGPortModifies _ -> {
-
+          case final RCGPortModifierType _ -> {
+            // Nothing to do.
           }
         }
       }

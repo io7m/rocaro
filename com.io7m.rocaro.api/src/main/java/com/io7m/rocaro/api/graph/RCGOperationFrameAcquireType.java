@@ -28,5 +28,5 @@ public interface RCGOperationFrameAcquireType
    * @return The port that supplies an acquired frame
    */
 
-  RCGPortProduces frame();
+  RCGPortProducerType frame();
 }

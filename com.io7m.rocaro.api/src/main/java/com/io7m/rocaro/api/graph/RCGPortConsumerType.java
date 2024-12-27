@@ -17,19 +17,16 @@
 
 package com.io7m.rocaro.api.graph;
 
-import java.util.Optional;
-
 /**
  * The type of ports that are consumers.
  */
 
-public sealed interface RCGPortConsumerType
-  extends RCGPortType
-  permits RCGPortConsumes, RCGPortModifies
+public non-sealed interface RCGPortConsumerType
+  extends RCGPortType, RCGPortTargetType
 {
   /**
-   * @return The image layout requirement, if any
+   * @return The type constraint of the port
    */
 
-  Optional<RCGResourceImageLayout> requiresImageLayout();
+  RCGPortTypeConstraintType<?> typeConsumed();
 }

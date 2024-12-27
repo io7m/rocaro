@@ -18,28 +18,34 @@
 package com.io7m.rocaro.api.graph;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
- * A connection in the render graph.
+ * A constraint that ensures a resource is an image, and conforms to the given
+ * constraints.
  *
- * @param sourcePort The source port
- * @param targetPort The target port
+ * @param resourceType        The precise resource type
+ * @param requiresImageLayout The required image layout
+ * @param <R>                 The type of resource
  */
 
-public record RCGGraphConnection(
-  RCGPortSourceType sourcePort,
-  RCGPortTargetType targetPort)
+public record RCGPortTypeConstraintImage<
+  R extends RCGResourcePlaceholderImageType>(
+  Class<R> resourceType,
+  Optional<RCGResourceImageLayout> requiresImageLayout)
+  implements RCGPortTypeConstraintType<R>
 {
   /**
-   * A connection in the render graph.
+   * A constraint that ensures a resource is an image, and conforms to the given
+   * constraints.
    *
-   * @param sourcePort The source port
-   * @param targetPort The target port
+   * @param resourceType        The precise resource type
+   * @param requiresImageLayout The required image layout
    */
 
-  public RCGGraphConnection
+  public RCGPortTypeConstraintImage
   {
-    Objects.requireNonNull(sourcePort, "sourcePort");
-    Objects.requireNonNull(targetPort, "targetPort");
+    Objects.requireNonNull(resourceType, "resourceType");
+    Objects.requireNonNull(requiresImageLayout, "requiresImageLayout");
   }
 }

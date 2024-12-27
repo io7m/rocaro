@@ -52,7 +52,7 @@ public interface RCGOperationExecutionContextType
    */
 
   void portWrite(
-    RCGPortProducerType port,
+    RCGPortSourceType port,
     RCResourceType resource
   );
 
@@ -67,7 +67,7 @@ public interface RCGOperationExecutionContextType
    */
 
   <R extends RCResourceType> R portRead(
-    RCGPortModifies port,
+    RCGPortTargetType port,
     Class<R> resourceType
   );
 }

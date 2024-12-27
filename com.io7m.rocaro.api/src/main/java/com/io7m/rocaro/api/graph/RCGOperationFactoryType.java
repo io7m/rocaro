@@ -31,6 +31,7 @@ public interface RCGOperationFactoryType<
   /**
    * Create a operation.
    *
+   * @param context    The creation context
    * @param name       The name
    * @param parameters The operation parameters
    *
@@ -38,6 +39,7 @@ public interface RCGOperationFactoryType<
    */
 
   O create(
+    RCGOperationCreationContextType context,
     RCGOperationName name,
     P parameters
   );

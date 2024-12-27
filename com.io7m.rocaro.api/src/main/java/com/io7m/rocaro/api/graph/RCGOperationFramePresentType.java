@@ -28,5 +28,5 @@ public interface RCGOperationFramePresentType
    * @return The port that consumes a frame
    */
 
-  RCGPortConsumes frame();
+  RCGPortConsumerType frame();
 }

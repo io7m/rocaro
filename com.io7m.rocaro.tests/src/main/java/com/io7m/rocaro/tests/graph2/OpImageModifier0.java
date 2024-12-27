@@ -20,14 +20,16 @@ package com.io7m.rocaro.tests.graph2;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationParametersType;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGPortModifies;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
 import com.io7m.rocaro.api.graph.RCGPortName;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
 
@@ -40,9 +42,10 @@ final class OpImageModifier0
   implements RCGOperationType
 {
   private final Parameters parameters;
-  private final RCGPortModifies port;
+  private final RCGPortModifierType port;
 
   public OpImageModifier0(
+    final RCGOperationCreationContextType context,
     final RCGOperationName inName,
     final Parameters inParameters)
   {
@@ -52,14 +55,19 @@ final class OpImageModifier0
       Objects.requireNonNull(inParameters, "parameters");
 
     this.port =
-      new RCGPortModifies(
+      context.createModifierPort(
         this,
         new RCGPortName("Port0"),
-        RCGResourcePlaceholderImageType.class,
         this.parameters.readsOnStages(),
+        new RCGPortTypeConstraintImage<>(
+          RCGResourcePlaceholderImageType.class,
+          this.parameters.requiresLayout()
+        ),
         this.parameters.writesOnStages(),
-        this.parameters.requiresLayout(),
-        this.parameters.ensuresLayout()
+        new RCGPortTypeConstraintImage<>(
+          RCGResourcePlaceholderImageType.class,
+          this.parameters.ensuresLayout()
+        )
       );
 
     this.addPort(this.port);
@@ -70,7 +78,7 @@ final class OpImageModifier0
     return OpImageModifier0::new;
   }
 
-  public RCGPortModifies port()
+  public RCGPortModifierType port()
   {
     return this.port;
   }

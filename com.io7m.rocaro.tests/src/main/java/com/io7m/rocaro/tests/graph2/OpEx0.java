@@ -19,17 +19,18 @@ package com.io7m.rocaro.tests.graph2;
 
 import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGPortConsumes;
+import com.io7m.rocaro.api.graph.RCGPortConsumerType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintBuffer;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderBufferType;
 
-import java.util.Optional;
 import java.util.Set;
 
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
@@ -38,32 +39,31 @@ final class OpEx0
   extends RCGOperationAbstract
   implements RCGOperationType
 {
-  private final RCGPortProduces port0;
-  private final RCGPortConsumes port1;
+  private final RCGPortProducerType port0;
+  private final RCGPortConsumerType port1;
 
   public OpEx0(
+    final RCGOperationCreationContextType context,
     final RCGOperationName inName)
   {
     super(inName, GRAPHICS);
 
     this.port0 =
-      new RCGPortProduces(
+      context.createProducerPort(
         this,
         new RCGPortName("Port0"),
-        RCGResourcePlaceholderBufferType.class,
         Set.of(),
-        Set.of(),
-        Optional.empty()
+        new RCGPortTypeConstraintBuffer<>(RCGResourcePlaceholderBufferType.class),
+        Set.of()
       );
 
     this.port1 =
-      new RCGPortConsumes(
+      context.createConsumerPort(
         this,
         new RCGPortName("Port1"),
-        RCGResourcePlaceholderBufferType.class,
         Set.of(),
-        Set.of(),
-        Optional.empty()
+        new RCGPortTypeConstraintBuffer<>(RCGResourcePlaceholderBufferType.class),
+        Set.of()
       );
 
     this.addPort(this.port0);
@@ -72,15 +72,15 @@ final class OpEx0
 
   public static RCGOperationFactoryType<RCGNoParameters, OpEx0> factory()
   {
-    return (name, _) -> new OpEx0(name);
+    return (context, name, _) -> new OpEx0(context, name);
   }
 
-  public RCGPortProduces port0()
+  public RCGPortProducerType port0()
   {
     return this.port0;
   }
 
-  public RCGPortConsumes port1()
+  public RCGPortConsumerType port1()
   {
     return this.port1;
   }

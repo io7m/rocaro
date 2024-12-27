@@ -224,12 +224,12 @@ public interface RCGGraphBuilderType
    */
 
   void resourceAssign(
-    RCGPortProduces port,
+    RCGPortProducerType port,
     RCGResourcePlaceholderType resource)
     throws RCGGraphException;
 
   /**
-   * Connect a producer port to a consumer port.
+   * Connect a port to a port.
    *
    * @param source The source port
    * @param target The target port
@@ -238,8 +238,8 @@ public interface RCGGraphBuilderType
    */
 
   void connect(
-    RCGPortProducerType source,
-    RCGPortConsumerType target)
+    RCGPortSourceType source,
+    RCGPortTargetType target)
     throws RCGGraphException;
 
   /**

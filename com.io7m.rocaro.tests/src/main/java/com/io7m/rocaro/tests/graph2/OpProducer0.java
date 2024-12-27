@@ -20,6 +20,7 @@ package com.io7m.rocaro.tests.graph2;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
@@ -27,11 +28,11 @@ import com.io7m.rocaro.api.graph.RCGOperationParametersType;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintBuffer;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderBufferType;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 final class OpProducer0
@@ -39,9 +40,10 @@ final class OpProducer0
   implements RCGOperationType
 {
   private final Parameters parameters;
-  private final RCGPortProduces port;
+  private final RCGPortProducerType port;
 
   public OpProducer0(
+    final RCGOperationCreationContextType context,
     final RCGOperationName inName,
     final Parameters inParameters)
   {
@@ -51,13 +53,12 @@ final class OpProducer0
       Objects.requireNonNull(inParameters, "parameters");
 
     this.port =
-      new RCGPortProduces(
+      context.createProducerPort(
         this,
         new RCGPortName("Port0"),
-        RCGResourcePlaceholderBufferType.class,
         this.parameters.reads(),
-        this.parameters.writes(),
-        Optional.empty()
+        new RCGPortTypeConstraintBuffer<>(RCGResourcePlaceholderBufferType.class),
+        this.parameters.writes()
       );
 
     this.addPort(this.port);
@@ -89,7 +90,7 @@ final class OpProducer0
 
   }
 
-  public RCGPortProduces port()
+  public RCGPortProducerType port()
   {
     return this.port;
   }

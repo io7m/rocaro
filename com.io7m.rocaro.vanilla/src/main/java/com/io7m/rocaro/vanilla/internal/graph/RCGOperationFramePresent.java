@@ -18,12 +18,14 @@
 package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFramePresentType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
-import com.io7m.rocaro.api.graph.RCGPortConsumes;
+import com.io7m.rocaro.api.graph.RCGPortConsumerType;
 import com.io7m.rocaro.api.graph.RCGPortName;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderFrameImageType;
 
 import java.util.Optional;
@@ -41,15 +43,17 @@ public final class RCGOperationFramePresent
   extends RCGOperationAbstract
   implements RCGOperationFramePresentType
 {
-  private final RCGPortConsumes frame;
+  private final RCGPortConsumerType frame;
 
   /**
    * The frame presentation operation.
    *
-   * @param inName The name
+   * @param context The creation context
+   * @param inName  The name
    */
 
   public RCGOperationFramePresent(
+    final RCGOperationCreationContextType context,
     final RCGOperationName inName)
   {
     /*
@@ -63,19 +67,21 @@ public final class RCGOperationFramePresent
 
     this.frame =
       this.addPort(
-        new RCGPortConsumes(
+        context.createConsumerPort(
           this,
           new RCGPortName("Frame"),
-          RCGResourcePlaceholderFrameImageType.class,
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
-          Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
-          Optional.of(LAYOUT_OPTIMAL_FOR_PRESENTATION)
+          new RCGPortTypeConstraintImage<>(
+            RCGResourcePlaceholderFrameImageType.class,
+            Optional.of(LAYOUT_OPTIMAL_FOR_PRESENTATION)
+          ),
+          Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT)
         )
       );
   }
 
   @Override
-  public RCGPortConsumes frame()
+  public RCGPortConsumerType frame()
   {
     return this.frame;
   }

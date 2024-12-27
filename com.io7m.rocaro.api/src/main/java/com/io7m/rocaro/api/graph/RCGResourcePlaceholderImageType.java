@@ -21,7 +21,7 @@ package com.io7m.rocaro.api.graph;
  * The type of resources that are images.
  */
 
-public interface RCGResourcePlaceholderImageType
+public non-sealed interface RCGResourcePlaceholderImageType
   extends RCGResourcePlaceholderType
 {
 

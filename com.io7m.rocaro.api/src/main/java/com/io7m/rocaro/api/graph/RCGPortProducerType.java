@@ -17,19 +17,16 @@
 
 package com.io7m.rocaro.api.graph;
 
-import java.util.Optional;
-
 /**
  * The type of ports that are producers.
  */
 
-public sealed interface RCGPortProducerType
-  extends RCGPortType
-  permits RCGPortModifies, RCGPortProduces
+public non-sealed interface RCGPortProducerType
+  extends RCGPortType, RCGPortSourceType
 {
   /**
-   * @return The image layout assurance, if any
+   * @return The type constraint of the port
    */
 
-  Optional<RCGResourceImageLayout> ensuresImageLayout();
+  RCGPortTypeConstraintType<?> typeProduced();
 }

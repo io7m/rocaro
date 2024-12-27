@@ -104,10 +104,18 @@ public abstract class RCGOperationAbstract
     Objects.requireNonNull(context, "context");
 
     switch (this.status) {
-      case final PreparationFailed s -> throw s.exception();
-      case final Preparing s -> throw this.errorOperationPreparing(s);
-      case final Ready _ -> this.onExecute(context);
-      case final Uninitialized s -> throw this.errorOperationNotPrepared(s);
+      case final PreparationFailed s -> {
+        throw s.exception();
+      }
+      case final Preparing s -> {
+        throw this.errorOperationPreparing(s);
+      }
+      case final Ready _ -> {
+        this.onExecute(context);
+      }
+      case final Uninitialized s -> {
+        throw this.errorOperationNotPrepared(s);
+      }
     }
   }
 
@@ -158,12 +166,18 @@ public abstract class RCGOperationAbstract
     Objects.requireNonNull(context, "context");
 
     switch (this.status) {
-      case final PreparationFailed _ -> this.onPrepare(context);
-      case final Preparing _ -> this.onPrepareCheck(context);
+      case final PreparationFailed _ -> {
+        this.onPrepare(context);
+      }
+      case final Preparing _ -> {
+        this.onPrepareCheck(context);
+      }
       case final Ready _ -> {
         // Nothing to do.
       }
-      case final Uninitialized _ -> this.onPrepare(context);
+      case final Uninitialized _ -> {
+        this.onPrepare(context);
+      }
     }
   }
 

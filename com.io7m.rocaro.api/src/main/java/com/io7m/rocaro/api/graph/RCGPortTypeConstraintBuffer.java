@@ -17,12 +17,28 @@
 
 package com.io7m.rocaro.api.graph;
 
+import java.util.Objects;
+
 /**
- * The type of resources that are buffers.
+ * A constraint that ensures a resource is a buffer.
+ *
+ * @param resourceType The precise resource type
+ * @param <R>          The type of resource
  */
 
-public non-sealed interface RCGResourcePlaceholderBufferType
-  extends RCGResourcePlaceholderType
+public record RCGPortTypeConstraintBuffer<
+  R extends RCGResourcePlaceholderBufferType>(
+  Class<R> resourceType)
+  implements RCGPortTypeConstraintType<R>
 {
+  /**
+   * A constraint that ensures a resource is a buffer.
+   *
+   * @param resourceType The precise resource type
+   */
 
+  public RCGPortTypeConstraintBuffer
+  {
+    Objects.requireNonNull(resourceType, "resourceType");
+  }
 }

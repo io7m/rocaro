@@ -28,5 +28,5 @@ public interface RCGOperationZeroType
    * @return The image to which rendering will occur
    */
 
-  RCGPortModifies frame();
+  RCGPortModifierType frame();
 }

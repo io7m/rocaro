@@ -22,10 +22,11 @@ import com.io7m.rocaro.api.graph.RCGCommandType;
 import com.io7m.rocaro.api.graph.RCGGraphBuilderType;
 import com.io7m.rocaro.api.graph.RCGGraphConnection;
 import com.io7m.rocaro.api.graph.RCGGraphOpConnection;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
 import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.graph.RCGResourceName;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
@@ -43,7 +44,7 @@ import java.util.function.Consumer;
  */
 
 public interface RCGGraphBuilderInternalType
-  extends RCGGraphBuilderType
+  extends RCGGraphBuilderType, RCGOperationCreationContextType
 {
   /**
    * @return The op graph
@@ -91,13 +92,13 @@ public interface RCGGraphBuilderInternalType
    * @return The resource for each port
    */
 
-  HashMap<RCGPortProduces, RCGResourcePlaceholderType> portResources();
+  HashMap<RCGPortProducerType, RCGResourcePlaceholderType> portResources();
 
   /**
    * @return The port for each resource
    */
 
-  HashMap<RCGResourcePlaceholderType, RCGPortProduces> resourcePorts();
+  HashMap<RCGResourcePlaceholderType, RCGPortProducerType> resourcePorts();
 
   /**
    * @return The resources

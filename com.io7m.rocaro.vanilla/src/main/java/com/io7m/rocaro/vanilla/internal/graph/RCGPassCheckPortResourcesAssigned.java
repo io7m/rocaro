@@ -18,9 +18,9 @@
 package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.rocaro.api.graph.RCGGraphException;
-import com.io7m.rocaro.api.graph.RCGPortConsumes;
-import com.io7m.rocaro.api.graph.RCGPortModifies;
-import com.io7m.rocaro.api.graph.RCGPortProduces;
+import com.io7m.rocaro.api.graph.RCGPortConsumerType;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +58,10 @@ public final class RCGPassCheckPortResourcesAssigned
 
     for (final var port : graph.vertexSet()) {
       switch (port) {
-        case final RCGPortProduces p -> {
+        case final RCGPortModifierType _ -> {
+          // Nothing required
+        }
+        case final RCGPortProducerType p -> {
           final var resource =
             builder.portResources().get(p);
 
@@ -69,9 +72,8 @@ public final class RCGPassCheckPortResourcesAssigned
             ++index;
           }
         }
-        case final RCGPortConsumes _,
-             final RCGPortModifies _ -> {
-
+        case final RCGPortConsumerType _ -> {
+          // Nothing required
         }
       }
     }

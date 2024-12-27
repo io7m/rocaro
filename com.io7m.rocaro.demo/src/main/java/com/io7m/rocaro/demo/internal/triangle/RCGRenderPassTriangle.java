@@ -19,12 +19,14 @@ package com.io7m.rocaro.demo.internal.triangle;
 
 import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
+import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
 import com.io7m.rocaro.api.graph.RCGOperationFactoryType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
-import com.io7m.rocaro.api.graph.RCGPortModifies;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
 import com.io7m.rocaro.api.graph.RCGPortName;
+import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderRenderTargetType;
 
 import java.util.Optional;
@@ -41,29 +43,37 @@ import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FO
 public final class RCGRenderPassTriangle
   extends RCGOperationAbstract
 {
-  private final RCGPortModifies frame;
+  private final RCGPortModifierType frame;
 
   /**
    * A simple triangle render pass.
    *
-   * @param inName The name
+   * @param context The context
+   * @param inName  The name
    */
 
   public RCGRenderPassTriangle(
+    final
+    RCGOperationCreationContextType context,
     final RCGOperationName inName)
   {
     super(inName, GRAPHICS);
 
     this.frame =
       this.addPort(
-        new RCGPortModifies(
+        context.createModifierPort(
           this,
           new RCGPortName("Frame"),
-          RCGResourcePlaceholderRenderTargetType.class,
           Set.of(),
+          new RCGPortTypeConstraintImage<>(
+            RCGResourcePlaceholderRenderTargetType.class,
+            Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT)
+          ),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
-          Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT),
-          Optional.empty()
+          new RCGPortTypeConstraintImage<>(
+            RCGResourcePlaceholderRenderTargetType.class,
+            Optional.empty()
+          )
         )
       );
   }
@@ -72,18 +82,18 @@ public final class RCGRenderPassTriangle
    * @return The frame port
    */
 
-  public RCGPortModifies frame()
+  public RCGPortModifierType frame()
   {
     return this.frame;
   }
 
   /**
-   * @return  A simple triangle render pass.
+   * @return A simple triangle render pass.
    */
 
   public static RCGOperationFactoryType<RCGNoParameters, RCGRenderPassTriangle> factory()
   {
-    return (name, _) -> new RCGRenderPassTriangle(name);
+    return (context, name, _) -> new RCGRenderPassTriangle(context, name);
   }
 
   @Override
