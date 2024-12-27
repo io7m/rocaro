@@ -25,7 +25,8 @@ import com.io7m.rocaro.api.RCStandardErrorCodes;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.assets.RCAssetException;
 import com.io7m.rocaro.api.assets.RCAssetIdentifier;
-import com.io7m.rocaro.api.assets.RCAssetLoaderDirectoryType;
+import com.io7m.rocaro.api.assets.RCAssetLoaderFactoryType;
+import com.io7m.rocaro.api.assets.RCAssetParametersType;
 import com.io7m.rocaro.api.assets.RCAssetReferenceType;
 import com.io7m.rocaro.api.assets.RCAssetResolutionContextType;
 import com.io7m.rocaro.api.assets.RCAssetResolverType;
@@ -34,8 +35,10 @@ import com.io7m.rocaro.api.assets.RCAssetType;
 import com.io7m.rocaro.api.assets.RCAssetValueFailed;
 import com.io7m.rocaro.api.assets.RCAssetValueLoading;
 import com.io7m.rocaro.api.assets.RCAssetValueType;
+import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCStrings;
+import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +47,6 @@ import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,33 +69,29 @@ public final class RCAssetService
 
   private final AtomicBoolean closed;
   private final CloseableCollectionType<RocaroException> resources;
-  private final Duration queueFrequency;
   private final ExecutorService ioExecutor;
   private final ExecutorService taskExecutor;
-  private final LinkedBlockingQueue<RCAssetReference<?>> queue;
-  private final RCAssetLoaderDirectoryType loaders;
+  private final LinkedBlockingQueue<RCAssetReference<?, ?>> queue;
   private final RCAssetResolverType resolver;
   private final RCStrings strings;
   private final FileSystem realFileSystem;
   private final FileSystem moduleFileSystem;
+  private final RCDeviceType device;
 
   private RCAssetService(
-    final RCAssetLoaderDirectoryType loaders,
-    final Duration queueFrequency,
-    final RCStrings strings,
-    final RCAssetResolverType inResolver)
+    final RCStrings inStrings,
+    final RCAssetResolverType inResolver,
+    final RCDeviceType inDevice)
   {
-    this.loaders =
-      Objects.requireNonNull(loaders, "loaders");
-    this.queueFrequency =
-      Objects.requireNonNull(queueFrequency, "queueFrequency");
     this.resolver =
       Objects.requireNonNull(inResolver, "resolver");
     this.strings =
-      Objects.requireNonNull(strings, "strings");
+      Objects.requireNonNull(inStrings, "strings");
+    this.device =
+      Objects.requireNonNull(inDevice, "inDevice");
 
     this.resources =
-      RCResourceCollections.create(strings);
+      RCResourceCollections.create(inStrings);
     this.closed =
       new AtomicBoolean(false);
 
@@ -124,23 +122,28 @@ public final class RCAssetService
       new LinkedBlockingQueue<>();
   }
 
+  /**
+   * Create an asset service.
+   *
+   * @param services       The services
+   * @return The asset service
+   */
+
   public static RCAssetService create(
-    final RPServiceDirectoryType services,
-    final Duration queueFrequency)
+    final RPServiceDirectoryType services)
   {
     final var strings =
       services.requireService(RCStrings.class);
     final var resolver =
       services.requireService(RCAssetResolverType.class);
-    final var loaders =
-      services.requireService(RCAssetLoaderDirectoryType.class);
+    final var vulkan =
+      services.requireService(RCVulkanRendererType.class);
 
     final var service =
       new RCAssetService(
-        loaders,
-        queueFrequency,
         strings,
-        resolver
+        resolver,
+        vulkan.device()
       );
 
     service.start();
@@ -160,14 +163,14 @@ public final class RCAssetService
   }
 
   private static void logAssetLoadFailure(
-    final RCAssetReference<?> ref,
+    final RCAssetReference<?, ?> ref,
     final Throwable e)
   {
     final var ev = new RCAssetLoadFailed();
     if (ev.shouldCommit()) {
       ev.packageName = ref.identifier.packageName().value();
       ev.path = ref.identifier.path().toString();
-      ev.assetClass = ref.assetClass.getName();
+      ev.loaderClass = ref.loaders.getClass().getCanonicalName();
       ev.message = e.getMessage();
       ev.begin();
       ev.end();
@@ -185,7 +188,7 @@ public final class RCAssetService
     while (!this.closed.get()) {
       try {
         final var ref =
-          this.queue.poll(this.queueFrequency.toNanos(), TimeUnit.NANOSECONDS);
+          this.queue.poll(1, TimeUnit.SECONDS);
 
         if (ref != null) {
           this.ioExecutor.execute(() -> this.processNewAsset(ref));
@@ -196,8 +199,10 @@ public final class RCAssetService
     }
   }
 
-  private void processNewAsset(
-    final RCAssetReference<?> ref)
+
+  private <P extends RCAssetParametersType, A extends RCAssetType> void
+  processNewAsset(
+    final RCAssetReference<P, A> ref)
   {
     final var ev =
       RCAssetLoading.ofIdentifier(ref.identifier);
@@ -207,10 +212,9 @@ public final class RCAssetService
       try (final var processResources =
              RCResourceCollections.create(this.strings)) {
 
-        final var loaderFactory =
-          this.loaders.findLoaderForClass(ref.assetClass);
         final var loader =
-          processResources.add(loaderFactory.createLoader());
+          processResources.add(ref.loaders.createLoader());
+
         final var context =
           processResources.add(
             new AssetResolutionContext(
@@ -236,6 +240,7 @@ public final class RCAssetService
         final var resolved =
           processResources.add(resolvedOpt.get());
 
+        ref.setValue(loader.load(this.device, ref.parameters, resolved));
       }
     } catch (final Throwable e) {
       logAssetLoadFailure(ref, e);
@@ -246,7 +251,7 @@ public final class RCAssetService
   }
 
   private RCAssetException errorAssetNonexistent(
-    final RCAssetReference<?> ref)
+    final RCAssetReference<?, ?> ref)
   {
     return new RCAssetException(
       this.strings.format(ERROR_ASSET_DOES_NOT_EXIST),
@@ -271,22 +276,24 @@ public final class RCAssetService
   }
 
   @Override
-  public <A extends RCAssetType> RCAssetReferenceType<A> openAsset(
-    final RCAssetIdentifier identifier,
-    final Class<A> assetClass)
-  {
-    Objects.requireNonNull(identifier, "identifier");
-    Objects.requireNonNull(assetClass, "assetClass");
-
-    final var ref = new RCAssetReference<>(identifier, assetClass);
-    this.queue.add(ref);
-    return ref;
-  }
-
-  @Override
   public String description()
   {
     return "Asset service.";
+  }
+
+  @Override
+  public <P extends RCAssetParametersType, A extends RCAssetType>
+  RCAssetReferenceType<A>
+  openAsset(
+    final RCAssetLoaderFactoryType<P, A> loaders,
+    final P parameters,
+    final RCAssetIdentifier identifier)
+  {
+    Objects.requireNonNull(identifier, "identifier");
+
+    final var ref = new RCAssetReference<>(identifier, parameters, loaders);
+    this.queue.add(ref);
+    return ref;
   }
 
   private static final class AssetResolutionContext
@@ -339,21 +346,27 @@ public final class RCAssetService
     }
   }
 
-  private static final class RCAssetReference<A extends RCAssetType>
+  private static final class RCAssetReference<
+    P extends RCAssetParametersType,
+    A extends RCAssetType>
     implements RCAssetReferenceType<A>
   {
     private final RCAssetIdentifier identifier;
-    private final Class<A> assetClass;
-    private AtomicReference<RCAssetValueType<A>> value;
+    private final RCAssetLoaderFactoryType<P, A> loaders;
+    private final P parameters;
+    private final AtomicReference<RCAssetValueType<A>> value;
 
     RCAssetReference(
       final RCAssetIdentifier inIdentifier,
-      final Class<A> inAssetClass)
+      final P parameters,
+      final RCAssetLoaderFactoryType<P, A> inLoaders)
     {
       this.identifier =
         Objects.requireNonNull(inIdentifier, "identifier");
-      this.assetClass =
-        Objects.requireNonNull(inAssetClass, "assetClass");
+      this.loaders =
+        Objects.requireNonNull(inLoaders, "loader");
+      this.parameters =
+        Objects.requireNonNull(parameters, "parameters");
       this.value =
         new AtomicReference<>(
           new RCAssetValueLoading<>(0.0, Optional.empty())

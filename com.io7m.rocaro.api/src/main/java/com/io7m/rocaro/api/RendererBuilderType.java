@@ -17,7 +17,6 @@
 
 package com.io7m.rocaro.api;
 
-import com.io7m.rocaro.api.assets.RCAssetLoaderDirectoryType;
 import com.io7m.rocaro.api.assets.RCAssetResolverType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
 import com.io7m.rocaro.api.graph.RCGGraphBuilderType;
@@ -71,17 +70,6 @@ public interface RendererBuilderType
 
   RendererBuilderType setAssetResolver(
     RCAssetResolverType resolver);
-
-  /**
-   * Set the asset loader directory.
-   *
-   * @param loaders The loaders
-   *
-   * @return this
-   */
-
-  RendererBuilderType setAssetLoaderDirectory(
-    RCAssetLoaderDirectoryType loaders);
 
   /**
    * Set the method used to select a display.

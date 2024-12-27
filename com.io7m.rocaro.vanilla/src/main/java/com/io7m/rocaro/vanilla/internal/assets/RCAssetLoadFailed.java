@@ -42,8 +42,8 @@ public final class RCAssetLoadFailed
   @Label("Message")
   public String message;
 
-  @Label("AssetClass")
-  public String assetClass;
+  @Label("LoaderClass")
+  public String loaderClass;
 
   public RCAssetLoadFailed()
   {

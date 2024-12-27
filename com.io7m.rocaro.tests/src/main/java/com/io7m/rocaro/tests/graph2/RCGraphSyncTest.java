@@ -22,7 +22,6 @@ import com.io7m.rocaro.tests.graph2.OpConsumer0.Parameters;
 import com.io7m.rocaro.vanilla.RCGraph;
 import com.io7m.rocaro.vanilla.internal.graph.RCGDotExporter;
 import com.io7m.rocaro.vanilla.internal.graph.RCGGraphBuilderInternalType;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncCommandType;
 import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSExecute;
 import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageReadBarrier;
 import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageReadBarrierWithQueueTransfer;
@@ -34,6 +33,7 @@ import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryWriteBarrier;
 import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryWriteBarrierWithQueueTransfer;
 import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSRead;
 import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSWrite;
+import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncCommandType;
 import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncDependency;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.AllDirectedPaths;
@@ -69,7 +69,6 @@ import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FO
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET;
 import static java.lang.Integer.MAX_VALUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public final class RCGraphSyncTest

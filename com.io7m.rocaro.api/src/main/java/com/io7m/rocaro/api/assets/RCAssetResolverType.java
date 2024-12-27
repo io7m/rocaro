@@ -21,9 +21,24 @@ import com.io7m.repetoir.core.RPServiceType;
 
 import java.util.Optional;
 
+/**
+ * An asset resolver.
+ */
+
 public interface RCAssetResolverType
   extends RPServiceType
 {
+  /**
+   * Resolve an asset.
+   *
+   * @param context    The resolution context
+   * @param identifier The asset identifier
+   *
+   * @return The result of resolution
+   *
+   * @throws RCAssetException On errors
+   */
+
   Optional<RCAssetResolvedType> resolve(
     RCAssetResolutionContextType context,
     RCAssetIdentifier identifier)

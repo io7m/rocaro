@@ -17,11 +17,11 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Constant;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Post;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Pre;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.PreAndPost;
+import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.tests.graph2.OpImageModifier0.Parameters;
 import com.io7m.rocaro.vanilla.RCGraph;
 import org.junit.jupiter.api.Test;

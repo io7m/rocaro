@@ -19,8 +19,8 @@ package com.io7m.rocaro.tests.graph2;
 
 import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.api.graph.RCGResourceFactoryType;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
 import com.io7m.rocaro.api.graph.RCGResourceName;
+import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
 
 import java.util.Objects;
 

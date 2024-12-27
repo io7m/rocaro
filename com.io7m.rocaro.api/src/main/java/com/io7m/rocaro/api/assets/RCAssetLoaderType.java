@@ -23,23 +23,28 @@ import com.io7m.rocaro.api.devices.RCDeviceType;
 /**
  * An asset loader.
  *
+ * @param <P> The asset parameters
  * @param <A> The asset type
  */
 
-public interface RCAssetLoaderType<A extends RCAssetType>
+public interface RCAssetLoaderType<
+  P extends RCAssetParametersType,
+  A extends RCAssetType>
   extends RCCloseableType
 {
   /**
    * Load an asset.
    *
-   * @param device The device
-   * @param asset  The asset
+   * @param device     The device
+   * @param parameters The parameters
+   * @param asset      The asset
    *
    * @return The loaded asset
    */
 
   RCAssetValueType<A> load(
     RCDeviceType device,
+    P parameters,
     RCAssetResolvedType asset
   );
 }

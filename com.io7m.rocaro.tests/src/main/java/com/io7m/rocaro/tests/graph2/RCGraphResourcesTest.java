@@ -17,8 +17,8 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.api.graph.RCGGraphException;
+import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.vanilla.RCGraph;
 import org.junit.jupiter.api.Test;
 

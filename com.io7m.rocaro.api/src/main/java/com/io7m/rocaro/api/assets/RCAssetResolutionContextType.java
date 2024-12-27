@@ -20,11 +20,27 @@ package com.io7m.rocaro.api.assets;
 import java.lang.foreign.Arena;
 import java.nio.file.FileSystem;
 
+/**
+ * The context supplied during asset resolution.
+ */
+
 public interface RCAssetResolutionContextType
 {
+  /**
+   * @return The arena for allocations and memory mapping
+   */
+
   Arena arena();
 
+  /**
+   * @return The real filesystem
+   */
+
   FileSystem realFileSystem();
+
+  /**
+   * @return The module filesystem
+   */
 
   FileSystem moduleFileSystem();
 }

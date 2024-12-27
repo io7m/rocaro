@@ -33,7 +33,6 @@ import com.io7m.rocaro.api.RendererBuilderType;
 import com.io7m.rocaro.api.RendererType;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
-import com.io7m.rocaro.api.assets.RCAssetLoaderDirectoryType;
 import com.io7m.rocaro.api.assets.RCAssetResolverType;
 import com.io7m.rocaro.api.assets.RCAssetServiceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionFullscreenPrimary;
@@ -43,7 +42,6 @@ import com.io7m.rocaro.api.graph.RCGGraphException;
 import com.io7m.rocaro.api.graph.RCGGraphType;
 import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.api.transfers.RCTransferServiceType;
-import com.io7m.rocaro.vanilla.RCAssetLoaderDirectory;
 import com.io7m.rocaro.vanilla.RCAssetResolvers;
 import com.io7m.rocaro.vanilla.RCGraph;
 import com.io7m.rocaro.vanilla.internal.assets.RCAssetService;
@@ -93,7 +91,6 @@ public final class RendererBuilder
   private RendererVulkanConfiguration vulkanConfiguration;
   private RCDisplaySelectionType displaySelection;
   private RCAssetResolverType resolver;
-  private RCAssetLoaderDirectoryType loaders;
 
   /**
    * A renderer builder.
@@ -132,10 +129,6 @@ public final class RendererBuilder
     this.resolver =
       RCAssetResolvers.builder(locale)
         .build();
-
-    this.loaders =
-      RCAssetLoaderDirectory.builder(locale)
-        .build();
   }
 
   @Override
@@ -159,14 +152,6 @@ public final class RendererBuilder
     final RCAssetResolverType inResolver)
   {
     this.resolver = Objects.requireNonNull(inResolver, "resolver");
-    return this;
-  }
-
-  @Override
-  public RendererBuilderType setAssetLoaderDirectory(
-    final RCAssetLoaderDirectoryType inLoaders)
-  {
-    this.loaders = Objects.requireNonNull(inLoaders, "loaders");
     return this;
   }
 
@@ -237,15 +222,6 @@ public final class RendererBuilder
         resources,
         RCAssetResolverType.class,
         () -> this.resolver
-      );
-
-      createService(
-        exceptions,
-        services,
-        executors,
-        resources,
-        RCAssetLoaderDirectoryType.class,
-        () -> this.loaders
       );
 
       createService(
@@ -340,11 +316,7 @@ public final class RendererBuilder
         executors,
         resources,
         RCAssetServiceType.class,
-        () -> {
-          return RCAssetService.create(
-            services, Duration.of(16L, ChronoUnit.MILLIS)
-          );
-        }
+        () -> RCAssetService.create(services)
       );
 
       exceptions.throwIfNecessary();

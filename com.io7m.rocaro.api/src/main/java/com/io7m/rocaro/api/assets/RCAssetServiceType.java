@@ -29,14 +29,19 @@ public interface RCAssetServiceType
   /**
    * Asynchronously start loading an asset.
    *
+   * @param loader     The loader
    * @param identifier The asset identifier
-   * @param assetClass The asset class
+   * @param parameters The asset parameters
+   * @param <P>        The type of asset parameters
    * @param <A>        The asset type
    *
    * @return The asset reference
    */
 
-  <A extends RCAssetType> RCAssetReferenceType<A> openAsset(
-    RCAssetIdentifier identifier,
-    Class<A> assetClass);
+  <P extends RCAssetParametersType, A extends RCAssetType>
+  RCAssetReferenceType<A> openAsset(
+    RCAssetLoaderFactoryType<P, A> loader,
+    P parameters,
+    RCAssetIdentifier identifier
+  );
 }

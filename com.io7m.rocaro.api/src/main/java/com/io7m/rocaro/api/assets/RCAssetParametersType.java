@@ -14,32 +14,13 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.rocaro.api.assets;
 
 /**
- * A mutable builder for constructing asset loader directories.
+ * The base type of asset parameters.
  */
 
-public interface RCAssetLoaderDirectoryBuilderType
+public interface RCAssetParametersType
 {
-  /**
-   * Add a loader factory.
-   *
-   * @param factory The factory
-   *
-   * @return this
-   *
-   * @throws RCAssetException On errors
-   */
 
-  RCAssetLoaderDirectoryBuilderType addLoader(
-    RCAssetLoaderFactoryType<?> factory)
-    throws RCAssetException;
-
-  /**
-   * @return An immutable asset loader directory
-   */
-
-  RCAssetLoaderDirectoryType build();
 }
