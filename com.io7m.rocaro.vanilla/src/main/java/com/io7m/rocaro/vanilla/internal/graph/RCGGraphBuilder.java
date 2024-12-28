@@ -48,10 +48,10 @@ import com.io7m.rocaro.api.graph.RCGResourceParametersType;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderFrameImageType;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 import com.io7m.rocaro.api.graph.RCGraphName;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGPassSync;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSExecute;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncCommandType;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncDependency;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGPassSync;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSExecute;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncCommandType;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncDependency;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 

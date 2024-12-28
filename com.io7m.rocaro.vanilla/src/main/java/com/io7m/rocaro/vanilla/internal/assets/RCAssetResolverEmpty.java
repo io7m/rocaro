@@ -26,10 +26,18 @@ import com.io7m.rocaro.api.assets.RCAssetResolverType;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * The empty asset resolver.
+ */
+
 public final class RCAssetResolverEmpty
   extends RCObject
   implements RCAssetResolverType
 {
+  /**
+   * The empty asset resolver.
+   */
+
   public RCAssetResolverEmpty()
   {
 

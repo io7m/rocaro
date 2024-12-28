@@ -15,39 +15,21 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
-
-import java.util.Objects;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 /**
- * An indication that the source operation <i>happens before</i> the target
- * operation.
- *
- * @param source The source operation
- * @param target The target operation
+ * The base type of commands that are barriers.
  */
 
-public record RCGSyncDependency(
-  RCGSyncCommandType source,
-  RCGSyncCommandType target)
+public sealed interface RCGSBarrierType
+  extends RCGSyncCommandType
+  permits RCGSBarrierWithQueueTransferType,
+  RCGSReadBarrierType,
+  RCGSWriteBarrierType
 {
   /**
-   * An indication that the source operation <i>happens before</i> the target
-   * operation.
-   *
-   * @param source The source operation
-   * @param target The target operation
+   * @return The execution that owns the barrier
    */
 
-  public RCGSyncDependency
-  {
-    Objects.requireNonNull(source, "before");
-    Objects.requireNonNull(target, "after");
-  }
-
-  @Override
-  public String toString()
-  {
-    return "[%s → %s]".formatted(this.source, this.target);
-  }
+  RCGSExecute owner();
 }

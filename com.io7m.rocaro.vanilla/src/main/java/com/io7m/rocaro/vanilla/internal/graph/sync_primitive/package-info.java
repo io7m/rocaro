@@ -15,10 +15,10 @@
  */
 
 /**
- * 3D rendering system (Vanilla implementation [Render graph [sync]]).
+ * 3D rendering system (Vanilla implementation [Render graph [sync_primitive]]).
  */
 
 @Version("1.0.0")
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import org.osgi.annotation.versioning.Version;

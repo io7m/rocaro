@@ -17,19 +17,19 @@
 
 package com.io7m.rocaro.vanilla.internal.graph;
 
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSExecute;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageReadBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageReadBarrierWithQueueTransfer;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageWriteBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageWriteBarrierWithQueueTransfer;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryReadBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryReadBarrierWithQueueTransfer;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryWriteBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryWriteBarrierWithQueueTransfer;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSRead;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSWrite;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncCommandType;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncDependency;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSExecute;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSImageReadBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSImageReadBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSImageWriteBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSImageWriteBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSMemoryReadBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSMemoryReadBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSMemoryWriteBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSMemoryWriteBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSRead;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSWrite;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncCommandType;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncDependency;
 import org.jgrapht.Graph;
 import org.jgrapht.nio.DefaultAttribute;
 import org.jgrapht.nio.dot.DOTExporter;
@@ -44,17 +44,17 @@ import static org.jgrapht.nio.AttributeType.DOUBLE;
 import static org.jgrapht.nio.AttributeType.STRING;
 
 /**
- * A dot exporter for render graphs.
+ * A dot exporter for render graphs, showing primitive synchronization.
  */
 
-public final class RCGDotExporter
+public final class RCGDotExporterSyncPrimitive
   implements AutoCloseable
 {
   private final Writer writer;
   private final DOTExporter<RCGSyncCommandType, RCGSyncDependency> exporter;
   private final Graph<RCGSyncCommandType, RCGSyncDependency> graph;
 
-  private RCGDotExporter(
+  private RCGDotExporterSyncPrimitive(
     final Writer inWriter,
     final DOTExporter<RCGSyncCommandType, RCGSyncDependency> inExporter,
     final Graph<RCGSyncCommandType, RCGSyncDependency> inGraph)
@@ -80,7 +80,7 @@ public final class RCGDotExporter
    * @return The exporter
    */
 
-  public static RCGDotExporter open(
+  public static RCGDotExporterSyncPrimitive open(
     final Writer writer,
     final Graph<RCGSyncCommandType, RCGSyncDependency> graph,
     final String name)
@@ -143,7 +143,7 @@ public final class RCGDotExporter
       );
     });
 
-    return new RCGDotExporter(writer, exporter, graph);
+    return new RCGDotExporterSyncPrimitive(writer, exporter, graph);
   }
 
   private static String fixName(

@@ -87,6 +87,6 @@ module com.io7m.rocaro.vanilla
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.frames
     to com.io7m.rocaro.tests, com.io7m.rocaro.demo;
-  exports com.io7m.rocaro.vanilla.internal.graph.sync
+  exports com.io7m.rocaro.vanilla.internal.graph.sync_primitive
     to com.io7m.rocaro.tests;
 }

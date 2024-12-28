@@ -30,9 +30,9 @@ import com.io7m.rocaro.api.graph.RCGPortProducerType;
 import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.graph.RCGResourceName;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSExecute;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncCommandType;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncDependency;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSExecute;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncCommandType;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncDependency;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 
 import java.util.HashMap;
@@ -71,13 +71,13 @@ public interface RCGGraphBuilderInternalType
   DirectedAcyclicGraph<RCGPortType, RCGGraphConnection> graph();
 
   /**
-   * @return The sync graph
+   * @return The sync_primitive graph
    */
 
   DirectedAcyclicGraph<RCGSyncCommandType, RCGSyncDependency> syncGraph();
 
   /**
-   * @return The map of operations to their execution sync commands
+   * @return The map of operations to their execution sync_primitive commands
    */
 
   HashMap<RCGOperationType, RCGSExecute> syncOpCommands();

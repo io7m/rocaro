@@ -15,8 +15,9 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
+import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
@@ -24,42 +25,50 @@ import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 import java.util.Objects;
 
 /**
- * An image read barrier.
+ * An image write barrier including a queue transfer.
  */
 
-public final class RCGSImageReadBarrier
+public final class RCGSImageWriteBarrierWithQueueTransfer
   extends RCGSAbstractCommand
-  implements RCGSReadType, RCGSReadBarrierType
+  implements RCGSWriteType,
+  RCGSWriteBarrierType,
+  RCGSBarrierWithQueueTransferType
 {
   private final RCGSExecute owner;
   private final RCGResourcePlaceholderType resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
-  private final RCGCommandPipelineStage blocksReadAt;
+  private final RCGCommandPipelineStage blocksWriteAt;
   private final RCGResourceImageLayout layoutFrom;
   private final RCGResourceImageLayout layoutTo;
+  private final RCDeviceQueueCategory queueSource;
+  private final RCDeviceQueueCategory queueTarget;
 
   /**
-   * An image read barrier.
+   * An image write barrier including a queue transfer.
    *
-   * @param id                The command ID
+   * @param inId              The command ID
    * @param inOwner           The command owner
    * @param inResource        The resource
-   * @param inBlocksReadAt    The read access stage that will be blocked
+   * @param inBlocksWriteAt   The read access stage that will be blocked
    * @param inWaitsForWriteAt The write access stage that will unblock the barrier
    * @param inLayoutFrom      The source layout
    * @param inLayoutTo        The target layout
+   * @param inQueueSource     The source queue category
+   * @param inQueueTarget     The target queue category
    */
 
-  public RCGSImageReadBarrier(
-    final long id,
+  public RCGSImageWriteBarrierWithQueueTransfer(
+    final long inId,
     final RCGSExecute inOwner,
     final RCGResourcePlaceholderType inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
-    final RCGCommandPipelineStage inBlocksReadAt,
+    final RCGCommandPipelineStage inBlocksWriteAt,
     final RCGResourceImageLayout inLayoutFrom,
-    final RCGResourceImageLayout inLayoutTo)
+    final RCGResourceImageLayout inLayoutTo,
+    final RCDeviceQueueCategory inQueueSource,
+    final RCDeviceQueueCategory inQueueTarget)
   {
-    super(id);
+    super(inId);
 
     this.owner =
       Objects.requireNonNull(inOwner, "owner");
@@ -67,18 +76,28 @@ public final class RCGSImageReadBarrier
       Objects.requireNonNull(inResource, "resource");
     this.waitsForWriteAt =
       Objects.requireNonNull(inWaitsForWriteAt, "waitsForWriteAt");
-    this.blocksReadAt =
-      Objects.requireNonNull(inBlocksReadAt, "blocksReadAt");
+    this.blocksWriteAt =
+      Objects.requireNonNull(inBlocksWriteAt, "blocksWriteAt");
     this.layoutFrom =
       Objects.requireNonNull(inLayoutFrom, "layoutFrom");
     this.layoutTo =
       Objects.requireNonNull(inLayoutTo, "layoutTo");
+    this.queueSource =
+      Objects.requireNonNull(inQueueSource, "queueSource");
+    this.queueTarget =
+      Objects.requireNonNull(inQueueTarget, "queueTarget");
   }
 
   @Override
   public RCGSExecute owner()
   {
     return this.owner;
+  }
+
+  @Override
+  public RCGCommandPipelineStage writeStage()
+  {
+    return this.blocksWriteAt;
   }
 
   @Override
@@ -97,12 +116,12 @@ public final class RCGSImageReadBarrier
   }
 
   /**
-   * @return The read access that will be blocked until this barrier completes
+   * @return The write access that will be blocked until this barrier completes
    */
 
-  public RCGCommandPipelineStage blocksReadAt()
+  public RCGCommandPipelineStage blocksWriteAt()
   {
-    return this.blocksReadAt;
+    return this.blocksWriteAt;
   }
 
   /**
@@ -121,5 +140,17 @@ public final class RCGSImageReadBarrier
   public RCGResourceImageLayout layoutTo()
   {
     return this.layoutTo;
+  }
+
+  @Override
+  public RCDeviceQueueCategory queueSource()
+  {
+    return this.queueSource;
+  }
+
+  @Override
+  public RCDeviceQueueCategory queueTarget()
+  {
+    return this.queueTarget;
   }
 }

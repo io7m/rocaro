@@ -39,12 +39,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * An asset resolver that inspects a filesystem.
+ */
+
 public final class RCAssetResolverFS
   extends RCObject
   implements RCAssetResolverType
 {
   private final Path baseDirectory;
   private final RCStrings strings;
+
+  /**
+   * An asset resolver that inspects a filesystem.
+   *
+   * @param inStrings       The string resources
+   * @param inBaseDirectory The base directory
+   */
 
   public RCAssetResolverFS(
     final RCStrings inStrings,

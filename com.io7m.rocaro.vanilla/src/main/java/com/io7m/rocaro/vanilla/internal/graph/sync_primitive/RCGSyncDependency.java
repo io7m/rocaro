@@ -15,40 +15,39 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
-import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import java.util.Objects;
 
 /**
- * The type of commands that perform read accesses at a particular stage.
+ * An indication that the source operation <i>happens before</i> the target
+ * operation.
+ *
+ * @param source The source operation
+ * @param target The target operation
  */
 
-public sealed interface RCGSReadType
-  extends RCGSyncCommandType permits RCGSImageReadBarrier,
-  RCGSImageReadBarrierWithQueueTransfer,
-  RCGSMemoryReadBarrier,
-  RCGSMemoryReadBarrierWithQueueTransfer,
-  RCGSRead
+public record RCGSyncDependency(
+  RCGSyncCommandType source,
+  RCGSyncCommandType target)
 {
   /**
-   * @return The operation that owns this command
+   * An indication that the source operation <i>happens before</i> the target
+   * operation.
+   *
+   * @param source The source operation
+   * @param target The target operation
    */
 
-  default RCGOperationType operation()
+  public RCGSyncDependency
   {
-    return this.owner().operation();
+    Objects.requireNonNull(source, "before");
+    Objects.requireNonNull(target, "after");
   }
 
-  /**
-   * @return The execution command that owns the read access
-   */
-
-  RCGSExecute owner();
-
-  /**
-   * @return The resource
-   */
-
-  RCGResourcePlaceholderType resource();
+  @Override
+  public String toString()
+  {
+    return "[%s → %s]".formatted(this.source, this.target);
+  }
 }

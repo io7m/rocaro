@@ -31,12 +31,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * The main implementation of asset resolvers.
+ */
+
 public final class RCAssetResolvers
 {
   private RCAssetResolvers()
   {
 
   }
+
+  /**
+   * Create a new asset resolver builder.
+   *
+   * @param locale The locale for error messages
+   *
+   * @return The builder
+   */
 
   public static RCAssetResolverBuilderType builder(
     final Locale locale)

@@ -15,21 +15,17 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 /**
- * The base type of commands that are barriers.
+ * The type of write barriers.
  */
 
-public sealed interface RCGSBarrierType
-  extends RCGSyncCommandType
-  permits RCGSBarrierWithQueueTransferType,
-  RCGSReadBarrierType,
-  RCGSWriteBarrierType
+public sealed interface RCGSWriteBarrierType
+  extends RCGSBarrierType permits RCGSImageWriteBarrier,
+  RCGSImageWriteBarrierWithQueueTransfer,
+  RCGSMemoryWriteBarrier,
+  RCGSMemoryWriteBarrierWithQueueTransfer
 {
-  /**
-   * @return The execution that owns the barrier
-   */
 
-  RCGSExecute owner();
 }

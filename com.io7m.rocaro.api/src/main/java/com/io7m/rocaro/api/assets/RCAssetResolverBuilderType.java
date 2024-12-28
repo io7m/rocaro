@@ -21,16 +21,41 @@ import com.io7m.lanark.core.RDottedName;
 
 import java.nio.file.Path;
 
+/**
+ * A mutable builder for producing asset resolvers.
+ */
+
 public interface RCAssetResolverBuilderType
 {
+  /**
+   * Add a base directory that will be inspected for assets.
+   *
+   * @param directory The directory
+   *
+   * @return this
+   */
+
   RCAssetResolverBuilderType addBaseDirectory(
     Path directory
   );
+
+  /**
+   * Add a package that will be inspected for assets.
+   *
+   * @param module      The module
+   * @param packageName The package name
+   *
+   * @return this
+   */
 
   RCAssetResolverBuilderType addPackage(
     Module module,
     RDottedName packageName
   );
+
+  /**
+   * @return An asset resolver
+   */
 
   RCAssetResolverType build();
 }

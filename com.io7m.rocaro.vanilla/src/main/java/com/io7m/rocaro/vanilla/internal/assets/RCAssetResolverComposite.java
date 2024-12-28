@@ -28,11 +28,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * A composite asset resolver that inspects many delegate resolvers.
+ */
+
 public final class RCAssetResolverComposite
   extends RCObject
   implements RCAssetResolverType
 {
   private final List<RCAssetResolverType> resolvers;
+
+  /**
+   * A composite asset resolver that inspects many delegate resolvers.
+   *
+   * @param inResolvers The resolvers
+   */
 
   public RCAssetResolverComposite(
     final List<RCAssetResolverType> inResolvers)

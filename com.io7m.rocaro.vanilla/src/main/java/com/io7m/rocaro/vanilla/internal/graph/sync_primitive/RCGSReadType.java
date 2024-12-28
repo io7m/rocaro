@@ -15,18 +15,40 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
+
+import com.io7m.rocaro.api.graph.RCGOperationType;
+import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 
 /**
- * The type of read barriers.
+ * The type of commands that perform read accesses at a particular stage.
  */
 
-public sealed interface RCGSReadBarrierType
-  extends RCGSBarrierType
-  permits RCGSImageReadBarrier,
+public sealed interface RCGSReadType
+  extends RCGSyncCommandType permits RCGSImageReadBarrier,
   RCGSImageReadBarrierWithQueueTransfer,
   RCGSMemoryReadBarrier,
-  RCGSMemoryReadBarrierWithQueueTransfer
+  RCGSMemoryReadBarrierWithQueueTransfer,
+  RCGSRead
 {
+  /**
+   * @return The operation that owns this command
+   */
 
+  default RCGOperationType operation()
+  {
+    return this.owner().operation();
+  }
+
+  /**
+   * @return The execution command that owns the read access
+   */
+
+  RCGSExecute owner();
+
+  /**
+   * @return The resource
+   */
+
+  RCGResourcePlaceholderType resource();
 }

@@ -15,45 +15,48 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
+import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGSubmissionID;
+import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 
 /**
- * The base type of synchronization commands.
+ * The type of commands that perform write accesses at a particular stage.
  */
 
-public sealed interface RCGSyncCommandType
-  permits RCGSBarrierType,
-  RCGSReadType,
-  RCGSWriteType,
-  RCGSExecute
+public sealed interface RCGSWriteType
+  extends RCGSyncCommandType
+  permits RCGSImageWriteBarrier,
+  RCGSImageWriteBarrierWithQueueTransfer,
+  RCGSMemoryWriteBarrier,
+  RCGSMemoryWriteBarrierWithQueueTransfer,
+  RCGSWrite
 {
   /**
-   * @return The unique-within-a-graph command ID
+   * @return The operation that owns this command
    */
 
-  long commandId();
+  default RCGOperationType operation()
+  {
+    return this.owner().operation();
+  }
 
   /**
-   * @return The queue submission to which the command belongs
+   * @return The execution command that owns the write access
    */
 
-  RCGSubmissionID submission();
+  RCGSExecute owner();
 
   /**
-   * @return The operation that owns the command
+   * @return The stage at which the write access occurs
    */
 
-  RCGOperationType operation();
+  RCGCommandPipelineStage writeStage();
 
   /**
-   * Set the queue submission for the command.
-   *
-   * @param submission The queue submission
+   * @return The resource
    */
 
-  void setSubmission(
-    RCGSubmissionID submission);
+  RCGResourcePlaceholderType resource();
 }

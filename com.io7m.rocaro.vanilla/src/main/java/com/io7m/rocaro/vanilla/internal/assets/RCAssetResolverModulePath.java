@@ -38,6 +38,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * An asset resolver that inspects a package on the module path.
+ */
+
 public final class RCAssetResolverModulePath
   extends RCObject
   implements RCAssetResolverType
@@ -45,6 +49,14 @@ public final class RCAssetResolverModulePath
   private final RCStrings strings;
   private final Module module;
   private final RDottedName packageName;
+
+  /**
+   * An asset resolver that inspects a package on the module path.
+   *
+   * @param inStrings     The string resources
+   * @param inModule      The module
+   * @param inPackageName The package name
+   */
 
   public RCAssetResolverModulePath(
     final RCStrings inStrings,

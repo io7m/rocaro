@@ -20,21 +20,21 @@ package com.io7m.rocaro.tests.graph2;
 import com.io7m.rocaro.api.graph.RCGGraphException;
 import com.io7m.rocaro.tests.graph2.OpConsumer0.Parameters;
 import com.io7m.rocaro.vanilla.RCGraph;
-import com.io7m.rocaro.vanilla.internal.graph.RCGDotExporter;
+import com.io7m.rocaro.vanilla.internal.graph.RCGDotExporterSyncPrimitive;
 import com.io7m.rocaro.vanilla.internal.graph.RCGGraphBuilderInternalType;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSExecute;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageReadBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageReadBarrierWithQueueTransfer;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageWriteBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSImageWriteBarrierWithQueueTransfer;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryReadBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryReadBarrierWithQueueTransfer;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryWriteBarrier;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSMemoryWriteBarrierWithQueueTransfer;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSRead;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSWrite;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncCommandType;
-import com.io7m.rocaro.vanilla.internal.graph.sync.RCGSyncDependency;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSExecute;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSImageReadBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSImageReadBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSImageWriteBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSImageWriteBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSMemoryReadBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSMemoryReadBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSMemoryWriteBarrier;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSMemoryWriteBarrierWithQueueTransfer;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSRead;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSWrite;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncCommandType;
+import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncDependency;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.AllDirectedPaths;
 import org.jgrapht.graph.DirectedAcyclicGraph;
@@ -1705,7 +1705,7 @@ public final class RCGraphSyncTest
     final String name)
   {
     try (final var writer = new StringWriter()) {
-      try (final var exporter = RCGDotExporter.open(writer, g, name)) {
+      try (final var exporter = RCGDotExporterSyncPrimitive.open(writer, g, name)) {
         exporter.execute();
       }
       writer.append('\n');

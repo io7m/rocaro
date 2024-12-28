@@ -15,42 +15,51 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
+import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 
 import java.util.Objects;
 
 /**
- * A memory write barrier.
+ * A memory write barrier including a queue transfer.
  */
 
-public final class RCGSMemoryWriteBarrier
+public final class RCGSMemoryWriteBarrierWithQueueTransfer
   extends RCGSAbstractCommand
-  implements RCGSWriteType, RCGSWriteBarrierType
+  implements RCGSWriteType,
+  RCGSWriteBarrierType,
+  RCGSBarrierWithQueueTransferType
 {
   private final RCGSExecute owner;
   private final RCGResourcePlaceholderType resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
   private final RCGCommandPipelineStage blocksWriteAt;
+  private final RCDeviceQueueCategory queueSource;
+  private final RCDeviceQueueCategory queueTarget;
 
   /**
-   * A memory write barrier.
+   * A memory write barrier including a queue transfer.
    *
    * @param id                The command ID
    * @param inOwner           The command owner
    * @param inResource        The resource
    * @param inBlocksWriteAt   The write access stage that will be blocked
    * @param inWaitsForWriteAt The write access stage that will unblock the barrier
+   * @param inQueueSource     The source queue category
+   * @param inQueueTarget     The target queue category
    */
 
-  public RCGSMemoryWriteBarrier(
+  public RCGSMemoryWriteBarrierWithQueueTransfer(
     final long id,
     final RCGSExecute inOwner,
     final RCGResourcePlaceholderType inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
-    final RCGCommandPipelineStage inBlocksWriteAt)
+    final RCGCommandPipelineStage inBlocksWriteAt,
+    final RCDeviceQueueCategory inQueueSource,
+    final RCDeviceQueueCategory inQueueTarget)
   {
     super(id);
 
@@ -62,6 +71,10 @@ public final class RCGSMemoryWriteBarrier
       Objects.requireNonNull(inWaitsForWriteAt, "waitsForWriteAt");
     this.blocksWriteAt =
       Objects.requireNonNull(inBlocksWriteAt, "blocksWriteAt");
+    this.queueSource =
+      Objects.requireNonNull(inQueueSource, "queueSource");
+    this.queueTarget =
+      Objects.requireNonNull(inQueueTarget, "queueTarget");
   }
 
   @Override
@@ -98,5 +111,17 @@ public final class RCGSMemoryWriteBarrier
   public RCGCommandPipelineStage blocksWriteAt()
   {
     return this.blocksWriteAt;
+  }
+
+  @Override
+  public RCDeviceQueueCategory queueSource()
+  {
+    return this.queueSource;
+  }
+
+  @Override
+  public RCDeviceQueueCategory queueTarget()
+  {
+    return this.queueTarget;
   }
 }

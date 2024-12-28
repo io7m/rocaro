@@ -70,7 +70,7 @@ public abstract class RCDemoAbstract implements QCommandType
 
   private static final QParameterNamed1<Boolean> VULKAN_VALIDATE_SYNC =
     new QParameterNamed1<>(
-      "--vulkan-validation-sync",
+      "--vulkan-validation-sync_primitive",
       List.of(),
       new QConstant("Enable/disable Vulkan synchronization validation."),
       Optional.of(Boolean.TRUE),

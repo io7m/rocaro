@@ -15,51 +15,49 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
-import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
+import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
 import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
 
 import java.util.Objects;
 
 /**
- * A memory write barrier including a queue transfer.
+ * An image write barrier.
  */
 
-public final class RCGSMemoryWriteBarrierWithQueueTransfer
+public final class RCGSImageWriteBarrier
   extends RCGSAbstractCommand
-  implements RCGSWriteType,
-  RCGSWriteBarrierType,
-  RCGSBarrierWithQueueTransferType
+  implements RCGSWriteType, RCGSWriteBarrierType
 {
   private final RCGSExecute owner;
   private final RCGResourcePlaceholderType resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
   private final RCGCommandPipelineStage blocksWriteAt;
-  private final RCDeviceQueueCategory queueSource;
-  private final RCDeviceQueueCategory queueTarget;
+  private final RCGResourceImageLayout layoutFrom;
+  private final RCGResourceImageLayout layoutTo;
 
   /**
-   * A memory write barrier including a queue transfer.
+   * An image write barrier.
    *
    * @param id                The command ID
    * @param inOwner           The command owner
    * @param inResource        The resource
    * @param inBlocksWriteAt   The write access stage that will be blocked
    * @param inWaitsForWriteAt The write access stage that will unblock the barrier
-   * @param inQueueSource     The source queue category
-   * @param inQueueTarget     The target queue category
+   * @param inLayoutFrom      The source layout
+   * @param inLayoutTo        The target layout
    */
 
-  public RCGSMemoryWriteBarrierWithQueueTransfer(
+  public RCGSImageWriteBarrier(
     final long id,
     final RCGSExecute inOwner,
     final RCGResourcePlaceholderType inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
     final RCGCommandPipelineStage inBlocksWriteAt,
-    final RCDeviceQueueCategory inQueueSource,
-    final RCDeviceQueueCategory inQueueTarget)
+    final RCGResourceImageLayout inLayoutFrom,
+    final RCGResourceImageLayout inLayoutTo)
   {
     super(id);
 
@@ -71,10 +69,10 @@ public final class RCGSMemoryWriteBarrierWithQueueTransfer
       Objects.requireNonNull(inWaitsForWriteAt, "waitsForWriteAt");
     this.blocksWriteAt =
       Objects.requireNonNull(inBlocksWriteAt, "blocksWriteAt");
-    this.queueSource =
-      Objects.requireNonNull(inQueueSource, "queueSource");
-    this.queueTarget =
-      Objects.requireNonNull(inQueueTarget, "queueTarget");
+    this.layoutFrom =
+      Objects.requireNonNull(inLayoutFrom, "layoutFrom");
+    this.layoutTo =
+      Objects.requireNonNull(inLayoutTo, "layoutTo");
   }
 
   @Override
@@ -113,15 +111,21 @@ public final class RCGSMemoryWriteBarrierWithQueueTransfer
     return this.blocksWriteAt;
   }
 
-  @Override
-  public RCDeviceQueueCategory queueSource()
+  /**
+   * @return The source layout
+   */
+
+  public RCGResourceImageLayout layoutFrom()
   {
-    return this.queueSource;
+    return this.layoutFrom;
   }
 
-  @Override
-  public RCDeviceQueueCategory queueTarget()
+  /**
+   * @return The target layout
+   */
+
+  public RCGResourceImageLayout layoutTo()
   {
-    return this.queueTarget;
+    return this.layoutTo;
   }
 }

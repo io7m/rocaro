@@ -15,7 +15,7 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.jaffirm.core.Invariants;
 import com.io7m.jaffirm.core.Postconditions;

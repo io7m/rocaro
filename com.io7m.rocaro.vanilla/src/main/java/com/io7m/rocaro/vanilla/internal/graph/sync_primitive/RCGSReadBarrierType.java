@@ -15,17 +15,18 @@
  */
 
 
-package com.io7m.rocaro.vanilla.internal.graph.sync;
+package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 /**
- * The type of write barriers.
+ * The type of read barriers.
  */
 
-public sealed interface RCGSWriteBarrierType
-  extends RCGSBarrierType permits RCGSImageWriteBarrier,
-  RCGSImageWriteBarrierWithQueueTransfer,
-  RCGSMemoryWriteBarrier,
-  RCGSMemoryWriteBarrierWithQueueTransfer
+public sealed interface RCGSReadBarrierType
+  extends RCGSBarrierType
+  permits RCGSImageReadBarrier,
+  RCGSImageReadBarrierWithQueueTransfer,
+  RCGSMemoryReadBarrier,
+  RCGSMemoryReadBarrierWithQueueTransfer
 {
 
 }
