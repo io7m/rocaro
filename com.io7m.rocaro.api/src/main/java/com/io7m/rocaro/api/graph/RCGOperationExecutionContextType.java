@@ -19,6 +19,7 @@ package com.io7m.rocaro.api.graph;
 
 import com.io7m.rocaro.api.RCFrameInformation;
 import com.io7m.rocaro.api.resources.RCResourceType;
+import com.io7m.rocaro.api.services.RCServiceFrameScopedType;
 
 /**
  * The contextual information provided to executing operations.
@@ -41,7 +42,7 @@ public interface RCGOperationExecutionContextType
    * @return A frame-scoped service
    */
 
-  <T extends RCGFrameScopedServiceType> T frameScopedService(
+  <T extends RCServiceFrameScopedType> T frameScopedService(
     Class<T> serviceClass);
 
   /**
@@ -49,11 +50,13 @@ public interface RCGOperationExecutionContextType
    *
    * @param port     The port
    * @param resource The resource
+   * @param <R>      The type of resource
    */
 
+  <R extends RCResourceType>
   void portWrite(
-    RCGPortSourceType port,
-    RCResourceType resource
+    RCGPortSourceType<R> port,
+    R resource
   );
 
   /**
@@ -67,7 +70,7 @@ public interface RCGOperationExecutionContextType
    */
 
   <R extends RCResourceType> R portRead(
-    RCGPortTargetType port,
+    RCGPortTargetType<R> port,
     Class<R> resourceType
   );
 }

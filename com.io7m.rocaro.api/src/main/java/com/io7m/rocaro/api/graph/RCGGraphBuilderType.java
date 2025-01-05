@@ -17,6 +17,10 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.render_targets.RCPresentationRenderTargetSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceType;
+
 /**
  * The type of mutable builders to construct graphs.
  */
@@ -33,7 +37,9 @@ public interface RCGGraphBuilderType
    * @throws RCGGraphException On errors
    */
 
-  RCGResourcePlaceholderFrameImageType declareFrameResource(
+  RCGResourceVariable<
+    RCPresentationRenderTargetSchematicType>
+  declareFrameResource(
     RCGResourceName name)
     throws RCGGraphException;
 
@@ -47,7 +53,9 @@ public interface RCGGraphBuilderType
    * @throws RCGGraphException On errors
    */
 
-  default RCGResourcePlaceholderFrameImageType declareFrameResource(
+  default RCGResourceVariable<
+    RCPresentationRenderTargetSchematicType>
+  declareFrameResource(
     final String name)
     throws RCGGraphException
   {
@@ -169,47 +177,42 @@ public interface RCGGraphBuilderType
    * Declare a resource.
    *
    * @param name       The resource name
-   * @param factory    The resource factory
    * @param parameters The resource parameters
-   * @param <P>        The type of parameters
-   * @param <R>        The type of resource
+   * @param <S>        The type of resource schematic
    *
    * @return The resource
    *
    * @throws RCGGraphException On errors
    */
 
-  <P extends RCGResourceParametersType, R extends RCGResourcePlaceholderType>
-  R declareResource(
+  <S extends RCResourceSchematicType>
+  RCGResourceVariable<S>
+  declareResource(
     RCGResourceName name,
-    RCGResourceFactoryType<P, R> factory,
-    P parameters)
+    S parameters)
     throws RCGGraphException;
 
   /**
    * Declare a resource.
    *
    * @param name       The resource name
-   * @param factory    The resource factory
    * @param parameters The resource parameters
-   * @param <P>        The type of parameters
-   * @param <R>        The type of resource
+   * @param <S>        The type of resource schematic
    *
    * @return The resource
    *
    * @throws RCGGraphException On errors
    */
 
-  default <P extends RCGResourceParametersType, R extends RCGResourcePlaceholderType>
-  R declareResource(
+  default <S extends RCResourceSchematicType>
+  RCGResourceVariable<S>
+  declareResource(
     final String name,
-    final RCGResourceFactoryType<P, R> factory,
-    final P parameters)
+    final S parameters)
     throws RCGGraphException
   {
     return this.declareResource(
       new RCGResourceName(name),
-      factory,
       parameters
     );
   }
@@ -219,13 +222,16 @@ public interface RCGGraphBuilderType
    *
    * @param port     The port
    * @param resource The resource
+   * @param <R>      The type of resource
+   * @param <S>      The type of resource schematic
    *
    * @throws RCGGraphException On errors
    */
 
+  <R extends RCResourceType, S extends RCResourceSchematicType>
   void resourceAssign(
-    RCGPortProducerType port,
-    RCGResourcePlaceholderType resource)
+    RCGPortProducerType<? extends R> port,
+    RCGResourceVariable<? extends S> resource)
     throws RCGGraphException;
 
   /**
@@ -233,13 +239,16 @@ public interface RCGGraphBuilderType
    *
    * @param source The source port
    * @param target The target port
+   * @param <S>    The source resource type
+   * @param <T>    The target resource type
    *
    * @throws RCGGraphException On errors
    */
 
+  <T extends RCResourceType, S extends T>
   void connect(
-    RCGPortSourceType source,
-    RCGPortTargetType target)
+    RCGPortSourceType<S> source,
+    RCGPortTargetType<T> target)
     throws RCGGraphException;
 
   /**

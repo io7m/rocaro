@@ -20,7 +20,6 @@ package com.io7m.rocaro.vanilla;
 import com.io7m.lanark.core.RDottedName;
 import com.io7m.rocaro.api.assets.RCAssetResolverBuilderType;
 import com.io7m.rocaro.api.assets.RCAssetResolverType;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.assets.RCAssetResolverComposite;
 import com.io7m.rocaro.vanilla.internal.assets.RCAssetResolverFS;
 import com.io7m.rocaro.vanilla.internal.assets.RCAssetResolverModulePath;

@@ -19,6 +19,8 @@ package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.rocaro.api.graph.RCGGraphException;
 
+import java.util.Set;
+
 /**
  * A check executed over a graph builder.
  */
@@ -36,4 +38,10 @@ public interface RCGGraphPassType
   void process(
     RCGGraphBuilderInternalType builder)
     throws RCGGraphException;
+
+  /**
+   * @return The advisory dependencies
+   */
+
+  Set<Class<? extends RCGGraphPassType>> executesAfter();
 }

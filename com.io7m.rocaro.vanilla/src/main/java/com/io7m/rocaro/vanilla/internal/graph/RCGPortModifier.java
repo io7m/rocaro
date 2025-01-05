@@ -22,7 +22,9 @@ import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortModifierType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintType;
 
 import java.util.Objects;
 import java.util.Set;
@@ -33,19 +35,23 @@ import java.util.Set;
  * @param owner          The owner
  * @param name           The name
  * @param readsOnStages  The stages at which the resource is read
- * @param typeConsumed           The resource type constraint (on input)
+ * @param typeConsumed   The resource type constraint (on input)
  * @param writesOnStages The stages at which the resource is written
- * @param typeProduced The resource type constraint (on output)
+ * @param typeProduced   The resource type constraint (on output)
+ * @param <S>            The resource schematic type
+ * @param <R>            The resource type
  */
 
-public record RCGPortModifier(
+public record RCGPortModifier<
+  R extends RCResourceType,
+  S extends RCResourceSchematicType>(
   RCGOperationType owner,
   RCGPortName name,
   Set<RCGCommandPipelineStage> readsOnStages,
-  RCGPortTypeConstraintType<?> typeConsumed,
+  RCSchematicConstraintType<S> typeConsumed,
   Set<RCGCommandPipelineStage> writesOnStages,
-  RCGPortTypeConstraintType<?> typeProduced)
-  implements RCGPortModifierType
+  RCSchematicConstraintType<S> typeProduced)
+  implements RCGPortModifierType<R>
 {
   /**
    * A modifier port.
@@ -53,9 +59,9 @@ public record RCGPortModifier(
    * @param owner          The owner
    * @param name           The name
    * @param readsOnStages  The stages at which the resource is read
-   * @param typeConsumed           The resource type constraint (on input)
+   * @param typeConsumed   The resource type constraint (on input)
    * @param writesOnStages The stages at which the resource is written
-   * @param typeProduced The resource type constraint (on output)
+   * @param typeProduced   The resource type constraint (on output)
    */
 
   public RCGPortModifier
@@ -72,10 +78,10 @@ public record RCGPortModifier(
 
     Preconditions.checkPreconditionV(
       typeConsumed,
-      typeConsumed.resourceType() == typeProduced.resourceType(),
+      typeConsumed.requiresResourceClass() == typeProduced.requiresResourceClass(),
       "Modifier ports cannot change the types of resources (consumes %s but produces %s).",
-      typeConsumed.resourceType(),
-      typeConsumed.resourceType()
+      typeConsumed.requiresResourceClass(),
+      typeConsumed.requiresResourceClass()
     );
   }
 }

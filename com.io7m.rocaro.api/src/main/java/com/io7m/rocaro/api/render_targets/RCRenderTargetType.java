@@ -17,14 +17,31 @@
 
 package com.io7m.rocaro.api.render_targets;
 
-import com.io7m.rocaro.api.resources.RCResourceType;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.resources.RCResourceCompositeType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicRenderTargetType;
+
+import java.util.List;
 
 /**
  * A render target.
  */
 
 public interface RCRenderTargetType
-  extends RCResourceType
+  extends RCResourceCompositeType
 {
+  /**
+   * @return The depth attachment
+   */
 
+  RCRenderTargetDepthAttachmentType depthAttachment();
+
+  /**
+   * @return The color attachments
+   */
+
+  List<RCImage2DType> colorAttachments();
+
+  @Override
+  RCResourceSchematicRenderTargetType schematic();
 }

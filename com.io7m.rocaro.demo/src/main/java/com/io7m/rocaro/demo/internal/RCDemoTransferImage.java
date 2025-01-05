@@ -26,7 +26,7 @@ import com.io7m.rocaro.api.RCFrameInformation;
 import com.io7m.rocaro.api.RCFrameNumber;
 import com.io7m.rocaro.api.RendererFactoryType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
-import com.io7m.rocaro.api.transfers.RCTransferImageColorBasic;
+import com.io7m.rocaro.api.transfers.RCTransferImage2D;
 import com.io7m.rocaro.api.transfers.RCTransferServiceType;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameServiceType;
 
@@ -91,7 +91,7 @@ public final class RCDemoTransferImage
 
       final var future =
         transfers.transfer(
-          RCTransferImageColorBasic.builder()
+          RCTransferImage2D.builder()
             .setFinalLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
             .setFormat(VK_FORMAT_R8_UNORM)
             .setId(UUID.randomUUID())

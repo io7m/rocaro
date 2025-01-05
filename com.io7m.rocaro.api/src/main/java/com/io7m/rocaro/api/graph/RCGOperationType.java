@@ -40,7 +40,7 @@ public interface RCGOperationType
    * @return The operation's ports
    */
 
-  Map<RCGPortName, RCGPortType> ports();
+  Map<RCGPortName, RCGPortType<?>> ports();
 
   /**
    * @return The queue category upon which the operation executes

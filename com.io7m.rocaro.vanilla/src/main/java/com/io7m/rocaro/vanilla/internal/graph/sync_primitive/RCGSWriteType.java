@@ -19,7 +19,7 @@ package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
 
 /**
  * The type of commands that perform write accesses at a particular stage.
@@ -58,5 +58,5 @@ public sealed interface RCGSWriteType
    * @return The resource
    */
 
-  RCGResourcePlaceholderType resource();
+  RCGResourceVariable<?> resource();
 }

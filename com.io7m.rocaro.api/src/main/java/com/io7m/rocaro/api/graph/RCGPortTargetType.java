@@ -17,12 +17,16 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.resources.RCResourceType;
+
 /**
  * The port types that can be targets for connections.
+ *
+ * @param <R> The resource type
  */
 
-public sealed interface RCGPortTargetType
-  extends RCGPortType
+public sealed interface RCGPortTargetType<R extends RCResourceType>
+  extends RCGPortType<R>
   permits RCGPortModifierType, RCGPortConsumerType
 {
 

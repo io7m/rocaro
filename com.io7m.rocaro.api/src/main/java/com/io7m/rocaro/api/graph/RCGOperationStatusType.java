@@ -28,6 +28,12 @@ import java.util.Objects;
 public sealed interface RCGOperationStatusType
 {
   /**
+   * @return The progress of preparation for the operation
+   */
+
+  double progress();
+
+  /**
    * The operation is not initialized, and no attempt has been made to
    * prepare it.
    */
@@ -39,7 +45,13 @@ public sealed interface RCGOperationStatusType
      * prepare it.
      */
 
-    UNINITIALIZED
+    UNINITIALIZED;
+
+    @Override
+    public double progress()
+    {
+      return 0.0;
+    }
   }
 
   /**
@@ -71,14 +83,19 @@ public sealed interface RCGOperationStatusType
    * The operation is ready.
    */
 
-  enum Ready
-    implements RCGOperationStatusType
+  enum Ready implements RCGOperationStatusType
   {
     /**
      * The operation is ready.
      */
 
-    READY
+    READY;
+
+    @Override
+    public double progress()
+    {
+      return 1.0;
+    }
   }
 
   /**
@@ -100,6 +117,12 @@ public sealed interface RCGOperationStatusType
     public PreparationFailed
     {
       Objects.requireNonNull(exception, "exception");
+    }
+
+    @Override
+    public double progress()
+    {
+      return 0.0;
     }
   }
 }

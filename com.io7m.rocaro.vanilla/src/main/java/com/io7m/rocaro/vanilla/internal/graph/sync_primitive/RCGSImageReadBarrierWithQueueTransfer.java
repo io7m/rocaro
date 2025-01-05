@@ -17,10 +17,11 @@
 
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
-import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+import com.io7m.rocaro.api.graph.RCGSubmissionID;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImageType;
 
 import java.util.Objects;
 
@@ -33,13 +34,13 @@ public final class RCGSImageReadBarrierWithQueueTransfer
   implements RCGSReadType, RCGSReadBarrierType, RCGSBarrierWithQueueTransferType
 {
   private final RCGSExecute owner;
-  private final RCGResourcePlaceholderType resource;
+  private final RCGResourceVariable<? extends RCResourceSchematicImageType> resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
   private final RCGCommandPipelineStage blocksReadAt;
   private final RCGResourceImageLayout layoutFrom;
   private final RCGResourceImageLayout layoutTo;
-  private final RCDeviceQueueCategory queueSource;
-  private final RCDeviceQueueCategory queueTarget;
+  private final RCGSubmissionID queueSource;
+  private final RCGSubmissionID queueTarget;
 
   /**
    * An image read barrier including a queue transfer.
@@ -58,13 +59,13 @@ public final class RCGSImageReadBarrierWithQueueTransfer
   public RCGSImageReadBarrierWithQueueTransfer(
     final long inId,
     final RCGSExecute inOwner,
-    final RCGResourcePlaceholderType inResource,
+    final RCGResourceVariable<? extends RCResourceSchematicImageType> inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
     final RCGCommandPipelineStage inBlocksReadAt,
     final RCGResourceImageLayout inLayoutFrom,
     final RCGResourceImageLayout inLayoutTo,
-    final RCDeviceQueueCategory inQueueSource,
-    final RCDeviceQueueCategory inQueueTarget)
+    final RCGSubmissionID inQueueSource,
+    final RCGSubmissionID inQueueTarget)
   {
     super(inId);
 
@@ -93,24 +94,18 @@ public final class RCGSImageReadBarrierWithQueueTransfer
   }
 
   @Override
-  public RCGResourcePlaceholderType resource()
+  public RCGResourceVariable<? extends RCResourceSchematicImageType> resource()
   {
     return this.resource;
   }
 
-  /**
-   * @return The stage at which the barrier will wait for writes
-   */
-
+  @Override
   public RCGCommandPipelineStage waitsForWriteAt()
   {
     return this.waitsForWriteAt;
   }
 
-  /**
-   * @return The read access that will be blocked until this barrier completes
-   */
-
+  @Override
   public RCGCommandPipelineStage blocksReadAt()
   {
     return this.blocksReadAt;
@@ -135,13 +130,13 @@ public final class RCGSImageReadBarrierWithQueueTransfer
   }
 
   @Override
-  public RCDeviceQueueCategory queueSource()
+  public RCGSubmissionID queueSource()
   {
     return this.queueSource;
   }
 
   @Override
-  public RCDeviceQueueCategory queueTarget()
+  public RCGSubmissionID queueTarget()
   {
     return this.queueTarget;
   }

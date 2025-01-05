@@ -18,6 +18,7 @@
 package com.io7m.rocaro.vanilla.internal.vulkan;
 
 import com.io7m.jcoronado.api.VulkanApplicationInfo;
+import com.io7m.jcoronado.api.VulkanCommandPoolCreateInfo;
 import com.io7m.jcoronado.api.VulkanCommandPoolType;
 import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanExtensionProperties;
@@ -49,9 +50,9 @@ import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacadeType;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCVersions;
 import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
@@ -75,6 +76,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
 
+import static com.io7m.jcoronado.api.VulkanCommandPoolCreateFlag.VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 import static com.io7m.rocaro.api.RCStandardErrorCodes.VULKAN_VERSION_UNSUPPORTED;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_VULKAN_VERSION_UNSUPPORTED;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_VULKAN_VERSION_UNSUPPORTED_REMEDIATION;
@@ -109,7 +111,7 @@ public final class RCVulkanRenderer
   private final RCWindowWithSurfaceType windowWithSurface;
   private final VulkanPhysicalDeviceType physicalDevice;
   private final RCDevice logicalDevice;
-  private final Map<RCFrameIndex, RCVulkanFrameStateType> frameStates;
+  private final Map<RCFrameIndex, Frame> frames;
   private final RCRendererID rendererId;
 
   private RCVulkanRenderer(
@@ -120,7 +122,7 @@ public final class RCVulkanRenderer
     final RCWindowWithSurfaceType inWindowWithSurface,
     final VulkanPhysicalDeviceType inPhysicalDevice,
     final RCDevice inLogicalDevice,
-    final Map<RCFrameIndex, RCVulkanFrameStateType> inFrameStates,
+    final Map<RCFrameIndex, Frame> inFrameStates,
     final RCRendererID inRendererId)
   {
     this.resources =
@@ -137,7 +139,7 @@ public final class RCVulkanRenderer
       Objects.requireNonNull(inPhysicalDevice, "physicalDevice");
     this.logicalDevice =
       Objects.requireNonNull(inLogicalDevice, "logicalDevice");
-    this.frameStates =
+    this.frames =
       Objects.requireNonNull(inFrameStates, "frameStates");
     this.rendererId =
       Objects.requireNonNull(inRendererId, "rendererId");
@@ -214,8 +216,7 @@ public final class RCVulkanRenderer
         configureInstanceExtensions(
           instances,
           glfw,
-          window,
-          configuration
+          window
         );
       final var enableLayers =
         configureInstanceLayers(instances, configuration);
@@ -241,7 +242,7 @@ public final class RCVulkanRenderer
       LOG.debug("Created Vulkan instance.");
 
       LOG.debug("Configuring debugging.");
-      configureDebugging(strings, resources, instance);
+      configureDebugging(resources, instance);
 
       LOG.debug("Creating rendering surface.");
       final var windowWithSurface =
@@ -298,21 +299,19 @@ public final class RCVulkanRenderer
       LOG.debug("Creating per-frame state.");
       final var maxFrames =
         windowWithSurface.maximumFramesInFlight();
-      final var frameStates =
-        new HashMap<RCFrameIndex, RCVulkanFrameStateType>(maxFrames);
+      LOG.trace("Maximum frames in flight: {}", maxFrames);
+      final var frames =
+        new HashMap<RCFrameIndex, Frame>(maxFrames);
 
       for (var index = 0; index < maxFrames; ++index) {
         final var frameIndex =
           new RCFrameIndex(index);
-        final var frameState =
-          resources.add(
-            RCVulkanFrameState.create(
-              strings,
-              logicalDevice,
-              frameIndex
-            )
-          );
-        frameStates.put(frameIndex, frameState);
+        final var commandPool =
+          createCommandPool(logicalDevice, frameIndex);
+        final var frame =
+          new Frame(logicalDevice, commandPool, frameIndex);
+
+        frames.put(frameIndex, frame);
       }
 
       return new RCVulkanRenderer(
@@ -323,7 +322,7 @@ public final class RCVulkanRenderer
         windowWithSurface,
         physicalDevice,
         logicalDevice,
-        frameStates,
+        frames,
         rendererId
       );
     } catch (final Throwable e) {
@@ -333,8 +332,38 @@ public final class RCVulkanRenderer
     }
   }
 
+  private static VulkanCommandPoolType createCommandPool(
+    final RCDevice logicalDevice,
+    final RCFrameIndex frameIndex)
+    throws RCVulkanException
+  {
+    try {
+      final var info =
+        VulkanCommandPoolCreateInfo.builder()
+          .addFlags(VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)
+          .setQueueFamilyIndex(logicalDevice.graphicsQueue().queueFamilyIndex())
+          .build();
+
+      final var commandPool =
+        logicalDevice.registerResource(
+          logicalDevice.device().createCommandPool(info)
+        );
+
+      final var debugging =
+        logicalDevice.device()
+          .debugging();
+
+      debugging.setObjectName(
+        commandPool,
+        "FrameCommandPool[FrameIndex %s]".formatted(frameIndex.value())
+      );
+      return commandPool;
+    } catch (final VulkanException e) {
+      throw RCVulkanException.wrap(e);
+    }
+  }
+
   private static void configureDebugging(
-    final RCStrings strings,
     final CloseableCollectionType<RocaroException> resources,
     final VulkanInstanceType instance)
     throws RCVulkanException
@@ -507,8 +536,7 @@ public final class RCVulkanRenderer
   private static Set<String> configureInstanceExtensions(
     final VulkanInstanceProviderType instances,
     final RCGLFWFacadeType glfw,
-    final RCWindowType window,
-    final RendererVulkanConfiguration configuration)
+    final RCWindowType window)
     throws RCVulkanException
   {
     try {
@@ -651,32 +679,28 @@ public final class RCVulkanRenderer
   }
 
   @Override
-  public RCVulkanFrameContextType acquireFrame(
-    final RCFrameIndex frame)
+  public RCVulkanFrameType acquireFrame(
+    final RCFrameIndex frameIndex)
     throws RCVulkanException, TimeoutException
   {
-    Objects.requireNonNull(frame, "frame");
+    Objects.requireNonNull(frameIndex, "frame");
 
     RCThreadLabels.checkThreadLabelsAny(GPU);
 
     try {
       final var windowContext =
         this.windowWithSurface.acquireFrame(
-          frame,
+          frameIndex,
           this.configuration.imageAcquisitionTimeout()
         );
 
-      final var frameState =
-        this.frameStates.get(frame);
-
+      final var frame =
+        this.frames.get(frameIndex);
       this.logicalDevice.device()
-        .resetCommandPool(frameState.commandPool());
+        .resetCommandPool(frame.commandPool());
 
-      return new FrameContext(
-        windowContext,
-        this.logicalDevice,
-        frameState
-      );
+      frame.setWindowContext(windowContext);
+      return frame;
     } catch (final VulkanException e) {
       throw RCVulkanException.wrap(e);
     }
@@ -705,24 +729,31 @@ public final class RCVulkanRenderer
     this.resources.close();
   }
 
-  private static final class FrameContext
-    implements RCVulkanFrameContextType
+  @Override
+  public RCRendererID rendererId()
   {
-    private final RCWindowFrameContextType windowFrameContext;
-    private final RCDeviceType logicalDevice;
-    private final RCVulkanFrameStateType frameState;
+    return this.rendererId;
+  }
 
-    private FrameContext(
-      final RCWindowFrameContextType inWindowFrameContext,
+  private static final class Frame
+    implements RCVulkanFrameType
+  {
+    private final RCDeviceType logicalDevice;
+    private final RCFrameIndex frameIndex;
+    private final VulkanCommandPoolType commandPool;
+    private RCWindowFrameContextType windowFrameContext;
+
+    private Frame(
       final RCDeviceType inLogicalDevice,
-      final RCVulkanFrameStateType inFrameState)
+      final VulkanCommandPoolType inCommandPool,
+      final RCFrameIndex inFrameIndex)
     {
-      this.windowFrameContext =
-        Objects.requireNonNull(inWindowFrameContext, "windowFrameContext");
       this.logicalDevice =
         Objects.requireNonNull(inLogicalDevice, "logicalDevice");
-      this.frameState =
-        Objects.requireNonNull(inFrameState, "frameState");
+      this.commandPool =
+        Objects.requireNonNull(inCommandPool, "inCommandPool");
+      this.frameIndex =
+        Objects.requireNonNull(inFrameIndex, "frameIndex");
     }
 
     @Override
@@ -740,14 +771,26 @@ public final class RCVulkanRenderer
     @Override
     public VulkanCommandPoolType commandPool()
     {
-      return this.frameState.commandPool();
+      return this.commandPool;
     }
 
     @Override
-    public void close()
-      throws RocaroException
+    public RCFrameIndex frameIndex()
     {
-      this.windowFrameContext.close();
+      return this.frameIndex;
+    }
+
+    @Override
+    public String description()
+    {
+      return "Vulkan frame context.";
+    }
+
+    void setWindowContext(
+      final RCWindowFrameContextType inWindowContext)
+    {
+      this.windowFrameContext =
+        Objects.requireNonNull(inWindowContext, "windowContext");
     }
   }
 }

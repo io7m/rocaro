@@ -18,7 +18,6 @@
 package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.rocaro.api.RocaroException;
-import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
 import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
@@ -28,15 +27,22 @@ import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationZeroType;
 import com.io7m.rocaro.api.graph.RCGPortModifierType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderRenderTargetType;
+import com.io7m.rocaro.api.graph.RCNoParameters;
+import com.io7m.rocaro.api.images.RCImage2DType;
 import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
+import com.io7m.rocaro.api.resources.RCDepthComponents;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImage2DType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicRenderTargetType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintImage2D;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintRenderTarget;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_CLEAR;
+import static com.io7m.rocaro.api.graph.RCGOperationStatusType.Ready.READY;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET;
 
 /**
@@ -47,7 +53,7 @@ public final class RCGOperationZero
   extends RCGOperationAbstract
   implements RCGOperationZeroType
 {
-  private final RCGPortModifierType frame;
+  private final RCGPortModifierType<RCRenderTargetType> frame;
 
   /**
    * An operation that zeroes out the primary color attachment.
@@ -62,30 +68,56 @@ public final class RCGOperationZero
   {
     super(inName, GRAPHICS);
 
+    final var inputConstraint =
+      new RCSchematicConstraintRenderTarget<>(
+        RCRenderTargetType.class,
+        RCResourceSchematicRenderTargetType.class,
+        List.of(
+          new RCSchematicConstraintImage2D<>(
+            RCImage2DType.class,
+            RCResourceSchematicImage2DType.class,
+            Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET),
+            false
+          )
+        ),
+        Optional.empty()
+      );
+
+    final var outputConstraint =
+      new RCSchematicConstraintRenderTarget<>(
+        RCRenderTargetType.class,
+        RCResourceSchematicRenderTargetType.class,
+        List.of(
+          new RCSchematicConstraintImage2D<>(
+            RCImage2DType.class,
+            RCResourceSchematicImage2DType.class,
+            Optional.empty(),
+            false
+          )
+        ),
+        Optional.empty()
+      );
+
     this.frame =
       this.addPort(
         context.createModifierPort(
           this,
           new RCGPortName("Frame"),
           Set.of(),
-          new RCGPortTypeConstraintImage<>(
-            RCGResourcePlaceholderRenderTargetType.class,
-            Optional.of(LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET)
-          ),
+          inputConstraint,
           Set.of(STAGE_TRANSFER_CLEAR),
-          new RCGPortTypeConstraintImage<>(
-            RCGResourcePlaceholderRenderTargetType.class,
-            Optional.empty()
-          )
+          outputConstraint
         )
       );
+
+    this.setStatus(READY);
   }
 
   /**
    * @return An operation that zeroes out the primary color attachment.
    */
 
-  public static RCGOperationFactoryType<RCGNoParameters, RCGOperationZeroType> factory()
+  public static RCGOperationFactoryType<RCNoParameters, RCGOperationZeroType> factory()
   {
     return (context, name, _) -> new RCGOperationZero(context, name);
   }
@@ -98,7 +130,6 @@ public final class RCGOperationZero
     final var frameImage =
       context.portRead(this.frame, RCRenderTargetType.class);
 
-    
   }
 
   @Override
@@ -110,7 +141,7 @@ public final class RCGOperationZero
   }
 
   @Override
-  protected void onPrepareCheck(
+  protected void onPrepareContinue(
     final RCGOperationPreparationContextType context)
     throws RocaroException
   {
@@ -118,7 +149,7 @@ public final class RCGOperationZero
   }
 
   @Override
-  public RCGPortModifierType frame()
+  public RCGPortModifierType<RCRenderTargetType> frame()
   {
     return this.frame;
   }

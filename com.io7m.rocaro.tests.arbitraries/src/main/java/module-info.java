@@ -15,8 +15,6 @@
  */
 
 
-import net.jqwik.api.providers.ArbitraryProvider;
-
 /**
  * 3D rendering system (Arbitrary instances).
  */
@@ -27,11 +25,6 @@ open module com.io7m.rocaro.tests.arbitraries
   requires static org.osgi.annotation.versioning;
 
   requires net.jqwik.api;
-  requires com.io7m.rocaro.api;
-  requires com.io7m.jtensors.core;
-
-  provides ArbitraryProvider with
-    com.io7m.rocaro.tests.arbitraries.RCArbImageSizeExpression;
 
   exports com.io7m.rocaro.tests.arbitraries;
 }

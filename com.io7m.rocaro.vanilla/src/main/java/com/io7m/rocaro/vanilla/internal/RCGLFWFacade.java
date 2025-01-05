@@ -23,6 +23,7 @@ import com.io7m.jtensors.core.unparameterized.vectors.Vector3I;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.displays.RCDisplay;
 import com.io7m.rocaro.api.displays.RCDisplayMode;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;

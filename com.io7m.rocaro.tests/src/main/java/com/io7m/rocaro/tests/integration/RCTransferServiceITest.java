@@ -34,9 +34,9 @@ import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.devices.RCDeviceType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
-import com.io7m.rocaro.api.transfers.RCTransferImageColorBasic;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.transfers.RCTransferImage2D;
 import com.io7m.rocaro.api.transfers.RCTransferServiceType;
-import com.io7m.rocaro.vanilla.internal.images.RCImageColorBasic;
 import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.renderdoc.RCRenderDocServiceType;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
@@ -138,7 +138,7 @@ public final class RCTransferServiceITest
 
     final var future =
       this.transfers.transfer(
-        RCTransferImageColorBasic.builder()
+        RCTransferImage2D.builder()
           .setFinalLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
           .setFormat(VulkanFormat.VK_FORMAT_R8_UNORM)
           .setSize(Vector2I.of(8, 8))
@@ -153,7 +153,7 @@ public final class RCTransferServiceITest
     this.executeWaitingFrames();
 
     LOG.debug("Waiting for transfer...");
-    final var r = (RCImageColorBasic)
+    final var r = (RCImage2DType)
       future.get(5L, TimeUnit.SECONDS);
     LOG.debug("Transferred: {}", r);
 
@@ -181,7 +181,7 @@ public final class RCTransferServiceITest
   {
     final var future =
       this.transfers.transfer(
-        RCTransferImageColorBasic.builder()
+        RCTransferImage2D.builder()
           .setFinalLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
           .setFormat(VulkanFormat.VK_FORMAT_R8_UNORM)
           .setSize(Vector2I.of(8, 8))
@@ -196,7 +196,7 @@ public final class RCTransferServiceITest
     this.executeWaitingFrames();
 
     LOG.debug("Waiting for transfer...");
-    final var r = (RCImageColorBasic)
+    final var r = (RCImage2DType)
       future.get(5L, TimeUnit.SECONDS);
     LOG.debug("Transferred: {}", r);
 

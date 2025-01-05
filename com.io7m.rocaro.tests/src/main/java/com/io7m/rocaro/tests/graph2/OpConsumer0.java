@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.tests.graph2;
 
+import com.io7m.rocaro.api.buffers.RCBufferType;
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
@@ -29,8 +30,8 @@ import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortConsumerType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintBuffer;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderBufferType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintBuffer;
 
 import java.util.Objects;
 import java.util.Set;
@@ -40,7 +41,7 @@ final class OpConsumer0
   implements RCGOperationType
 {
   private final Parameters parameters;
-  private final RCGPortConsumerType port;
+  private final RCGPortConsumerType<RCBufferType> port;
 
   public OpConsumer0(
     final RCGOperationCreationContextType context,
@@ -57,7 +58,10 @@ final class OpConsumer0
         this,
         new RCGPortName("Port0"),
         this.parameters.reads(),
-        new RCGPortTypeConstraintBuffer<>(RCGResourcePlaceholderBufferType.class),
+        new RCSchematicConstraintBuffer<>(
+          RCBufferType.class,
+          RCResourceSchematicBufferType.class
+        ),
         this.parameters.writes()
       );
 
@@ -77,7 +81,7 @@ final class OpConsumer0
   }
 
   @Override
-  protected void onPrepareCheck(
+  protected void onPrepareContinue(
     final RCGOperationPreparationContextType context)
   {
 
@@ -90,7 +94,7 @@ final class OpConsumer0
 
   }
 
-  public RCGPortConsumerType port()
+  public RCGPortConsumerType<RCBufferType> port()
   {
     return this.port;
   }

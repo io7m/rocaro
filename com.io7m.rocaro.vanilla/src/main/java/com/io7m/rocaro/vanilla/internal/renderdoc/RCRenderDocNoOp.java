@@ -19,19 +19,27 @@ package com.io7m.rocaro.vanilla.internal.renderdoc;
 
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCRendererID;
+
+import java.util.Objects;
 
 final class RCRenderDocNoOp
   extends RCObject
   implements RCRenderDocServiceType, RCCloseableType
 {
-  private RCRenderDocNoOp()
-  {
+  private final RCRendererID rendererId;
 
+  private RCRenderDocNoOp(
+    final RCRendererID inRendererId)
+  {
+    this.rendererId =
+      Objects.requireNonNull(inRendererId, "rendererId");
   }
 
-  public static RCRenderDocServiceType create()
+  public static RCRenderDocServiceType create(
+    final RCRendererID rendererId)
   {
-    return new RCRenderDocNoOp();
+    return new RCRenderDocNoOp(rendererId);
   }
 
   @Override
@@ -50,5 +58,11 @@ final class RCRenderDocNoOp
   public void triggerCapture()
   {
 
+  }
+
+  @Override
+  public RCRendererID rendererId()
+  {
+    return this.rendererId;
   }
 }

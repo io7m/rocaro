@@ -18,13 +18,14 @@
 package com.io7m.rocaro.api.assets;
 
 import com.io7m.repetoir.core.RPServiceType;
+import com.io7m.rocaro.api.services.RCServiceRendererScopedType;
 
 /**
  * A service used to asynchronously load assets.
  */
 
 public interface RCAssetServiceType
-  extends RPServiceType
+  extends RPServiceType, RCServiceRendererScopedType
 {
   /**
    * Asynchronously start loading an asset.

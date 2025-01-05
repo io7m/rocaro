@@ -17,9 +17,14 @@
 
 package com.io7m.rocaro.tests.graph2;
 
+import com.io7m.jcoronado.api.VulkanFormat;
+import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
 import com.io7m.rocaro.api.graph.RCGGraphException;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImage2DType;
 import com.io7m.rocaro.tests.graph2.OpConsumer0.Parameters;
 import com.io7m.rocaro.vanilla.RCGraph;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.graph.RCGDotExporterSyncPrimitive;
 import com.io7m.rocaro.vanilla.internal.graph.RCGGraphBuilderInternalType;
 import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSExecute;
@@ -48,6 +53,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -62,7 +68,6 @@ import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_RENDER_COL
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_CLEAR;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_COPY;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_TRANSFER_RESOLVE;
-import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_ATTACHMENT;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_PRESENTATION;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_SHADER_READ;
@@ -76,16 +81,44 @@ public final class RCGraphSyncTest
   private static final Logger LOG =
     LoggerFactory.getLogger(RCGraphSyncTest.class);
 
+  private static final RCResourceSchematicBufferType ANY_BUFFER =
+    () -> 100L;
+
+  private static final RCResourceSchematicImage2DType ANY_IMAGE =
+    new RCResourceSchematicImage2DType()
+    {
+      @Override
+      public Vector2I size()
+      {
+        return Vector2I.of(128, 128);
+      }
+
+      @Override
+      public VulkanFormat format()
+      {
+        return VulkanFormat.VK_FORMAT_R8_UNORM;
+      }
+
+      @Override
+      public boolean isPresentationImage()
+      {
+        return false;
+      }
+    };
+
+  private static final RCStrings STRINGS =
+    new RCStrings(Locale.getDefault());
+
   @Test
   public void testBarriersPre(
     final TestInfo testInfo)
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_BUFFER);
 
     final var op0 =
       b.declareOperation(
@@ -292,10 +325,10 @@ public final class RCGraphSyncTest
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_IMAGE);
 
     final var op0 =
       b.declareOperation(
@@ -560,10 +593,10 @@ public final class RCGraphSyncTest
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_IMAGE);
 
     final var op0 =
       b.declareOperation(
@@ -786,10 +819,10 @@ public final class RCGraphSyncTest
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_IMAGE);
 
     final var op0 =
       b.declareOperation(
@@ -1012,10 +1045,10 @@ public final class RCGraphSyncTest
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_BUFFER);
 
     final var op0 =
       b.declareOperation(
@@ -1164,10 +1197,10 @@ public final class RCGraphSyncTest
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_BUFFER);
 
     final var op0 =
       b.declareOperation(
@@ -1316,10 +1349,10 @@ public final class RCGraphSyncTest
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_BUFFER);
 
     final var op0 =
       b.declareOperation(
@@ -1466,10 +1499,10 @@ public final class RCGraphSyncTest
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_IMAGE);
 
     final var op0 =
       b.declareOperation(
@@ -1624,10 +1657,10 @@ public final class RCGraphSyncTest
     throws RCGGraphException
   {
     final var b =
-      (RCGGraphBuilderInternalType) RCGraph.builder("Main");
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_BUFFER);
 
     final var op0 =
       b.declareOperation(
@@ -1698,6 +1731,85 @@ public final class RCGraphSyncTest
       finder.getAllPaths(cmdOp0, op1Write, false, MAX_VALUE);
 
     assertEquals(30, paths.size());
+  }
+
+  @Test
+  public void testBarriersSyncMany(
+    final TestInfo testInfo)
+    throws RCGGraphException
+  {
+    final var b =
+      (RCGGraphBuilderInternalType) RCGraph.builder(STRINGS, "Main");
+
+    final var r =
+      b.declareResource("R", ANY_BUFFER);
+    final var s =
+      b.declareResource("S", ANY_BUFFER);
+    final var t =
+      b.declareResource("T", ANY_BUFFER);
+
+    final var op0 =
+      b.declareOperation(
+        "Op0",
+        OpProducer3.factory(),
+        new OpProducer3.Parameters(
+          COMPUTE,
+          Set.of(
+            STAGE_TRANSFER_COPY,
+            STAGE_TRANSFER_RESOLVE
+          ),
+          Set.of(
+            STAGE_TRANSFER_COPY,
+            STAGE_TRANSFER_CLEAR
+          )
+        ));
+
+    final var op1 =
+      b.declareOperation(
+        "Op1",
+        OpConsumer3.factory(),
+        new OpConsumer3.Parameters(
+          COMPUTE,
+          Set.of(
+            STAGE_TRANSFER_COPY,
+            STAGE_TRANSFER_CLEAR
+          ),
+          Set.of(
+            STAGE_TRANSFER_COPY
+          )
+        ));
+
+    b.resourceAssign(op0.port0(), r);
+    b.resourceAssign(op0.port1(), s);
+    b.resourceAssign(op0.port2(), t);
+
+    b.connect(op0.port0(), op1.port0());
+    b.connect(op0.port1(), op1.port1());
+    b.connect(op0.port2(), op1.port2());
+
+    b.compile();
+
+    final var sg =
+      b.syncGraph();
+    final var oc =
+      b.syncOpCommands();
+    final var finder =
+      new AllDirectedPaths<>(sg);
+
+    show(sg, testInfo.getDisplayName());
+
+    final var cmdOp0 = oc.get(op0);
+    assertNotNull(cmdOp0);
+    final var cmdOp1 = oc.get(op1);
+    assertNotNull(cmdOp1);
+
+    final var op1Write =
+      List.copyOf(sg.outgoingEdgesOf(cmdOp1)).getFirst().target();
+
+    final var paths =
+      finder.getAllPaths(cmdOp0, op1Write, false, MAX_VALUE);
+
+    assertEquals(38, paths.size());
   }
 
   private static void show(

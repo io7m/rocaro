@@ -46,4 +46,24 @@ public final class RCGGraphException
   {
     super(message, inAttributes, inErrorCode, inRemediatingAction);
   }
+
+  /**
+   * Construct an exception.
+   *
+   * @param message             The message
+   * @param cause               The cause
+   * @param inAttributes        The attributes
+   * @param inErrorCode         The error code
+   * @param inRemediatingAction The remediating action
+   */
+
+  public RCGGraphException(
+    final String message,
+    final Exception cause,
+    final Map<String, String> inAttributes,
+    final String inErrorCode,
+    final Optional<String> inRemediatingAction)
+  {
+    super(message, cause, inAttributes, inErrorCode, inRemediatingAction);
+  }
 }

@@ -21,8 +21,8 @@ import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.assets.RCAssetResolvedType;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.channels.FileChannel;

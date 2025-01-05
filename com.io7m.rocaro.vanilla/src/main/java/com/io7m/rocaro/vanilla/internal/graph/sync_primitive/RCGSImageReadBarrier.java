@@ -19,7 +19,8 @@ package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImageType;
 
 import java.util.Objects;
 
@@ -32,7 +33,7 @@ public final class RCGSImageReadBarrier
   implements RCGSReadType, RCGSReadBarrierType
 {
   private final RCGSExecute owner;
-  private final RCGResourcePlaceholderType resource;
+  private final RCGResourceVariable<? extends RCResourceSchematicImageType> resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
   private final RCGCommandPipelineStage blocksReadAt;
   private final RCGResourceImageLayout layoutFrom;
@@ -53,7 +54,7 @@ public final class RCGSImageReadBarrier
   public RCGSImageReadBarrier(
     final long id,
     final RCGSExecute inOwner,
-    final RCGResourcePlaceholderType inResource,
+    final RCGResourceVariable<? extends RCResourceSchematicImageType> inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
     final RCGCommandPipelineStage inBlocksReadAt,
     final RCGResourceImageLayout inLayoutFrom,
@@ -82,7 +83,7 @@ public final class RCGSImageReadBarrier
   }
 
   @Override
-  public RCGResourcePlaceholderType resource()
+  public RCGResourceVariable<? extends RCResourceSchematicImageType> resource()
   {
     return this.resource;
   }

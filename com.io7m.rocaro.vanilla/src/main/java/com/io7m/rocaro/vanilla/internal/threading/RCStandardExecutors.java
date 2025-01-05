@@ -21,8 +21,8 @@ import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 
 import java.util.Objects;
 

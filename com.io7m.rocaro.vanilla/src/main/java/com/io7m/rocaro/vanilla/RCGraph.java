@@ -35,28 +35,32 @@ public final class RCGraph
   /**
    * Create a new render graph builder.
    *
-   * @param name The name of the graph
+   * @param strings The string resources
+   * @param name    The name of the graph
    *
    * @return The builder
    */
 
   public static RCGGraphBuilderType builder(
+    final RCStrings strings,
     final RCGraphName name)
   {
-    return new RCGGraphBuilder(name);
+    return new RCGGraphBuilder(strings, name);
   }
 
   /**
    * Create a new render graph builder.
    *
-   * @param name The name of the graph
+   * @param strings The string resources
+   * @param name    The name of the graph
    *
    * @return The builder
    */
 
   public static RCGGraphBuilderType builder(
+    final RCStrings strings,
     final String name)
   {
-    return builder(new RCGraphName(name));
+    return builder(strings, new RCGraphName(name));
   }
 }

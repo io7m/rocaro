@@ -19,7 +19,7 @@ package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -96,7 +96,7 @@ public final class RCGSExecute
 
   public RCGSRead addRead(
     final long id,
-    final RCGResourcePlaceholderType resource,
+    final RCGResourceVariable<?> resource,
     final RCGCommandPipelineStage stage)
   {
     final var r = new RCGSRead(id, this, resource, stage);
@@ -116,7 +116,7 @@ public final class RCGSExecute
 
   public RCGSWrite addWrite(
     final long id,
-    final RCGResourcePlaceholderType resource,
+    final RCGResourceVariable<?> resource,
     final RCGCommandPipelineStage stage)
   {
     final var w = new RCGSWrite(id, this, resource, stage);

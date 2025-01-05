@@ -22,6 +22,7 @@ import com.io7m.renderdoc_jffm.core.RenderDocOptionType.HookIntoChildren;
 import com.io7m.renderdoc_jffm.core.RenderDocType;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.vanilla.internal.RCServiceException;
 import org.slf4j.Logger;
@@ -38,19 +39,24 @@ final class RCRenderDocFFM
     LoggerFactory.getLogger(RCRenderDocFFM.class);
 
   private final RenderDocType renderDoc;
+  private final RCRendererID rendererId;
 
   private RCRenderDocFFM(
-    final RenderDocType inRenderDoc)
+    final RenderDocType inRenderDoc,
+    final RCRendererID inRendererId)
   {
     this.renderDoc =
       Objects.requireNonNull(inRenderDoc, "renderDoc");
+    this.rendererId =
+      Objects.requireNonNull(inRendererId, "inRendererId");
   }
 
-  public static RCRenderDocServiceType create()
+  public static RCRenderDocServiceType create(
+    final RCRendererID rendererId)
     throws RocaroException
   {
     try {
-      final var ffm = new RCRenderDocFFM(RenderDoc.open());
+      final var ffm = new RCRenderDocFFM(RenderDoc.open(), rendererId);
       LOG.trace("{}", ffm.renderDoc.option(HookIntoChildren.class));
       LOG.trace("Captures: {}", ffm.renderDoc.captureFilePathTemplate());
       return ffm;
@@ -80,5 +86,11 @@ final class RCRenderDocFFM
   public void triggerCapture()
   {
     this.renderDoc.triggerCapture();
+  }
+
+  @Override
+  public RCRendererID rendererId()
+  {
+    return this.rendererId;
   }
 }

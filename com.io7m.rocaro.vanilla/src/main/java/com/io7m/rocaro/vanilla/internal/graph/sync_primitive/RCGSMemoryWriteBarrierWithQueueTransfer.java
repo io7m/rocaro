@@ -17,9 +17,10 @@
 
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
-import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+import com.io7m.rocaro.api.graph.RCGSubmissionID;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
 
 import java.util.Objects;
 
@@ -34,11 +35,11 @@ public final class RCGSMemoryWriteBarrierWithQueueTransfer
   RCGSBarrierWithQueueTransferType
 {
   private final RCGSExecute owner;
-  private final RCGResourcePlaceholderType resource;
+  private final RCGResourceVariable<? extends RCResourceSchematicBufferType> resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
   private final RCGCommandPipelineStage blocksWriteAt;
-  private final RCDeviceQueueCategory queueSource;
-  private final RCDeviceQueueCategory queueTarget;
+  private final RCGSubmissionID queueSource;
+  private final RCGSubmissionID queueTarget;
 
   /**
    * A memory write barrier including a queue transfer.
@@ -55,11 +56,11 @@ public final class RCGSMemoryWriteBarrierWithQueueTransfer
   public RCGSMemoryWriteBarrierWithQueueTransfer(
     final long id,
     final RCGSExecute inOwner,
-    final RCGResourcePlaceholderType inResource,
+    final RCGResourceVariable<? extends RCResourceSchematicBufferType> inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
     final RCGCommandPipelineStage inBlocksWriteAt,
-    final RCDeviceQueueCategory inQueueSource,
-    final RCDeviceQueueCategory inQueueTarget)
+    final RCGSubmissionID inQueueSource,
+    final RCGSubmissionID inQueueTarget)
   {
     super(id);
 
@@ -90,7 +91,7 @@ public final class RCGSMemoryWriteBarrierWithQueueTransfer
   }
 
   @Override
-  public RCGResourcePlaceholderType resource()
+  public RCGResourceVariable<? extends RCResourceSchematicBufferType> resource()
   {
     return this.resource;
   }
@@ -114,13 +115,13 @@ public final class RCGSMemoryWriteBarrierWithQueueTransfer
   }
 
   @Override
-  public RCDeviceQueueCategory queueSource()
+  public RCGSubmissionID queueSource()
   {
     return this.queueSource;
   }
 
   @Override
-  public RCDeviceQueueCategory queueTarget()
+  public RCGSubmissionID queueTarget()
   {
     return this.queueTarget;
   }

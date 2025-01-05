@@ -18,6 +18,8 @@
 package com.io7m.rocaro.api.graph;
 
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
+import com.io7m.rocaro.api.resources.RCResourceSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceType;
 import org.jgrapht.Graph;
 
 import java.util.List;
@@ -38,12 +40,15 @@ public interface RCGGraphType
    * Obtain the resource for the given port.
    *
    * @param port The port
+   * @param <R>  The resource type
+   * @param <S>  The resource schematic type
    *
    * @return The resource
    */
 
-  RCGResourcePlaceholderType resourceAt(
-    RCGPortType port);
+  <R extends RCResourceType, S extends RCResourceSchematicType>
+  RCGResourceVariable<S> resourceAt(
+    RCGPortType<R> port);
 
   /**
    * Obtain the image layout transition (possibly just a constant value)
@@ -51,19 +56,21 @@ public interface RCGGraphType
    * {@link RCGResourceImageLayout#LAYOUT_UNDEFINED}
    * value for all non-image ports.
    *
+   * @param <R>  The resource type
    * @param port The port
    *
    * @return The layout transition
    */
 
+  <R extends RCResourceType>
   RCGOperationImageLayoutTransitionType imageTransitionAt(
-    RCGPortType port);
+    RCGPortType<R> port);
 
   /**
    * @return A read-only DAG of the ports in the render graph
    */
 
-  Graph<RCGPortType, RCGGraphConnection> portGraph();
+  Graph<RCGPortType<?>, RCGGraphConnection> portGraph();
 
   /**
    * @return A read-only DAG of the operations in the render graph
@@ -82,4 +89,10 @@ public interface RCGGraphType
    */
 
   VulkanPhysicalDeviceFeatures requiredDeviceFeatures();
+
+  /**
+   * @return The full execution plan
+   */
+
+  RCGExecutionPlanType executionPlan();
 }

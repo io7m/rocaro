@@ -25,15 +25,22 @@ import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGPortName;
 import com.io7m.rocaro.api.graph.RCGPortProducerType;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderFrameImageType;
-import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameContextType;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.render_targets.RCPresentationRenderTargetSchematicType;
+import com.io7m.rocaro.api.render_targets.RCPresentationRenderTargetType;
+import com.io7m.rocaro.api.resources.RCDepthComponents;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImage2DType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintImage2D;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintRenderTarget;
+import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameType;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT;
+import static com.io7m.rocaro.api.graph.RCGOperationStatusType.Ready.READY;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_PRESENTATION;
 
 /**
@@ -44,7 +51,29 @@ public final class RCGOperationFrameAcquire
   extends RCGOperationAbstract
   implements RCGOperationFrameAcquireType
 {
-  private final RCGPortProducerType frame;
+  /**
+   * The constraint on presentation render targets.
+   */
+
+  static final RCSchematicConstraintRenderTarget<
+    RCPresentationRenderTargetType,
+    RCPresentationRenderTargetSchematicType>
+    PRESENTATION_RENDER_TARGET_CONSTRAINT =
+    new RCSchematicConstraintRenderTarget<>(
+      RCPresentationRenderTargetType.class,
+      RCPresentationRenderTargetSchematicType.class,
+      List.of(
+        new RCSchematicConstraintImage2D<>(
+          RCImage2DType.class,
+          RCResourceSchematicImage2DType.class,
+          Optional.of(LAYOUT_OPTIMAL_FOR_PRESENTATION),
+          true
+        )
+      ),
+      Optional.empty()
+    );
+
+  private final RCGPortProducerType<RCPresentationRenderTargetType> frame;
 
   /**
    * The frame acquisition operation.
@@ -72,17 +101,16 @@ public final class RCGOperationFrameAcquire
           this,
           new RCGPortName("Frame"),
           Set.of(),
-          new RCGPortTypeConstraintImage<>(
-            RCGResourcePlaceholderFrameImageType.class,
-            Optional.of(LAYOUT_OPTIMAL_FOR_PRESENTATION)
-          ),
+          PRESENTATION_RENDER_TARGET_CONSTRAINT,
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT)
         )
       );
+
+    this.setStatus(READY);
   }
 
   @Override
-  public RCGPortProducerType frame()
+  public RCGPortProducerType<RCPresentationRenderTargetType> frame()
   {
     return this.frame;
   }
@@ -95,7 +123,7 @@ public final class RCGOperationFrameAcquire
   }
 
   @Override
-  protected void onPrepareCheck(
+  protected void onPrepareContinue(
     final RCGOperationPreparationContextType context)
   {
 
@@ -106,7 +134,7 @@ public final class RCGOperationFrameAcquire
     final RCGOperationExecutionContextType context)
   {
     final var vulkan =
-      context.frameScopedService(RCVulkanFrameContextType.class);
+      context.frameScopedService(RCVulkanFrameType.class);
     final var windowContext =
       vulkan.windowFrameContext();
 

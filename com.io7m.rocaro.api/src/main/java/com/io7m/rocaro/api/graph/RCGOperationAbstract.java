@@ -25,6 +25,7 @@ import com.io7m.rocaro.api.graph.RCGOperationStatusType.PreparationFailed;
 import com.io7m.rocaro.api.graph.RCGOperationStatusType.Preparing;
 import com.io7m.rocaro.api.graph.RCGOperationStatusType.Ready;
 import com.io7m.rocaro.api.graph.RCGOperationStatusType.Uninitialized;
+import com.io7m.rocaro.api.resources.RCResourceType;
 
 import java.util.Collections;
 import java.util.Map;
@@ -43,8 +44,8 @@ public abstract class RCGOperationAbstract
   implements RCGOperationType
 {
   private final RCGOperationName name;
-  private final TreeMap<RCGPortName, RCGPortType> portsM;
-  private final Map<RCGPortName, RCGPortType> ports;
+  private final TreeMap<RCGPortName, RCGPortType<?>> portsM;
+  private final Map<RCGPortName, RCGPortType<?>> ports;
   private volatile RCGOperationStatusType status;
   private final RCDeviceQueueCategory queueCategory;
 
@@ -64,7 +65,7 @@ public abstract class RCGOperationAbstract
       Collections.unmodifiableSortedMap(this.portsM);
   }
 
-  protected final <P extends RCGPortType> P addPort(
+  protected final <R extends RCResourceType, P extends RCGPortType<R>> P addPort(
     final P port)
   {
     Preconditions.checkPreconditionV(
@@ -81,7 +82,7 @@ public abstract class RCGOperationAbstract
   }
 
   @Override
-  public final Map<RCGPortName, RCGPortType> ports()
+  public final Map<RCGPortName, RCGPortType<?>> ports()
   {
     return this.ports;
   }
@@ -154,7 +155,7 @@ public abstract class RCGOperationAbstract
     RCGOperationPreparationContextType context)
     throws RocaroException;
 
-  protected abstract void onPrepareCheck(
+  protected abstract void onPrepareContinue(
     RCGOperationPreparationContextType context)
     throws RocaroException;
 
@@ -170,7 +171,7 @@ public abstract class RCGOperationAbstract
         this.onPrepare(context);
       }
       case final Preparing _ -> {
-        this.onPrepareCheck(context);
+        this.onPrepareContinue(context);
       }
       case final Ready _ -> {
         // Nothing to do.

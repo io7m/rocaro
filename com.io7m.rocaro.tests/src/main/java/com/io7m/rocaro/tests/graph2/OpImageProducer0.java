@@ -29,9 +29,10 @@ import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortName;
 import com.io7m.rocaro.api.graph.RCGPortProducerType;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImage2DType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintImage2D;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -42,7 +43,7 @@ final class OpImageProducer0
   implements RCGOperationType
 {
   private final Parameters parameters;
-  private final RCGPortProducerType port;
+  private final RCGPortProducerType<RCImage2DType> port;
 
   public OpImageProducer0(
     final RCGOperationCreationContextType context,
@@ -59,9 +60,11 @@ final class OpImageProducer0
         this,
         new RCGPortName("Port0"),
         this.parameters.readsOnStages(),
-        new RCGPortTypeConstraintImage<>(
-          RCGResourcePlaceholderImageType.class,
-          this.parameters.ensuresLayout()
+        new RCSchematicConstraintImage2D<>(
+          RCImage2DType.class,
+          RCResourceSchematicImage2DType.class,
+          this.parameters.ensuresLayout(),
+          false
         ),
         this.parameters.writesOnStages()
       );
@@ -82,7 +85,7 @@ final class OpImageProducer0
   }
 
   @Override
-  protected void onPrepareCheck(
+  protected void onPrepareContinue(
     final RCGOperationPreparationContextType context)
   {
 
@@ -95,7 +98,7 @@ final class OpImageProducer0
 
   }
 
-  public RCGPortProducerType port()
+  public RCGPortProducerType<RCImage2DType> port()
   {
     return this.port;
   }

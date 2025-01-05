@@ -17,8 +17,6 @@
 
 package com.io7m.rocaro.api;
 
-
-
 import com.io7m.rocaro.api.graph.RCGGraphStatusType;
 import com.io7m.rocaro.api.graph.RCGraphName;
 

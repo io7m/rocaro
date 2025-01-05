@@ -30,7 +30,7 @@ import com.io7m.rocaro.api.graph.RCGGraphStatusType.PreparationFailed;
 import com.io7m.rocaro.api.graph.RCGGraphStatusType.Preparing;
 import com.io7m.rocaro.api.graph.RCGGraphStatusType.Ready;
 import com.io7m.rocaro.api.graph.RCGGraphStatusType.Uninitialized;
-import com.io7m.rocaro.api.graph.RCGNoParameters;
+import com.io7m.rocaro.api.graph.RCNoParameters;
 import com.io7m.rocaro.demo.internal.RCDemoAbstract;
 import com.io7m.rocaro.vanilla.RCAssetResolvers;
 
@@ -80,13 +80,20 @@ public final class RCDemoTriangle
     final var frameTarget =
       graphBuilder.declareOpFramePresent("FrameTarget");
 
+    final var frame =
+      graphBuilder.declareFrameResource("Frame");
+
     final var triangle =
       graphBuilder.declareOperation(
         "Triangle",
         RCGRenderPassTriangle.factory(),
-        RCGNoParameters.NO_PARAMETERS
+        RCNoParameters.NO_PARAMETERS
       );
 
+    graphBuilder.resourceAssign(
+      frameSource.frame(),
+      frame
+    );
     graphBuilder.connect(
       frameSource.frame(),
       triangle.frame()

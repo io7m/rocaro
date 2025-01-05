@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.vanilla.internal.graph;
 
+import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
 import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
@@ -25,15 +26,16 @@ import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGPortConsumerType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderFrameImageType;
+import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
+import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
+import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameType;
 
-import java.util.Optional;
 import java.util.Set;
 
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
 import static com.io7m.rocaro.api.graph.RCGCommandPipelineStage.STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT;
-import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_PRESENTATION;
+import static com.io7m.rocaro.api.graph.RCGOperationStatusType.Ready.READY;
+import static com.io7m.rocaro.vanilla.internal.graph.RCGOperationFrameAcquire.PRESENTATION_RENDER_TARGET_CONSTRAINT;
 
 /**
  * The frame presentation operation.
@@ -43,7 +45,7 @@ public final class RCGOperationFramePresent
   extends RCGOperationAbstract
   implements RCGOperationFramePresentType
 {
-  private final RCGPortConsumerType frame;
+  private final RCGPortConsumerType<RCRenderTargetType> frame;
 
   /**
    * The frame presentation operation.
@@ -71,17 +73,16 @@ public final class RCGOperationFramePresent
           this,
           new RCGPortName("Frame"),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
-          new RCGPortTypeConstraintImage<>(
-            RCGResourcePlaceholderFrameImageType.class,
-            Optional.of(LAYOUT_OPTIMAL_FOR_PRESENTATION)
-          ),
+          PRESENTATION_RENDER_TARGET_CONSTRAINT,
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT)
         )
       );
+
+    this.setStatus(READY);
   }
 
   @Override
-  public RCGPortConsumerType frame()
+  public RCGPortConsumerType<RCRenderTargetType> frame()
   {
     return this.frame;
   }
@@ -94,7 +95,7 @@ public final class RCGOperationFramePresent
   }
 
   @Override
-  protected void onPrepareCheck(
+  protected void onPrepareContinue(
     final RCGOperationPreparationContextType context)
   {
 
@@ -103,7 +104,18 @@ public final class RCGOperationFramePresent
   @Override
   protected void onExecute(
     final RCGOperationExecutionContextType context)
+    throws RCVulkanException
   {
+    final var vulkan =
+      context.frameScopedService(RCVulkanFrameType.class);
+    final var windowContext =
+      vulkan.windowFrameContext();
+    final var device =
+      vulkan.device();
 
+    device.execute(() -> {
+      windowContext.present();
+      return RCUnit.UNIT;
+    });
   }
 }

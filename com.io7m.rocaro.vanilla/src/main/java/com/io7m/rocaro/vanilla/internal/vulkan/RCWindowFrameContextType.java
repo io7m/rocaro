@@ -19,8 +19,7 @@ package com.io7m.rocaro.vanilla.internal.vulkan;
 
 import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jcoronado.api.VulkanSemaphoreType;
-import com.io7m.rocaro.api.RCCloseableType;
-import com.io7m.rocaro.api.images.RCImageColorBlendableType;
+import com.io7m.rocaro.api.render_targets.RCPresentationRenderTargetType;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
 
 import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
@@ -30,7 +29,6 @@ import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
  */
 
 public interface RCWindowFrameContextType
-  extends RCCloseableType
 {
   /**
    * Obtain a reference to a semaphore that will be signalled when the image
@@ -63,7 +61,7 @@ public interface RCWindowFrameContextType
    * @return The image to which to render
    */
 
-  RCImageColorBlendableType image();
+  RCPresentationRenderTargetType image();
 
   /**
    * Signal that it is time to present the image.

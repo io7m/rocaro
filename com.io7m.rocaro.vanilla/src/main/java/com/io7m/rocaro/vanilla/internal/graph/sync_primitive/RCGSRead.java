@@ -18,12 +18,12 @@
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
 
 import java.util.Objects;
 
 /**
- * A read operation.
+ * A read command.
  */
 
 public final class RCGSRead
@@ -31,22 +31,22 @@ public final class RCGSRead
   implements RCGSReadType
 {
   private final RCGSExecute owner;
-  private final RCGResourcePlaceholderType resource;
+  private final RCGResourceVariable<?> resource;
   private final RCGCommandPipelineStage readsAt;
 
   /**
-   * A read operation.
+   * A read command.
    *
    * @param id         The ID
    * @param inOwner    The executing command
    * @param inResource The resource
-   * @param inReadsAt  The stage at which the read access occurs
+   * @param inReadsAt  The stage at which the read command occurs
    */
 
   public RCGSRead(
     final long id,
     final RCGSExecute inOwner,
-    final RCGResourcePlaceholderType inResource,
+    final RCGResourceVariable<?> inResource,
     final RCGCommandPipelineStage inReadsAt)
   {
     super(id);
@@ -70,13 +70,13 @@ public final class RCGSRead
    * @return The resource
    */
 
-  public RCGResourcePlaceholderType resource()
+  public RCGResourceVariable<?> resource()
   {
     return this.resource;
   }
 
   /**
-   * @return The stage at which the read occurs
+   * @return The stage at which the read command occurs
    */
 
   public RCGCommandPipelineStage readsAt()

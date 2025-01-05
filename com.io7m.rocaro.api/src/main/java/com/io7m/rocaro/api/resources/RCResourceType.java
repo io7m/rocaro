@@ -17,11 +17,20 @@
 
 package com.io7m.rocaro.api.resources;
 
+import com.io7m.rocaro.api.buffers.RCBufferType;
+import com.io7m.rocaro.api.images.RCImageType;
+import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
+
 /**
- * The base type of resources.
+ * A run-time resource.
  */
 
-public interface RCResourceType
+public sealed interface RCResourceType permits RCResourceCompositeType,
+  RCResourcePrimitiveType
 {
+  /**
+   * @return The resource schematic
+   */
 
+  RCResourceSchematicType schematic();
 }

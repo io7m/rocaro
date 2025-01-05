@@ -21,7 +21,6 @@ import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.displays.RCDisplay;
 import com.io7m.rocaro.api.displays.RCDisplayServiceType;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacade;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 
 import java.util.List;
 import java.util.Locale;

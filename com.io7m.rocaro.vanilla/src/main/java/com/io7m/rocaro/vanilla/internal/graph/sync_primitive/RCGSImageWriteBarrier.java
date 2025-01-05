@@ -19,7 +19,9 @@ package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImageType;
 
 import java.util.Objects;
 
@@ -32,7 +34,7 @@ public final class RCGSImageWriteBarrier
   implements RCGSWriteType, RCGSWriteBarrierType
 {
   private final RCGSExecute owner;
-  private final RCGResourcePlaceholderType resource;
+  private final RCGResourceVariable<? extends RCResourceSchematicImageType> resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
   private final RCGCommandPipelineStage blocksWriteAt;
   private final RCGResourceImageLayout layoutFrom;
@@ -53,7 +55,7 @@ public final class RCGSImageWriteBarrier
   public RCGSImageWriteBarrier(
     final long id,
     final RCGSExecute inOwner,
-    final RCGResourcePlaceholderType inResource,
+    final RCGResourceVariable<? extends RCResourceSchematicImageType> inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
     final RCGCommandPipelineStage inBlocksWriteAt,
     final RCGResourceImageLayout inLayoutFrom,
@@ -88,24 +90,18 @@ public final class RCGSImageWriteBarrier
   }
 
   @Override
-  public RCGResourcePlaceholderType resource()
+  public RCGResourceVariable<? extends RCResourceSchematicImageType> resource()
   {
     return this.resource;
   }
 
-  /**
-   * @return The stage at which the barrier will wait for writes
-   */
-
+  @Override
   public RCGCommandPipelineStage waitsForWriteAt()
   {
     return this.waitsForWriteAt;
   }
 
-  /**
-   * @return The write access that will be blocked until this barrier completes
-   */
-
+  @Override
   public RCGCommandPipelineStage blocksWriteAt()
   {
     return this.blocksWriteAt;

@@ -27,14 +27,15 @@ import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.repetoir.core.RPServiceDirectoryType;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
-import com.io7m.rocaro.api.transfers.RCTransferImageColorBasicType;
+import com.io7m.rocaro.api.transfers.RCTransferImage2DType;
 import com.io7m.rocaro.api.transfers.RCTransferJFREventExecuted;
 import com.io7m.rocaro.api.transfers.RCTransferOperationType;
 import com.io7m.rocaro.api.transfers.RCTransferServiceType;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.threading.RCExecutors;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
@@ -67,6 +68,7 @@ public final class RCTransferService
   private final RCDeviceType device;
   private final VMAAllocatorType allocator;
   private final ExecutorService taskExecutor;
+  private final RCRendererID rendererId;
   private final VulkanCommandPoolType transferCommandPool;
   private final VulkanCommandPoolType graphicsCommandPool;
   private final VulkanCommandPoolType computeCommandPool;
@@ -80,6 +82,7 @@ public final class RCTransferService
     final RCDeviceType inDevice,
     final VMAAllocatorType inAllocator,
     final ExecutorService inTaskExecutor,
+    final RCRendererID inRendererId,
     final VulkanCommandPoolType inTransferCommandPool,
     final VulkanCommandPoolType inGraphicsCommandPool,
     final VulkanCommandPoolType inComputeCommandPool)
@@ -96,6 +99,8 @@ public final class RCTransferService
       Objects.requireNonNull(inAllocator, "inAllocator");
     this.taskExecutor =
       Objects.requireNonNull(inTaskExecutor, "taskExecutor");
+    this.rendererId =
+      Objects.requireNonNull(inRendererId, "inRendererId");
     this.transferCommandPool =
       Objects.requireNonNull(inTransferCommandPool, "transferCommandPool");
     this.graphicsCommandPool =
@@ -107,7 +112,8 @@ public final class RCTransferService
   /**
    * Create a transfer service.
    *
-   * @param services The service directory
+   * @param services   The service directory
+   * @param rendererId The renderer ID
    *
    * @return The service
    *
@@ -115,7 +121,8 @@ public final class RCTransferService
    */
 
   public static RCTransferService create(
-    final RPServiceDirectoryType services)
+    final RPServiceDirectoryType services,
+    final RCRendererID rendererId)
     throws RocaroException
   {
     final var strings =
@@ -177,6 +184,7 @@ public final class RCTransferService
         device,
         allocator,
         taskExecutor,
+        rendererId,
         transferCommandPool,
         graphicsCommandPool,
         computeCommandPool
@@ -266,7 +274,7 @@ public final class RCTransferService
     final RCTransferOperationType<T> operation)
   {
     return switch (operation) {
-      case final RCTransferImageColorBasicType image -> {
+      case final RCTransferImage2DType image -> {
         yield (CompletableFuture<T>) this.executeOp(
           image,
           new RCTransferImageColorBasicTask(
@@ -323,5 +331,11 @@ public final class RCTransferService
   public String description()
   {
     return "Transfer service.";
+  }
+
+  @Override
+  public RCRendererID rendererId()
+  {
+    return this.rendererId;
   }
 }

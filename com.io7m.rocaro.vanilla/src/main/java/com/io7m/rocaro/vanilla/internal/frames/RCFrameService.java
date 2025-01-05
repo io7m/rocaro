@@ -25,12 +25,14 @@ import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCFrameInformation;
 import com.io7m.rocaro.api.RCFrameNumber;
 import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.vanilla.internal.RCServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 /**
  * The frame service.
@@ -47,29 +49,38 @@ public final class RCFrameService
     Attributes.create(ex -> LOG.debug("Attribute exception: ", ex));
 
   private final AttributeType<RCFrameInformation> frameInformation;
+  private final RCRendererID rendererId;
 
   private RCFrameService(
-    final RCFrameInformation inFrameInformation)
+    final RCFrameInformation inFrameInformation,
+    final RCRendererID inRendererId)
   {
-    this.frameInformation = ATTRIBUTES.withValue(inFrameInformation);
+    this.frameInformation =
+      ATTRIBUTES.withValue(inFrameInformation);
+    this.rendererId =
+      Objects.requireNonNull(inRendererId, "rendererId");
   }
 
   /**
    * Create a frame service.
+   *
+   * @param rendererId The renderer ID
    *
    * @return The service
    *
    * @throws RCServiceException On errors
    */
 
-  public static RCFrameService create()
+  public static RCFrameService create(
+    final RCRendererID rendererId)
     throws RCServiceException
   {
     return new RCFrameService(
       new RCFrameInformation(
         new RCFrameNumber(BigInteger.ZERO),
         new RCFrameIndex(0)
-      )
+      ),
+      rendererId
     );
   }
 
@@ -97,5 +108,11 @@ public final class RCFrameService
   public String description()
   {
     return "Frame information service.";
+  }
+
+  @Override
+  public RCRendererID rendererId()
+  {
+    return this.rendererId;
   }
 }

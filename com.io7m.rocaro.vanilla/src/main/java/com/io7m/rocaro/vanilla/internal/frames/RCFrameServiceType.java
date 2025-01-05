@@ -20,13 +20,14 @@ package com.io7m.rocaro.vanilla.internal.frames;
 import com.io7m.jattribute.core.AttributeReadableType;
 import com.io7m.repetoir.core.RPServiceType;
 import com.io7m.rocaro.api.RCFrameInformation;
+import com.io7m.rocaro.api.services.RCServiceRendererScopedType;
 
 /**
  * A service that exposes information about the current frame.
  */
 
 public interface RCFrameServiceType
-  extends RPServiceType
+  extends RPServiceType, RCServiceRendererScopedType
 {
   /**
    * A property that exposes information about the current frame, and is

@@ -38,25 +38,29 @@ import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
-import com.io7m.rocaro.api.images.RCImageColorBlendableType;
+import com.io7m.rocaro.api.images.RCImageID;
+import com.io7m.rocaro.api.render_targets.RCPresentationRenderTargetType;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
-import com.io7m.rocaro.vanilla.internal.images.RCImageColorBlendable;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
 import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.io7m.jcoronado.api.VulkanImageUsageFlag.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 import static com.io7m.jcoronado.api.VulkanImageUsageFlag.VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanCompositeAlphaFlagKHR.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeKHR.VK_PRESENT_MODE_FIFO_KHR;
+import static com.io7m.jcoronado.extensions.khr_swapchain.api.VulkanPresentModeKHR.VK_PRESENT_MODE_MAILBOX_KHR;
 import static com.io7m.rocaro.api.RCStandardErrorCodes.VULKAN_EXTENSION_MISSING;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_VULKAN_EXTENSION_MISSING;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.EXTENSION;
@@ -87,6 +91,8 @@ public final class RCWindowWithSurface
   private VulkanKHRSwapChainType swapChain;
   private VulkanLogicalDeviceType vkDevice;
   private JCSwapchainManagerType swapChainManager;
+  private final ByteBuffer idBytes;
+  private final byte[] idBytesArray;
 
   /**
    * Construct a window.
@@ -126,6 +132,11 @@ public final class RCWindowWithSurface
 
     this.resources.add(this.surface);
     this.resources.add(this.window);
+
+    this.idBytesArray =
+      new byte[4];
+    this.idBytes =
+      ByteBuffer.wrap(this.idBytesArray);
   }
 
   @RCThread(GPU)
@@ -149,7 +160,7 @@ public final class RCWindowWithSurface
   private static final class FrameContext
     implements RCWindowFrameContextType
   {
-    private final RCImageColorBlendableType image;
+    private final RCFrameRenderTarget image;
     private final RCWindowWithSurface windowWithSurface;
     private final SwapChainIndex index;
     private final VulkanFenceType imageRenderingIsFinishedFence;
@@ -162,7 +173,7 @@ public final class RCWindowWithSurface
       final VulkanSemaphoreBinaryType inImageIsReadySemaphore,
       final VulkanSemaphoreBinaryType inImageRenderingIsFinishedSemaphore,
       final VulkanFenceType inImageRenderingIsFinishedFence,
-      final RCImageColorBlendableType inImage)
+      final RCFrameImage inImage)
     {
       this.windowWithSurface =
         Objects.requireNonNull(inWindowWithSurface, "windowWithSurface");
@@ -180,7 +191,10 @@ public final class RCWindowWithSurface
           "imageRenderingIsFinishedSemaphore"
         );
       this.image =
-        Objects.requireNonNull(inImage, "image");
+        new RCFrameRenderTarget(
+          inImage,
+          new RCFrameRenderTargetSchematic(inImage.schematic())
+        );
       this.imageRenderingIsFinishedFence =
         Objects.requireNonNull(
           inImageRenderingIsFinishedFence,
@@ -206,7 +220,7 @@ public final class RCWindowWithSurface
     }
 
     @Override
-    public RCImageColorBlendableType image()
+    public RCPresentationRenderTargetType image()
     {
       return this.image;
     }
@@ -237,12 +251,6 @@ public final class RCWindowWithSurface
         throw RCVulkanException.wrap(e);
       }
     }
-
-    @Override
-    public void close()
-    {
-
-    }
   }
 
   @Override
@@ -262,25 +270,38 @@ public final class RCWindowWithSurface
       final var image =
         this.swapChainManager.acquire();
 
+      final var frameImage =
+        new RCFrameImage(
+          this.frameImageID(frameIndex),
+          image.image(),
+          image.imageView(),
+          new RCFrameImageSchematic(
+            Vector2I.of(
+              (int) image.size().width(),
+              (int) image.size().height()
+            ),
+            image.format()
+          )
+        );
+
       return new FrameContext(
         this,
         new SwapChainIndex(image.index().value()),
         image.imageReadySemaphore(),
         image.renderFinishedSemaphore(),
         image.renderFinishedFence(),
-        new RCImageColorBlendable(
-          Vector2I.of(
-            (int) image.size().width(),
-            (int) image.size().height()
-          ),
-          image.image(),
-          image.imageView(),
-          image.format()
-        )
+        frameImage
       );
     } catch (final VulkanException e) {
       throw RCVulkanException.wrap(e);
     }
+  }
+
+  private RCImageID frameImageID(
+    final RCFrameIndex frameIndex)
+  {
+    this.idBytes.putInt(0, frameIndex.value());
+    return new RCImageID(UUID.nameUUIDFromBytes(this.idBytesArray));
   }
 
   @Override
@@ -329,6 +350,9 @@ public final class RCWindowWithSurface
 
       final var configuration =
         JCSwapchainConfiguration.builder()
+          .setRequestedMinimumImages(2)
+          .addPreferredModes(VK_PRESENT_MODE_FIFO_KHR)
+          .addPreferredModes(VK_PRESENT_MODE_MAILBOX_KHR)
           .addImageUsageFlags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
           .addImageUsageFlags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
           .addSurfaceAlphaFlags(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)

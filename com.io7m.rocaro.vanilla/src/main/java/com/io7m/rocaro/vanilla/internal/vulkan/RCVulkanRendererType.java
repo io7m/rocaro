@@ -24,6 +24,7 @@ import com.io7m.rocaro.api.RCCloseableGPUType;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.devices.RCDeviceType;
+import com.io7m.rocaro.api.services.RCServiceRendererScopedType;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowType;
 
@@ -36,7 +37,7 @@ import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.GPU;
  */
 
 public interface RCVulkanRendererType
-  extends RPServiceType, RCCloseableGPUType
+  extends RPServiceType, RCCloseableGPUType, RCServiceRendererScopedType
 {
   /**
    * @return The renderer ID
@@ -86,7 +87,7 @@ public interface RCVulkanRendererType
    */
 
   @RCThread(GPU)
-  RCVulkanFrameContextType acquireFrame(
+  RCVulkanFrameType acquireFrame(
     RCFrameIndex frame)
     throws RCVulkanException, TimeoutException;
 

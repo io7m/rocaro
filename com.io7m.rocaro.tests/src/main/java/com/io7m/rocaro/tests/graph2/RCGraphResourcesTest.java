@@ -19,37 +19,39 @@ package com.io7m.rocaro.tests.graph2;
 
 import com.io7m.rocaro.api.graph.RCGGraphException;
 import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
 import com.io7m.rocaro.vanilla.RCGraph;
+import com.io7m.rocaro.vanilla.RCStrings;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
 import java.util.Set;
 
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
-import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
+import static com.io7m.rocaro.api.graph.RCNoParameters.NO_PARAMETERS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public final class RCGraphResourcesTest
 {
+  private static final RCResourceSchematicBufferType ANY_BUFFER =
+    () -> 100L;
+
+  private static final RCStrings STRINGS =
+    new RCStrings(Locale.getDefault());
+
   @Test
   public void testErrorResourceNameConflict0()
     throws RCGGraphException
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
-    b.declareResource(
-      "Example0",
-      ResExample0.factory(),
-      NO_PARAMETERS
-    );
+    b.declareResource("Example0", ANY_BUFFER);
 
     final var ex =
       assertThrows(RCGGraphException.class, () -> {
-        b.declareResource(
-          "Example0",
-          ResExample0.factory(),
-          NO_PARAMETERS);
+        b.declareResource("Example0", ANY_BUFFER);
       });
 
     assertEquals("error-graph-name-duplicate", ex.errorCode());
@@ -60,14 +62,14 @@ public final class RCGraphResourcesTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
     final var op1 =
       b.declareOperation("Example1", OpEx1.factory(), NO_PARAMETERS);
     final var r =
-      b.declareResource("Res0", ResExample0.factory(), NO_PARAMETERS);
+      b.declareResource("Res0", ANY_BUFFER);
 
     b.resourceAssign(op0.port0(), r);
 
@@ -84,7 +86,7 @@ public final class RCGraphResourcesTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -112,7 +114,7 @@ public final class RCGraphResourcesTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -133,7 +135,7 @@ public final class RCGraphResourcesTest
         new OpConsumer0.Parameters(GRAPHICS, Set.of(), Set.of())
       );
     final var r =
-      b.declareResource("Res0", ResBuffer0.factory(), NO_PARAMETERS);
+      b.declareResource("Res0", ANY_BUFFER);
 
     b.resourceAssign(op0.port(), r);
     b.connect(op0.port(), op1.port());

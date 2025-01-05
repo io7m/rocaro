@@ -18,6 +18,7 @@
 package com.io7m.rocaro.api.transfers;
 
 import com.io7m.repetoir.core.RPServiceType;
+import com.io7m.rocaro.api.services.RCServiceRendererScopedType;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
  */
 
 public interface RCTransferServiceType
-  extends RPServiceType
+  extends RPServiceType, RCServiceRendererScopedType
 {
   /**
    * Execute a transfer operation.

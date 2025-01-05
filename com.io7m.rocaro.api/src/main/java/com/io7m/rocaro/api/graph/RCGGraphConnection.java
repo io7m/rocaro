@@ -27,8 +27,8 @@ import java.util.Objects;
  */
 
 public record RCGGraphConnection(
-  RCGPortSourceType sourcePort,
-  RCGPortTargetType targetPort)
+  RCGPortSourceType<?> sourcePort,
+  RCGPortTargetType<?> targetPort)
 {
   /**
    * A connection in the render graph.

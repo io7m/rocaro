@@ -25,12 +25,13 @@ import com.io7m.repetoir.core.RPServiceDirectoryType;
 import com.io7m.repetoir.core.RPServiceException;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RCUnit;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
 import com.io7m.rocaro.vanilla.internal.RCServiceException;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.threading.RCExecutorOne;
 import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanException;
@@ -65,14 +66,18 @@ public final class RCNotificationService
   private final ConcurrentHashMap.KeySetView<TimelineSemaphore, Boolean> timelineSemaphores;
   private final AtomicBoolean closed;
   private final Duration checkFrequency;
+  private final RCRendererID rendererId;
 
   private RCNotificationService(
     final CloseableCollectionType<RocaroException> inResources,
     final RCVulkanRendererType inVulkan,
-    final Duration inCheckFrequency)
+    final Duration inCheckFrequency,
+    final RCRendererID inRendererId)
   {
     this.checkFrequency =
       Objects.requireNonNull(inCheckFrequency, "checkFrequency");
+    this.rendererId =
+      Objects.requireNonNull(inRendererId, "rendererId");
     this.closed =
       new AtomicBoolean(false);
     this.resources =
@@ -89,6 +94,7 @@ public final class RCNotificationService
    * Create a notification service.
    *
    * @param services       The service directory
+   * @param rendererId     The renderer ID
    * @param checkFrequency The frequency at which to check for notifications
    *
    * @return The service
@@ -98,6 +104,7 @@ public final class RCNotificationService
 
   public static RCNotificationService create(
     final RPServiceDirectoryType services,
+    final RCRendererID rendererId,
     final Duration checkFrequency)
     throws RCServiceException
   {
@@ -118,7 +125,12 @@ public final class RCNotificationService
         );
 
       final var service =
-        new RCNotificationService(resources, vulkan, checkFrequency);
+        new RCNotificationService(
+          resources,
+          vulkan,
+          checkFrequency,
+          rendererId
+        );
 
       executor.execute(service::run);
       return service;
@@ -220,6 +232,12 @@ public final class RCNotificationService
       new TimelineSemaphore(this.device, future, semaphore)
     );
     return future;
+  }
+
+  @Override
+  public RCRendererID rendererId()
+  {
+    return this.rendererId;
   }
 
   private static final class Fence

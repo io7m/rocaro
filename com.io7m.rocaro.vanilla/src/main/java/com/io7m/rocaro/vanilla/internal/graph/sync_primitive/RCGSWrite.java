@@ -18,12 +18,12 @@
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
 
 import java.util.Objects;
 
 /**
- * A write operation.
+ * A write command.
  */
 
 public final class RCGSWrite
@@ -31,22 +31,22 @@ public final class RCGSWrite
   implements RCGSWriteType
 {
   private final RCGSExecute owner;
-  private final RCGResourcePlaceholderType resource;
+  private final RCGResourceVariable<?> resource;
   private final RCGCommandPipelineStage writesAt;
 
   /**
-   * A write operation.
+   * A write command.
    *
    * @param id         The ID
    * @param inOwner    The executing command
    * @param inResource The resource
-   * @param inWritesAt The stage at which the write access occurs
+   * @param inWritesAt The stage at which the write command occurs
    */
 
   public RCGSWrite(
     final long id,
     final RCGSExecute inOwner,
-    final RCGResourcePlaceholderType inResource,
+    final RCGResourceVariable<?> inResource,
     final RCGCommandPipelineStage inWritesAt)
   {
     super(id);
@@ -75,13 +75,13 @@ public final class RCGSWrite
    * @return The resource
    */
 
-  public RCGResourcePlaceholderType resource()
+  public RCGResourceVariable<?> resource()
   {
     return this.resource;
   }
 
   /**
-   * @return The stage at which the write occurs
+   * @return The stage at which the write command occurs
    */
 
   public RCGCommandPipelineStage writesAt()

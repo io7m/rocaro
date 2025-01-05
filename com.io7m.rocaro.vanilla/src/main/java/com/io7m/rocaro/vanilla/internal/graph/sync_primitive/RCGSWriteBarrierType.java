@@ -17,15 +17,35 @@
 
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
+import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+
 /**
  * The type of write barriers.
  */
 
 public sealed interface RCGSWriteBarrierType
-  extends RCGSBarrierType permits RCGSImageWriteBarrier,
+  extends RCGSBarrierType
+  permits RCGSImageWriteBarrier,
   RCGSImageWriteBarrierWithQueueTransfer,
   RCGSMemoryWriteBarrier,
   RCGSMemoryWriteBarrierWithQueueTransfer
 {
+  /**
+   * @return The resource
+   */
 
+  RCGResourceVariable<?> resource();
+
+  /**
+   * @return The stage at which the barrier will wait for writes
+   */
+
+  RCGCommandPipelineStage waitsForWriteAt();
+
+  /**
+   * @return The write access that will be blocked until this barrier completes
+   */
+
+  RCGCommandPipelineStage blocksWriteAt();
 }

@@ -24,12 +24,14 @@ import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Sort ports and operations into topological order.
  */
 
 public final class RCGPassTopological
+  extends RCGPassAbstract
   implements RCGGraphPassType
 {
   /**
@@ -38,7 +40,7 @@ public final class RCGPassTopological
 
   public RCGPassTopological()
   {
-
+    super(Set.of());
   }
 
   @Override
@@ -56,7 +58,7 @@ public final class RCGPassTopological
     final var iter =
       new TopologicalOrderIterator<>(builder.graph());
     final var r =
-      new ArrayList<RCGPortType>(
+      new ArrayList<RCGPortType<?>>(
         builder.graph().vertexSet().size()
       );
 

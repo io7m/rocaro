@@ -75,8 +75,6 @@ module com.io7m.rocaro.vanilla
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.windows
     to com.io7m.rocaro.tests;
-  exports com.io7m.rocaro.vanilla.internal.images
-    to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.vulkan
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.notifications
@@ -85,8 +83,13 @@ module com.io7m.rocaro.vanilla
     to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.renderdoc
     to com.io7m.rocaro.tests;
+  exports com.io7m.rocaro.vanilla.internal.graph_exec
+    to com.io7m.rocaro.tests;
   exports com.io7m.rocaro.vanilla.internal.frames
     to com.io7m.rocaro.tests, com.io7m.rocaro.demo;
   exports com.io7m.rocaro.vanilla.internal.graph.sync_primitive
     to com.io7m.rocaro.tests;
+
+  opens com.io7m.rocaro.vanilla
+    to com.io7m.jxtrand.vanilla;
 }

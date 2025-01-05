@@ -29,9 +29,10 @@ import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortModifierType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
 import com.io7m.rocaro.api.graph.RCGResourceImageLayout;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImage2DType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintImage2D;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -42,7 +43,7 @@ final class OpImageModifier0
   implements RCGOperationType
 {
   private final Parameters parameters;
-  private final RCGPortModifierType port;
+  private final RCGPortModifierType<RCImage2DType> port;
 
   public OpImageModifier0(
     final RCGOperationCreationContextType context,
@@ -59,14 +60,18 @@ final class OpImageModifier0
         this,
         new RCGPortName("Port0"),
         this.parameters.readsOnStages(),
-        new RCGPortTypeConstraintImage<>(
-          RCGResourcePlaceholderImageType.class,
-          this.parameters.requiresLayout()
+        new RCSchematicConstraintImage2D<>(
+          RCImage2DType.class,
+          RCResourceSchematicImage2DType.class,
+          this.parameters.requiresLayout(),
+          false
         ),
         this.parameters.writesOnStages(),
-        new RCGPortTypeConstraintImage<>(
-          RCGResourcePlaceholderImageType.class,
-          this.parameters.ensuresLayout()
+        new RCSchematicConstraintImage2D<>(
+          RCImage2DType.class,
+          RCResourceSchematicImage2DType.class,
+          this.parameters.ensuresLayout(),
+          false
         )
       );
 
@@ -78,7 +83,7 @@ final class OpImageModifier0
     return OpImageModifier0::new;
   }
 
-  public RCGPortModifierType port()
+  public RCGPortModifierType<RCImage2DType> port()
   {
     return this.port;
   }
@@ -91,7 +96,7 @@ final class OpImageModifier0
   }
 
   @Override
-  protected void onPrepareCheck(
+  protected void onPrepareContinue(
     final RCGOperationPreparationContextType context)
   {
 

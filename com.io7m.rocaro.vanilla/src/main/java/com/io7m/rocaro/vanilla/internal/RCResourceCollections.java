@@ -20,6 +20,7 @@ package com.io7m.rocaro.vanilla.internal;
 import com.io7m.jmulticlose.core.CloseableCollection;
 import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RocaroException;
+import com.io7m.rocaro.vanilla.RCStrings;
 
 import java.util.Map;
 import java.util.Optional;

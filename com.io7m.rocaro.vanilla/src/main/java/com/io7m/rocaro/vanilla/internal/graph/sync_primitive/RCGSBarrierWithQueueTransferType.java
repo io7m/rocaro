@@ -17,7 +17,7 @@
 
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
-import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
+import com.io7m.rocaro.api.graph.RCGSubmissionID;
 
 /**
  * The base type of barriers that involve semaphore-based queue transfers.
@@ -31,14 +31,14 @@ public sealed interface RCGSBarrierWithQueueTransferType
   RCGSMemoryWriteBarrierWithQueueTransfer
 {
   /**
-   * @return The source queue category
+   * @return The source queue submission
    */
 
-  RCDeviceQueueCategory queueSource();
+  RCGSubmissionID queueSource();
 
   /**
-   * @return The target queue category
+   * @return The target queue submission
    */
 
-  RCDeviceQueueCategory queueTarget();
+  RCGSubmissionID queueTarget();
 }

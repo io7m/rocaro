@@ -44,6 +44,7 @@ import com.io7m.rocaro.api.graph.RCGraphName;
 import com.io7m.rocaro.api.transfers.RCTransferServiceType;
 import com.io7m.rocaro.vanilla.RCAssetResolvers;
 import com.io7m.rocaro.vanilla.RCGraph;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.assets.RCAssetService;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameService;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameServiceType;
@@ -140,7 +141,7 @@ public final class RendererBuilder
       throw this.errorGraphAlreadyExists(name);
     }
 
-    final var builder = RCGraph.builder(name);
+    final var builder = RCGraph.builder(this.strings, name);
     this.graphs.put(name, builder);
     return builder;
   }
@@ -191,7 +192,7 @@ public final class RendererBuilder
     }
   }
 
-  private Renderer createRenderer(
+  private RendererType createRenderer(
     final RCRendererID rendererId,
     final RCStandardExecutors executors)
     throws Exception
@@ -228,7 +229,7 @@ public final class RendererBuilder
         executors,
         resources,
         RCFrameServiceType.class,
-        RCFrameService::create
+        () -> RCFrameService.create(rendererId)
       );
 
       if (this.vulkanConfiguration.enableRenderDocSupport()) {
@@ -238,7 +239,7 @@ public final class RendererBuilder
           executors,
           resources,
           RCRenderDocServiceType.class,
-          RCRenderDocService::create
+          () -> RCRenderDocService.create(rendererId)
         );
       } else {
         createService(
@@ -247,7 +248,7 @@ public final class RendererBuilder
           executors,
           resources,
           RCRenderDocServiceType.class,
-          RCRenderDocService::createNoOp
+          () -> RCRenderDocService.createNoOp(rendererId)
         );
       }
 
@@ -294,6 +295,7 @@ public final class RendererBuilder
         () -> {
           return RCNotificationService.create(
             services,
+            rendererId,
             this.vulkanConfiguration.notificationFrequency()
           );
         }
@@ -305,7 +307,7 @@ public final class RendererBuilder
         executors,
         resources,
         RCTransferServiceType.class,
-        () -> RCTransferService.create(services)
+        () -> RCTransferService.create(services, rendererId)
       );
 
       createService(
@@ -314,13 +316,13 @@ public final class RendererBuilder
         executors,
         resources,
         RCAssetServiceType.class,
-        () -> RCAssetService.create(services)
+        () -> RCAssetService.create(services, rendererId)
       );
 
       exceptions.throwIfNecessary();
 
       LOG.debug("Created renderer.");
-      return new Renderer(
+      return Renderer.create(
         services,
         services.requireService(RCStrings.class),
         executors,
@@ -330,7 +332,6 @@ public final class RendererBuilder
         builtGraphs,
         rendererId
       );
-
     } catch (final Throwable e) {
       resources.close();
       throw e;

@@ -17,38 +17,65 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph.RCGNoParameters;
-import com.io7m.rocaro.api.graph.RCGResourceFactoryType;
-import com.io7m.rocaro.api.graph.RCGResourceName;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderImageType;
+import com.io7m.jcoronado.api.VulkanFormat;
+import com.io7m.jcoronado.api.VulkanImageType;
+import com.io7m.jcoronado.api.VulkanImageViewType;
+import com.io7m.junreachable.UnimplementedCodeException;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.images.RCImageID;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImage2DType;
 
 import java.util.Objects;
+import java.util.UUID;
 
-final class ResImage0
-  implements RCGResourcePlaceholderImageType
+final class ResImage0 implements RCImage2DType
 {
-  private final RCGResourceName name;
+  private final RCResourceSchematicImage2DType schematic;
+  private final RCImageID id;
 
   public ResImage0(
-    final RCGResourceName inName)
+    final RCResourceSchematicImage2DType inSchematic)
   {
-    this.name = Objects.requireNonNull(inName, "name");
-  }
-
-  public static RCGResourceFactoryType<RCGNoParameters, ResImage0> factory()
-  {
-    return (name, _) -> new ResImage0(name);
+    this.schematic =
+      Objects.requireNonNull(inSchematic, "s");
+    this.id =
+      new RCImageID(UUID.randomUUID());
   }
 
   @Override
   public String toString()
   {
-    return "[ResImage0 %s]".formatted(this.name);
+    return "[ResImage0 0x%s]"
+      .formatted(Integer.toUnsignedString(this.hashCode(), 16));
   }
 
   @Override
-  public RCGResourceName name()
+  public RCResourceSchematicImage2DType schematic()
   {
-    return this.name;
+    return this.schematic;
+  }
+
+  @Override
+  public RCImageID id()
+  {
+    return this.id;
+  }
+
+  @Override
+  public VulkanFormat format()
+  {
+    return VulkanFormat.VK_FORMAT_R8_UNORM;
+  }
+
+  @Override
+  public VulkanImageType data()
+  {
+    throw new UnimplementedCodeException();
+  }
+
+  @Override
+  public VulkanImageViewType view()
+  {
+    throw new UnimplementedCodeException();
   }
 }

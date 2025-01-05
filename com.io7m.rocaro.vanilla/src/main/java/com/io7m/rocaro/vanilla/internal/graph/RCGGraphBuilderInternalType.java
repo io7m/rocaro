@@ -19,6 +19,7 @@ package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
 import com.io7m.rocaro.api.graph.RCGCommandType;
+import com.io7m.rocaro.api.graph.RCGExecutionSubmissionType;
 import com.io7m.rocaro.api.graph.RCGGraphBuilderType;
 import com.io7m.rocaro.api.graph.RCGGraphConnection;
 import com.io7m.rocaro.api.graph.RCGGraphOpConnection;
@@ -29,7 +30,12 @@ import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortProducerType;
 import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.graph.RCGResourceName;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceSubname;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+import com.io7m.rocaro.api.graph.RCGSubmissionID;
+import com.io7m.rocaro.api.resources.RCResourceSchematicPrimitiveType;
+import com.io7m.rocaro.vanilla.internal.graph.port_primitive.RCGGraphPrimitiveConnection;
+import com.io7m.rocaro.vanilla.internal.graph.port_primitive.RCGPortPrimitiveType;
 import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSExecute;
 import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncCommandType;
 import com.io7m.rocaro.vanilla.internal.graph.sync_primitive.RCGSyncDependency;
@@ -37,6 +43,7 @@ import org.jgrapht.graph.DirectedAcyclicGraph;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.SortedMap;
 import java.util.function.Consumer;
 
 /**
@@ -62,13 +69,19 @@ public interface RCGGraphBuilderInternalType
    * @return The resource at each port
    */
 
-  HashMap<RCGPortType, RCGResourcePlaceholderType> portResourcesTracked();
+  HashMap<RCGPortType<?>, RCGResourceVariable<?>> portResourcesTracked();
+
+  /**
+   * @return The resource at each primitive port
+   */
+
+  HashMap<RCGPortPrimitiveType, RCGResourceVariable<? extends RCResourceSchematicPrimitiveType>> portPrimitiveResourcesTracked();
 
   /**
    * @return The graph
    */
 
-  DirectedAcyclicGraph<RCGPortType, RCGGraphConnection> graph();
+  DirectedAcyclicGraph<RCGPortType<?>, RCGGraphConnection> graph();
 
   /**
    * @return The sync_primitive graph
@@ -92,25 +105,25 @@ public interface RCGGraphBuilderInternalType
    * @return The resource for each port
    */
 
-  HashMap<RCGPortProducerType, RCGResourcePlaceholderType> portResources();
+  HashMap<RCGPortProducerType<?>, RCGResourceVariable<?>> portResources();
 
   /**
    * @return The port for each resource
    */
 
-  HashMap<RCGResourcePlaceholderType, RCGPortProducerType> resourcePorts();
+  HashMap<RCGResourceVariable<?>, RCGPortProducerType<?>> resourcePorts();
 
   /**
    * @return The resources
    */
 
-  HashMap<RCGResourceName, RCGResourcePlaceholderType> resources();
+  HashMap<RCGResourceName, RCGResourceVariable<?>> resources();
 
   /**
    * @return The image layouts per port
    */
 
-  HashMap<RCGPortType, RCGOperationImageLayoutTransitionType> portImageLayouts();
+  HashMap<RCGPortPrimitiveType, RCGOperationImageLayoutTransitionType> portImageLayouts();
 
   /**
    * Traverse the graph in topological order.
@@ -136,7 +149,7 @@ public interface RCGGraphBuilderInternalType
    */
 
   void setPortsOrdered(
-    List<RCGPortType> ports);
+    List<RCGPortType<?>> ports);
 
   /**
    * Set the list of operations in topological order.
@@ -157,5 +170,43 @@ public interface RCGGraphBuilderInternalType
    * @return The list of ports in topological order.
    */
 
-  List<RCGPortType> portsOrdered();
+  List<RCGPortType<?>> portsOrdered();
+
+  /**
+   * Set the submissions for the execution plan.
+   *
+   * @param submissions The submissions
+   */
+
+  void setSubmissions(
+    SortedMap<RCGSubmissionID, RCGExecutionSubmissionType> submissions);
+
+  /**
+   * @return The graph of ports to primitive ports
+   */
+
+  HashMap<RCGPortType<?>, HashMap<RCGResourceSubname, RCGPortPrimitiveType>> portToPrimitives();
+
+  /**
+   * @return The primitive port graph
+   */
+
+  DirectedAcyclicGraph<
+    RCGPortPrimitiveType,
+    RCGGraphPrimitiveConnection> primitivePortGraph();
+
+  /**
+   * Set the ordered list of primitive ports.
+   *
+   * @param ports The ports
+   */
+
+  void setPrimitivePortsOrdered(
+    List<RCGPortPrimitiveType> ports);
+
+  /**
+   * @return The list of primitive ports in topological order.
+   */
+
+  List<RCGPortPrimitiveType> primitivePortsOrdered();
 }

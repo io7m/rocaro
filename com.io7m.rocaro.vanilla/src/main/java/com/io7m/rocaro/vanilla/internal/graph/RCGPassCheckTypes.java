@@ -18,22 +18,31 @@
 package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.rocaro.api.graph.RCGGraphException;
-import com.io7m.rocaro.api.graph.RCGResourceCompatibility;
+import com.io7m.rocaro.api.graph.RCGPortConsumerType;
+import com.io7m.rocaro.api.graph.RCGPortModifierType;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
+import com.io7m.rocaro.api.graph.RCGPortType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+import com.io7m.rocaro.api.resources.RCConstraintException;
+
+import java.util.Set;
 
 /**
  * Check resource types for the graph.
  */
 
 public final class RCGPassCheckTypes
+  extends RCGPassAbstract
   implements RCGGraphPassType
 {
   /**
    * Check resource types for the graph.
+   *
    */
 
   public RCGPassCheckTypes()
   {
-
+    super(Set.of(RCGPassResourcesTrack.class));
   }
 
   @Override
@@ -41,10 +50,33 @@ public final class RCGPassCheckTypes
     final RCGGraphBuilderInternalType builder)
     throws RCGGraphException
   {
-    for (final var entry : builder.portResourcesTracked().entrySet()) {
-      RCGResourceCompatibility.checkCompatibility(
-        entry.getKey(),
-        entry.getValue()
+    try {
+      for (final var entry : builder.portResourcesTracked().entrySet()) {
+        final RCGPortType<?> port =
+          entry.getKey();
+        final RCGResourceVariable<?> var =
+          entry.getValue();
+
+        switch (port) {
+          case final RCGPortConsumerType<?> v -> {
+            v.typeConsumed().checkSchematic(var.schematic());
+          }
+          case final RCGPortModifierType<?> v -> {
+            v.typeConsumed().checkSchematic(var.schematic());
+            v.typeProduced().checkSchematic(var.schematic());
+          }
+          case final RCGPortProducerType<?> v -> {
+            v.typeProduced().checkSchematic(var.schematic());
+          }
+        }
+      }
+    } catch (final RCConstraintException e) {
+      throw new RCGGraphException(
+        e.getMessage(),
+        e,
+        e.attributes(),
+        e.errorCode(),
+        e.remediatingAction()
       );
     }
   }

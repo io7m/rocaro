@@ -24,7 +24,7 @@ import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeaturesFunctions;
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceType;
 import com.io7m.rocaro.api.devices.RCDeviceSelectionAny;
 import com.io7m.rocaro.api.devices.RCDeviceSelectionType;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
+import com.io7m.rocaro.vanilla.RCStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

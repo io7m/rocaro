@@ -26,7 +26,7 @@ import java.util.UUID;
  */
 
 public sealed interface RCTransferOperationType<T>
-  permits RCTransferImageColorBasicType
+  permits RCTransferImage2DType
 {
   /**
    * @return The transfer ID

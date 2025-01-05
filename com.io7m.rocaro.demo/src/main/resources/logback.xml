@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns="http://ch.qos.logback/xml/ns/logback" debug="false">
+<configuration xmlns="http://ch.qos.logback/xml/ns/logback"
+               debug="false">
 
-  <appender
-    name="STDERR"
-    class="ch.qos.logback.core.ConsoleAppender">
+  <appender name="STDERR"
+            class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>[%thread{8}] %level %logger{0}: %msg%n</pattern>
     </encoder>
     <target>System.err</target>
   </appender>
 
-  <logger name="com.io7m.jcoronado.utility.allocation_tracker.VulkanHostAllocatorTracker" level="DEBUG"/>
+  <logger name="com.io7m.jcoronado.utility.allocation_tracker.VulkanHostAllocatorTracker"
+          level="DEBUG"/>
+
+  <logger name="com.io7m.repetoir"
+          level="INFO"/>
 
   <root level="DEBUG">
     <appender-ref ref="STDERR"/>

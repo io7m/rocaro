@@ -18,7 +18,8 @@
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
 
 import java.util.Objects;
 
@@ -31,7 +32,7 @@ public final class RCGSMemoryReadBarrier
   implements RCGSReadType, RCGSReadBarrierType
 {
   private final RCGSExecute owner;
-  private final RCGResourcePlaceholderType resource;
+  private final RCGResourceVariable<? extends RCResourceSchematicBufferType> resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
   private final RCGCommandPipelineStage blocksReadAt;
 
@@ -48,7 +49,7 @@ public final class RCGSMemoryReadBarrier
   public RCGSMemoryReadBarrier(
     final long id,
     final RCGSExecute inOwner,
-    final RCGResourcePlaceholderType inResource,
+    final RCGResourceVariable<? extends RCResourceSchematicBufferType> inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
     final RCGCommandPipelineStage inBlocksReadAt)
   {
@@ -71,7 +72,7 @@ public final class RCGSMemoryReadBarrier
   }
 
   @Override
-  public RCGResourcePlaceholderType resource()
+  public RCGResourceVariable<? extends RCResourceSchematicBufferType> resource()
   {
     return this.resource;
   }

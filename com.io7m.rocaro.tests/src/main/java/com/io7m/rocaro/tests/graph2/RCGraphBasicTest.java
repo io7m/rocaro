@@ -20,16 +20,22 @@ package com.io7m.rocaro.tests.graph2;
 import com.io7m.rocaro.api.graph.RCGGraphException;
 import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationName;
+import com.io7m.rocaro.api.graph.RCGPortConsumerType;
+import com.io7m.rocaro.api.graph.RCGPortProducerType;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
 import com.io7m.rocaro.vanilla.RCGraph;
+import com.io7m.rocaro.vanilla.RCStrings;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
-import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
+import static com.io7m.rocaro.api.graph.RCNoParameters.NO_PARAMETERS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -38,12 +44,18 @@ public final class RCGraphBasicTest
   private static final Logger LOG =
     LoggerFactory.getLogger(RCGraphBasicTest.class);
 
+  private static final RCResourceSchematicBufferType ANY_BUFFER =
+    () -> 100L;
+
+  private static final RCStrings STRINGS =
+    new RCStrings(Locale.getDefault());
+
   @Test
   public void testErrorEmpty()
   {
     final var ex =
       assertThrows(RCGGraphException.class, () -> {
-        RCGraph.builder("Main").compile();
+        RCGraph.builder(STRINGS, "Main").compile();
       });
 
     assertEquals("error-graph-empty", ex.errorCode());
@@ -54,13 +66,13 @@ public final class RCGraphBasicTest
   {
     final var op0 =
       new OpEx0(
-        (RCGOperationCreationContextType) RCGraph.builder("Main"),
+        (RCGOperationCreationContextType) RCGraph.builder(STRINGS, "Main"),
         new RCGOperationName("Example0")
       );
 
     final var ex =
       assertThrows(RCGGraphException.class, () -> {
-        RCGraph.builder("Main")
+        RCGraph.builder(STRINGS, "Main")
           .connect(op0.port0(), op0.port1());
       });
 
@@ -72,7 +84,7 @@ public final class RCGraphBasicTest
     throws RCGGraphException
   {
     final var b =
-      RCGraph.builder("Main");
+      RCGraph.builder(STRINGS, "Main");
 
     b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
 
@@ -89,7 +101,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder("Main");
+      RCGraph.builder(STRINGS, "Main");
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -113,7 +125,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder("Main");
+      RCGraph.builder(STRINGS, "Main");
 
     final var op1 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -137,7 +149,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder("Main");
+      RCGraph.builder(STRINGS, "Main");
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -159,7 +171,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder("Main");
+      RCGraph.builder(STRINGS, "Main");
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
@@ -183,10 +195,10 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder("Main");
+      RCGraph.builder(STRINGS, "Main");
 
     final var r =
-      b.declareResource("R", ResBuffer0.factory(), NO_PARAMETERS);
+      b.declareResource("R", ANY_BUFFER);
 
     final var op0 =
       b.declareOperation(
@@ -206,14 +218,23 @@ public final class RCGraphBasicTest
         )
       );
 
-    b.connect(op0.port(), op1.port());
+    /*
+     * We need to force the issue with an unchecked cast.
+     */
+
+    final RCGPortProducerType<RCImage2DType> portSrc =
+      (RCGPortProducerType<RCImage2DType>) (Object) op0.port();
+    final RCGPortConsumerType<RCImage2DType> portDst =
+      op1.port();
+
+    b.connect(portSrc, portDst);
     b.resourceAssign(op0.port(), r);
 
     final var ex =
       assertThrows(RCGGraphException.class, b::compile);
 
     show(ex);
-    assertEquals("error-graph-type-incompatible", ex.errorCode());
+    assertEquals("error-type-incompatible", ex.errorCode());
   }
 
   private static void show(
@@ -232,12 +253,12 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder("Main");
+      RCGraph.builder(STRINGS, "Main");
 
     final var op0 =
       b.declareOperation("Example0", OpEx0.factory(), NO_PARAMETERS);
     final var r =
-      b.declareResource("Res0", ResExample0.factory(), NO_PARAMETERS);
+      b.declareResource("Res0", ANY_BUFFER);
 
     b.resourceAssign(op0.port0(), r);
 
@@ -254,7 +275,7 @@ public final class RCGraphBasicTest
     throws Exception
   {
     final var b =
-      RCGraph.builder("Main");
+      RCGraph.builder(STRINGS, "Main");
 
     final var op0 =
       b.declareOperation(

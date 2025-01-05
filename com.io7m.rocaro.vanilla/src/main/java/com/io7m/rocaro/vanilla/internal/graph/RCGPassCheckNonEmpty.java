@@ -21,12 +21,14 @@ import com.io7m.rocaro.api.graph.RCGGraphException;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Check the graph is not empty.
  */
 
 public final class RCGPassCheckNonEmpty
+  extends RCGPassAbstract
   implements RCGGraphPassType
 {
   /**
@@ -35,7 +37,7 @@ public final class RCGPassCheckNonEmpty
 
   public RCGPassCheckNonEmpty()
   {
-
+    super(Set.of());
   }
 
   @Override

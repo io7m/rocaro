@@ -18,9 +18,7 @@
 package com.io7m.rocaro.vanilla.internal;
 
 import com.io7m.jmulticlose.core.CloseableCollectionType;
-import com.io7m.junreachable.UnimplementedCodeException;
 import com.io7m.repetoir.core.RPServiceDirectoryType;
-import com.io7m.repetoir.core.RPServiceType;
 import com.io7m.rocaro.api.RCFrameIndex;
 import com.io7m.rocaro.api.RCFrameInformation;
 import com.io7m.rocaro.api.RCFrameNumber;
@@ -36,21 +34,25 @@ import com.io7m.rocaro.api.graph.RCGGraphException;
 import com.io7m.rocaro.api.graph.RCGGraphStatusType;
 import com.io7m.rocaro.api.graph.RCGGraphType;
 import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.rocaro.api.services.RCServiceRendererScopedType;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.frames.RCFrameServiceType;
+import com.io7m.rocaro.vanilla.internal.graph_exec.RCGraphExecutor;
+import com.io7m.rocaro.vanilla.internal.graph_exec.RCGraphExecutorType;
 import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
-import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameContextType;
+import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanFrameType;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.io7m.rocaro.api.RCStandardErrorCodes.NONEXISTENT_GRAPH;
-import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_GRAPH_NONEXISTENT;
+import static com.io7m.rocaro.api.RCStandardErrorCodes.GRAPH_NOT_READY;
+import static com.io7m.rocaro.vanilla.internal.RCStringConstants.ERROR_GRAPH_NOT_READY;
 import static com.io7m.rocaro.vanilla.internal.RCStringConstants.GRAPH;
 
 /**
@@ -64,16 +66,18 @@ public final class Renderer
   private static final Logger LOG =
     LoggerFactory.getLogger(Renderer.class);
 
-  private final RPServiceDirectoryType services;
+  private final AtomicBoolean closed;
+  private final CloseableCollectionType<RocaroException> resources;
+  private final HashMap<RCGraphName, RCGGraphStatusType> graphStatus;
+  private final Map<RCGraphName, RCGGraphType> graphs;
+  private final RCGraphExecutorType graphExecutor;
+  private final RCFrameServiceType frameService;
+  private final RCRendererID id;
+  private final RCStandardExecutors executors;
   private final RCStrings strings;
   private final RCVulkanRendererType vulkanRenderer;
-  private final RCFrameServiceType frameService;
-  private final CloseableCollectionType<RocaroException> resources;
-  private final Map<RCGraphName, RCGGraphType> graphs;
-  private final AtomicBoolean closed;
-  private final RCStandardExecutors executors;
+  private final RPServiceDirectoryType services;
   private RCFrameNumber frameNumber;
-  private RCRendererID id;
 
   Renderer(
     final RPServiceDirectoryType inServices,
@@ -83,6 +87,7 @@ public final class Renderer
     final RCFrameServiceType inFrameService,
     final CloseableCollectionType<RocaroException> inResources,
     final Map<RCGraphName, RCGGraphType> inGraphs,
+    final RCGraphExecutorType inGraphExecutor,
     final RCRendererID inId)
   {
     this.services =
@@ -99,12 +104,78 @@ public final class Renderer
       Objects.requireNonNull(inResources, "resources");
     this.graphs =
       Map.copyOf(inGraphs);
+    this.graphExecutor =
+      Objects.requireNonNull(inGraphExecutor, "executor");
+    this.graphStatus =
+      new HashMap<>();
     this.id =
       Objects.requireNonNull(inId, "id");
     this.frameNumber =
       RCFrameNumber.first();
     this.closed =
       new AtomicBoolean(false);
+  }
+
+  /**
+   * Create a renderer.
+   *
+   * @param inServices       The services
+   * @param inStrings        The strings
+   * @param inExecutors      The executors
+   * @param inVulkanRenderer The Vulkan rendere
+   * @param inFrameService   The frame service
+   * @param inResources      The resources
+   * @param inGraphs         The graphs
+   * @param inId             The ID
+   *
+   * @return The renderer
+   *
+   * @throws RocaroException On errors
+   */
+
+  public static RendererType create(
+    final RPServiceDirectoryType inServices,
+    final RCStrings inStrings,
+    final RCStandardExecutors inExecutors,
+    final RCVulkanRendererType inVulkanRenderer,
+    final RCFrameServiceType inFrameService,
+    final CloseableCollectionType<RocaroException> inResources,
+    final Map<RCGraphName, RCGGraphType> inGraphs,
+    final RCRendererID inId)
+    throws RocaroException
+  {
+    final var executor =
+      RCGraphExecutor.create(
+        inStrings,
+        inGraphs,
+        inVulkanRenderer.maximumFramesInFlight()
+      );
+
+    return new Renderer(
+      inServices,
+      inStrings,
+      inExecutors,
+      inVulkanRenderer,
+      inFrameService,
+      inResources,
+      inGraphs,
+      executor,
+      inId
+    );
+  }
+
+  private static RocaroException errorGraphNotReady(
+    final RCStrings strings,
+    final RCGraphName graphName)
+  {
+    return new RCGGraphException(
+      strings.format(ERROR_GRAPH_NOT_READY),
+      Map.ofEntries(
+        Map.entry(strings.format(GRAPH), graphName.value())
+      ),
+      GRAPH_NOT_READY.codeName(),
+      Optional.empty()
+    );
   }
 
   @Override
@@ -138,7 +209,7 @@ public final class Renderer
   }
 
   @Override
-  public <T extends RPServiceType> T requireService(
+  public <T extends RCServiceRendererScopedType> T requireService(
     final Class<T> clazz)
   {
     return this.services.requireService(
@@ -147,7 +218,7 @@ public final class Renderer
   }
 
   @Override
-  public <T extends RPServiceType> Optional<T> optionalService(
+  public <T extends RCServiceRendererScopedType> Optional<T> optionalService(
     final Class<T> clazz)
   {
     return this.services.optionalService(
@@ -170,7 +241,7 @@ public final class Renderer
 
   private void doExecute(
     final RendererFrameBuilderProcedureType f)
-    throws RocaroException, TimeoutException
+    throws RocaroException
   {
     try {
       final var frameIndex =
@@ -180,24 +251,23 @@ public final class Renderer
 
       final var frameInformation =
         new RCFrameInformation(this.frameNumber, frameIndex);
+      final var vulkanFrame =
+        this.acquireFrame(frameIndex);
 
-      try (final var frameContext = this.acquireFrame(frameIndex)) {
-        this.frameService.beginNewFrame(frameInformation);
+      this.frameService.beginNewFrame(frameInformation);
 
-        f.execute(
-          new FrameBuilder(
-            this,
-            frameInformation,
-            frameContext
-          )
-        );
-      }
+      f.execute(new FrameBuilder(
+        this.graphExecutor,
+        frameInformation,
+        vulkanFrame
+      ));
+
     } finally {
       this.frameNumber = this.frameNumber.next();
     }
   }
 
-  private RCVulkanFrameContextType acquireFrame(
+  private RCVulkanFrameType acquireFrame(
     final RCFrameIndex frameIndex)
     throws RocaroException
   {
@@ -208,21 +278,21 @@ public final class Renderer
   private static final class FrameBuilder
     implements RendererFrameBuilderType
   {
-    private final Renderer renderer;
+    private final RCGraphExecutorType graphExecutor;
     private final RCFrameInformation frameInformation;
-    private final RCVulkanFrameContextType frameContext;
+    private final RCVulkanFrameType vulkanFrame;
 
     FrameBuilder(
-      final Renderer inRenderer,
+      final RCGraphExecutorType inGraphExecutor,
       final RCFrameInformation inFrameInformation,
-      final RCVulkanFrameContextType inFrameContext)
+      final RCVulkanFrameType inVulkanFrame)
     {
-      this.renderer =
-        Objects.requireNonNull(inRenderer, "renderer");
+      this.graphExecutor =
+        Objects.requireNonNull(inGraphExecutor, "graphExecutor");
       this.frameInformation =
         Objects.requireNonNull(inFrameInformation, "frameInformation");
-      this.frameContext =
-        Objects.requireNonNull(inFrameContext, "frameContext");
+      this.vulkanFrame =
+        Objects.requireNonNull(inVulkanFrame, "vulkanFrame");
     }
 
     @Override
@@ -236,7 +306,7 @@ public final class Renderer
       final RCGraphName graphName)
       throws RocaroException
     {
-      throw new UnimplementedCodeException();
+      this.graphExecutor.prepare(this.frameInformation, graphName);
     }
 
     @Override
@@ -244,7 +314,7 @@ public final class Renderer
       final RCGraphName graphName)
       throws RocaroException
     {
-      throw new UnimplementedCodeException();
+      return this.graphExecutor.graphStatus(graphName);
     }
 
     @Override
@@ -253,32 +323,12 @@ public final class Renderer
       final RendererGraphProcedureType f)
       throws RocaroException
     {
-      throw new UnimplementedCodeException();
+      this.graphExecutor.executeGraph(
+        this.frameInformation,
+        graphName,
+        this.vulkanFrame,
+        f
+      );
     }
-  }
-
-  private RCGGraphType graph(
-    final RCGraphName name)
-    throws RocaroException
-  {
-    final var graph = this.graphs.get(name);
-    if (graph == null) {
-      throw errorNoSuchGraph(this.strings, name);
-    }
-    return graph;
-  }
-
-  private static RocaroException errorNoSuchGraph(
-    final RCStrings strings,
-    final RCGraphName graphName)
-  {
-    return new RCGGraphException(
-      strings.format(ERROR_GRAPH_NONEXISTENT),
-      Map.ofEntries(
-        Map.entry(strings.format(GRAPH), graphName.value())
-      ),
-      NONEXISTENT_GRAPH.codeName(),
-      Optional.empty()
-    );
   }
 }

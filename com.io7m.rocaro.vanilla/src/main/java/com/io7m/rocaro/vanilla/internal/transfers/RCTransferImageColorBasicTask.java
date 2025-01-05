@@ -51,12 +51,14 @@ import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.rocaro.api.RCObject;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.devices.RCDeviceType;
-import com.io7m.rocaro.api.images.RCImageColorBasicType;
-import com.io7m.rocaro.api.transfers.RCTransferImageColorBasicType;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.images.RCImageID;
+import com.io7m.rocaro.api.transfers.RCTransferImage2DType;
 import com.io7m.rocaro.api.transfers.RCTransferJFREventStagingCopy;
+import com.io7m.rocaro.vanilla.RCStrings;
+import com.io7m.rocaro.vanilla.internal.RCImage2D;
+import com.io7m.rocaro.vanilla.internal.RCImage2DSchematic;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
-import com.io7m.rocaro.vanilla.internal.images.RCImageColorBasic;
 import com.io7m.rocaro.vanilla.internal.notifications.RCNotificationServiceType;
 import com.io7m.rocaro.vanilla.internal.threading.RCThread;
 import com.io7m.rocaro.vanilla.internal.threading.RCThreadLabels;
@@ -96,12 +98,12 @@ import static com.io7m.rocaro.vanilla.internal.threading.RCThreadLabel.TRANSFER_
 
 final class RCTransferImageColorBasicTask
   extends RCObject
-  implements RCTransferTaskType<RCImageColorBasicType>
+  implements RCTransferTaskType<RCImage2DType>
 {
   private final RCDeviceType device;
   private final VMAAllocatorType allocator;
   private final CloseableCollectionType<RocaroException> resources;
-  private final RCTransferImageColorBasicType image2D;
+  private final RCTransferImage2DType image2D;
   private final VulkanQueueType transferQueue;
   private final VulkanQueueType targetQueue;
   private final RCNotificationServiceType notifications;
@@ -117,7 +119,7 @@ final class RCTransferImageColorBasicTask
     final RCTransferCommandBufferFactoryType inCommandBuffers,
     final RCStrings strings,
     final RCNotificationServiceType inNotifications,
-    final RCTransferImageColorBasicType inImage2D)
+    final RCTransferImage2DType inImage2D)
   {
     Objects.requireNonNull(strings, "strings");
 
@@ -260,7 +262,7 @@ final class RCTransferImageColorBasicTask
   }
 
   @Override
-  public RCImageColorBasicType execute()
+  public RCImage2DType execute()
     throws Exception
   {
     RCThreadLabels.checkThreadLabelsAll(TRANSFER_IO);
@@ -285,11 +287,18 @@ final class RCTransferImageColorBasicTask
       final var imageView =
         this.createImageView(imageR.result());
 
-      return new RCImageColorBasic(
-        this.image2D.size(),
+      final var schematic =
+        new RCImage2DSchematic(
+          this.image2D.size(),
+          this.image2D.format(),
+          false
+        );
+
+      return new RCImage2D(
+        new RCImageID(this.image2D.id()),
+        schematic,
         imageR.result(),
-        imageView,
-        this.image2D.format()
+        imageView
       );
     } catch (final VulkanException e) {
       throw RCVulkanException.wrap(e);

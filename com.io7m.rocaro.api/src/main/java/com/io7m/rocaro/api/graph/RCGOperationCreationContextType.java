@@ -17,6 +17,10 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.resources.RCResourceSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintType;
+
 import java.util.Set;
 
 /**
@@ -34,16 +38,17 @@ public interface RCGOperationCreationContextType
    * @param typeConstraint The resource type constraint
    * @param writesAtStages The stages at which the resource will be written
    * @param <R>            The type of resource
+   * @param <S>            The type of resource schematic
    *
    * @return The port
    */
 
-  <R extends RCGResourcePlaceholderType>
-  RCGPortProducerType createProducerPort(
+  <R extends RCResourceType, S extends RCResourceSchematicType>
+  RCGPortProducerType<R> createProducerPort(
     RCGOperationType owner,
     RCGPortName name,
     Set<RCGCommandPipelineStage> readsAtStages,
-    RCGPortTypeConstraintType<R> typeConstraint,
+    RCSchematicConstraintType<S> typeConstraint,
     Set<RCGCommandPipelineStage> writesAtStages
   );
 
@@ -57,18 +62,19 @@ public interface RCGOperationCreationContextType
    * @param writesAtStages The stages at which the resource will be written
    * @param typeProduces   The produced resource type constraint
    * @param <R>            The type of resource
+   * @param <S>            The type of resource schematic
    *
    * @return The port
    */
 
-  <R extends RCGResourcePlaceholderType>
-  RCGPortModifierType createModifierPort(
+  <R extends RCResourceType, S extends RCResourceSchematicType>
+  RCGPortModifierType<R> createModifierPort(
     RCGOperationType owner,
     RCGPortName name,
     Set<RCGCommandPipelineStage> readsAtStages,
-    RCGPortTypeConstraintType<R> typeConsumes,
+    RCSchematicConstraintType<S> typeConsumes,
     Set<RCGCommandPipelineStage> writesAtStages,
-    RCGPortTypeConstraintType<R> typeProduces
+    RCSchematicConstraintType<S> typeProduces
   );
 
   /**
@@ -80,16 +86,17 @@ public interface RCGOperationCreationContextType
    * @param typeConstraint The resource type constraint
    * @param writesAtStages The stages at which the resource will be written
    * @param <R>            The type of resource
+   * @param <S>            The type of resource schematic
    *
    * @return The port
    */
 
-  <R extends RCGResourcePlaceholderType>
-  RCGPortConsumerType createConsumerPort(
+  <R extends RCResourceType, S extends RCResourceSchematicType>
+  RCGPortConsumerType<R> createConsumerPort(
     RCGOperationType owner,
     RCGPortName name,
     Set<RCGCommandPipelineStage> readsAtStages,
-    RCGPortTypeConstraintType<R> typeConstraint,
+    RCSchematicConstraintType<S> typeConstraint,
     Set<RCGCommandPipelineStage> writesAtStages
   );
 }

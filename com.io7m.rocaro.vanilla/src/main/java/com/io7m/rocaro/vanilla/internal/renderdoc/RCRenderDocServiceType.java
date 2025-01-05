@@ -18,6 +18,7 @@
 package com.io7m.rocaro.vanilla.internal.renderdoc;
 
 import com.io7m.repetoir.core.RPServiceType;
+import com.io7m.rocaro.api.services.RCServiceRendererScopedType;
 
 /**
  * The RenderDoc service.
@@ -26,7 +27,7 @@ import com.io7m.repetoir.core.RPServiceType;
  */
 
 public interface RCRenderDocServiceType
-  extends RPServiceType, AutoCloseable
+  extends RPServiceType, AutoCloseable, RCServiceRendererScopedType
 {
   /**
    * Trigger a capture of the next frame.

@@ -17,12 +17,16 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.resources.RCResourceType;
+
 /**
  * The port types that can be sources for connections.
+ *
+ * @param <R> The resource type
  */
 
-public sealed interface RCGPortSourceType
-  extends RCGPortType
+public sealed interface RCGPortSourceType<R extends RCResourceType>
+  extends RCGPortType<R>
   permits RCGPortModifierType, RCGPortProducerType
 {
 

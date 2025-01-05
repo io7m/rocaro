@@ -45,6 +45,8 @@ module com.io7m.rocaro.api
   exports com.io7m.rocaro.api.images;
   exports com.io7m.rocaro.api.render_targets;
   exports com.io7m.rocaro.api.resources;
+  exports com.io7m.rocaro.api.services;
   exports com.io7m.rocaro.api.transfers;
   exports com.io7m.rocaro.api;
+  exports com.io7m.rocaro.api.buffers;
 }

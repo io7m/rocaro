@@ -20,6 +20,7 @@ package com.io7m.rocaro.vanilla.internal.notifications;
 import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jcoronado.api.VulkanSemaphoreTimelineWait;
 import com.io7m.repetoir.core.RPServiceType;
+import com.io7m.rocaro.api.services.RCServiceRendererScopedType;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -28,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
  */
 
 public interface RCNotificationServiceType
-  extends RPServiceType
+  extends RPServiceType, RCServiceRendererScopedType
 {
   /**
    * Register a fence and return a future that will be completed when the

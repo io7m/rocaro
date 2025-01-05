@@ -17,6 +17,8 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.render_targets.RCPresentationRenderTargetType;
+
 /**
  * The operation representing the acquisition of a frame from the swapchain.
  */
@@ -28,5 +30,5 @@ public interface RCGOperationFrameAcquireType
    * @return The port that supplies an acquired frame
    */
 
-  RCGPortProducerType frame();
+  RCGPortProducerType<RCPresentationRenderTargetType> frame();
 }

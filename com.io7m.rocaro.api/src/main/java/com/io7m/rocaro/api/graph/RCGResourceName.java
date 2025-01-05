@@ -61,4 +61,21 @@ public record RCGResourceName(
   {
     return this.value.compareTo(other.value);
   }
+
+  /**
+   * Generate a new resource name based on the current name suffixed with the
+   * given subname.
+   *
+   * @param subName The subname
+   *
+   * @return A new name
+   */
+
+  public RCGResourceName resolveSubName(
+    final RCGResourceSubname subName)
+  {
+    return new RCGResourceName(
+      "%s_%s".formatted(this.value, subName.value())
+    );
+  }
 }

@@ -17,6 +17,8 @@
 
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
+import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
+
 /**
  * The type of read barriers.
  */
@@ -28,5 +30,15 @@ public sealed interface RCGSReadBarrierType
   RCGSMemoryReadBarrier,
   RCGSMemoryReadBarrierWithQueueTransfer
 {
+  /**
+   * @return The stage at which the barrier will wait for writes
+   */
 
+  RCGCommandPipelineStage waitsForWriteAt();
+
+  /**
+   * @return The read access that will be blocked until this barrier completes
+   */
+
+  RCGCommandPipelineStage blocksReadAt();
 }

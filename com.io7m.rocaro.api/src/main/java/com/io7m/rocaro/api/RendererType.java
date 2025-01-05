@@ -18,7 +18,7 @@
 package com.io7m.rocaro.api;
 
 import com.io7m.repetoir.core.RPServiceException;
-import com.io7m.repetoir.core.RPServiceType;
+import com.io7m.rocaro.api.services.RCServiceRendererScopedType;
 
 import java.util.Optional;
 
@@ -50,7 +50,7 @@ public interface RendererType
    * @throws RPServiceException If the service does not exist
    */
 
-  <T extends RPServiceType> T requireService(
+  <T extends RCServiceRendererScopedType> T requireService(
     Class<T> clazz)
     throws RPServiceException;
 
@@ -63,7 +63,7 @@ public interface RendererType
    * @return The service
    */
 
-  <T extends RPServiceType> Optional<T> optionalService(
+  <T extends RCServiceRendererScopedType> Optional<T> optionalService(
     Class<T> clazz);
 
   /**

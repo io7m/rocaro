@@ -20,9 +20,8 @@ package com.io7m.rocaro.vanilla;
 import com.io7m.rocaro.api.RendererBuilderType;
 import com.io7m.rocaro.api.RendererFactoryType;
 import com.io7m.rocaro.api.RocaroException;
-import com.io7m.rocaro.api.graph.RCGNoParameters;
+import com.io7m.rocaro.api.graph.RCNoParameters;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacade;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCVersions;
 import com.io7m.rocaro.vanilla.internal.RendererBuilder;
 import com.io7m.rocaro.vanilla.internal.graph.RCGOperationZero;
@@ -70,7 +69,7 @@ public final class Renderers implements RendererFactoryType
       graphBuilder.declareOperation(
         "Zero",
         RCGOperationZero.factory(),
-        RCGNoParameters.NO_PARAMETERS
+        RCNoParameters.NO_PARAMETERS
       );
     final var frame =
       graphBuilder.declareFrameResource("Frame");

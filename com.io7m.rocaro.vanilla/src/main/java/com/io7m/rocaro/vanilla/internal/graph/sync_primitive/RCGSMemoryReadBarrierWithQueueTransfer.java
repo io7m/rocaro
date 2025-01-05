@@ -17,9 +17,10 @@
 
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
-import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+import com.io7m.rocaro.api.graph.RCGSubmissionID;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
 
 import java.util.Objects;
 
@@ -32,11 +33,11 @@ public final class RCGSMemoryReadBarrierWithQueueTransfer
   implements RCGSReadType, RCGSReadBarrierType, RCGSBarrierWithQueueTransferType
 {
   private final RCGSExecute owner;
-  private final RCGResourcePlaceholderType resource;
+  private final RCGResourceVariable<? extends RCResourceSchematicBufferType> resource;
   private final RCGCommandPipelineStage waitsForWriteAt;
   private final RCGCommandPipelineStage blocksReadAt;
-  private final RCDeviceQueueCategory queueSource;
-  private final RCDeviceQueueCategory queueTarget;
+  private final RCGSubmissionID queueSource;
+  private final RCGSubmissionID queueTarget;
 
   /**
    * A memory read barrier including a queue transfer.
@@ -53,11 +54,11 @@ public final class RCGSMemoryReadBarrierWithQueueTransfer
   public RCGSMemoryReadBarrierWithQueueTransfer(
     final long id,
     final RCGSExecute inOwner,
-    final RCGResourcePlaceholderType inResource,
+    final RCGResourceVariable<? extends RCResourceSchematicBufferType> inResource,
     final RCGCommandPipelineStage inWaitsForWriteAt,
     final RCGCommandPipelineStage inBlocksReadAt,
-    final RCDeviceQueueCategory inQueueSource,
-    final RCDeviceQueueCategory inQueueTarget)
+    final RCGSubmissionID inQueueSource,
+    final RCGSubmissionID inQueueTarget)
   {
     super(id);
 
@@ -82,7 +83,7 @@ public final class RCGSMemoryReadBarrierWithQueueTransfer
   }
 
   @Override
-  public RCGResourcePlaceholderType resource()
+  public RCGResourceVariable<? extends RCResourceSchematicBufferType> resource()
   {
     return this.resource;
   }
@@ -106,13 +107,13 @@ public final class RCGSMemoryReadBarrierWithQueueTransfer
   }
 
   @Override
-  public RCDeviceQueueCategory queueSource()
+  public RCGSubmissionID queueSource()
   {
     return this.queueSource;
   }
 
   @Override
-  public RCDeviceQueueCategory queueTarget()
+  public RCGSubmissionID queueTarget()
   {
     return this.queueTarget;
   }

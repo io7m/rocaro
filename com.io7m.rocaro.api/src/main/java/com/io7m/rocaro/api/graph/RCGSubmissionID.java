@@ -14,11 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.rocaro.api.graph;
 
 import com.io7m.rocaro.api.devices.RCDeviceQueueCategory;
 
+import java.util.Comparator;
 import java.util.Objects;
 
 /**
@@ -31,6 +31,7 @@ import java.util.Objects;
 public record RCGSubmissionID(
   RCDeviceQueueCategory queue,
   int submissionId)
+  implements Comparable<RCGSubmissionID>
 {
   /**
    * A queue submission identifier.
@@ -42,5 +43,14 @@ public record RCGSubmissionID(
   public RCGSubmissionID
   {
     Objects.requireNonNull(queue, "queue");
+  }
+
+  @Override
+  public int compareTo(
+    final RCGSubmissionID other)
+  {
+    return Comparator.comparingInt(RCGSubmissionID::submissionId)
+      .thenComparing(RCGSubmissionID::queue)
+      .compare(this, other);
   }
 }

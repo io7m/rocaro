@@ -22,9 +22,13 @@ import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortName;
 import com.io7m.rocaro.api.graph.RCGPortProducerType;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintBuffer;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintBuffer;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintCompositeType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintImage2D;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintRenderTarget;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintType;
 
 import java.util.Objects;
 import java.util.Set;
@@ -37,15 +41,19 @@ import java.util.Set;
  * @param readsOnStages  The stages at which the resource is read
  * @param typeProduced   The resource type constraint
  * @param writesOnStages The stages at which the resource is written
+ * @param <S>            The resource schematic type
+ * @param <R>            The resource type
  */
 
-public record RCGPortProducer(
+public record RCGPortProducer<
+  R extends RCResourceType,
+  S extends RCResourceSchematicType>(
   RCGOperationType owner,
   RCGPortName name,
   Set<RCGCommandPipelineStage> readsOnStages,
-  RCGPortTypeConstraintType<?> typeProduced,
+  RCSchematicConstraintType<S> typeProduced,
   Set<RCGCommandPipelineStage> writesOnStages)
-  implements RCGPortProducerType
+  implements RCGPortProducerType<R>
 {
   /**
    * A producer port.
@@ -69,14 +77,17 @@ public record RCGPortProducer(
       Set.copyOf(writesOnStages);
 
     switch (typeProduced) {
-      case final RCGPortTypeConstraintBuffer<?> _ -> {
-        // Nothing required.
+      case final RCSchematicConstraintBuffer<?, ?> _ -> {
+        // Nothing
       }
-      case final RCGPortTypeConstraintImage<?> c -> {
+      case final RCSchematicConstraintImage2D<?, ?> c -> {
         Preconditions.checkPreconditionV(
           c.requiresImageLayout().isPresent(),
           "Producer ports must require an image layout for resources."
         );
+      }
+      case final RCSchematicConstraintCompositeType<?> c -> {
+
       }
     }
   }

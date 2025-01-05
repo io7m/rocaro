@@ -21,6 +21,7 @@ import com.io7m.jmulticlose.core.CloseableCollectionType;
 import com.io7m.repetoir.core.RPServiceDirectoryType;
 import com.io7m.rocaro.api.RCCloseableType;
 import com.io7m.rocaro.api.RCObject;
+import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RCStandardErrorCodes;
 import com.io7m.rocaro.api.RocaroException;
 import com.io7m.rocaro.api.assets.RCAssetException;
@@ -36,8 +37,8 @@ import com.io7m.rocaro.api.assets.RCAssetValueFailed;
 import com.io7m.rocaro.api.assets.RCAssetValueLoading;
 import com.io7m.rocaro.api.assets.RCAssetValueType;
 import com.io7m.rocaro.api.devices.RCDeviceType;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCResourceCollections;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 import com.io7m.rocaro.vanilla.internal.vulkan.RCVulkanRendererType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,11 +82,13 @@ public final class RCAssetService
   private final FileSystem realFileSystem;
   private final FileSystem moduleFileSystem;
   private final RCDeviceType device;
+  private final RCRendererID rendererId;
 
   private RCAssetService(
     final RCStrings inStrings,
     final RCAssetResolverType inResolver,
-    final RCDeviceType inDevice)
+    final RCDeviceType inDevice,
+    final RCRendererID inRendererId)
   {
     this.resolver =
       Objects.requireNonNull(inResolver, "resolver");
@@ -93,6 +96,8 @@ public final class RCAssetService
       Objects.requireNonNull(inStrings, "strings");
     this.device =
       Objects.requireNonNull(inDevice, "inDevice");
+    this.rendererId =
+      Objects.requireNonNull(inRendererId, "inRendererId");
 
     this.resources =
       RCResourceCollections.create(inStrings);
@@ -129,12 +134,15 @@ public final class RCAssetService
   /**
    * Create an asset service.
    *
-   * @param services       The services
+   * @param services   The services
+   * @param rendererId The renderer ID
+   *
    * @return The asset service
    */
 
   public static RCAssetService create(
-    final RPServiceDirectoryType services)
+    final RPServiceDirectoryType services,
+    final RCRendererID rendererId)
   {
     final var strings =
       services.requireService(RCStrings.class);
@@ -147,7 +155,8 @@ public final class RCAssetService
       new RCAssetService(
         strings,
         resolver,
-        vulkan.device()
+        vulkan.device(),
+        rendererId
       );
 
     service.start();
@@ -298,6 +307,12 @@ public final class RCAssetService
     final var ref = new RCAssetReference<>(identifier, parameters, loaders);
     this.queue.add(ref);
     return ref;
+  }
+
+  @Override
+  public RCRendererID rendererId()
+  {
+    return this.rendererId;
   }
 
   private static final class AssetResolutionContext

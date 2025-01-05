@@ -17,6 +17,7 @@
 
 package com.io7m.rocaro.vanilla.internal.renderdoc;
 
+import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RocaroException;
 
 /**
@@ -34,26 +35,32 @@ public final class RCRenderDocService
    * Create a RenderDoc service. A real RenderDoc implementation is used
    * if available, and a no-op implementation otherwise.
    *
+   * @param rendererId The ID of the renderer that owns the service
+   *
    * @return The service
    */
 
-  public static RCRenderDocServiceType create()
+  public static RCRenderDocServiceType create(
+    final RCRendererID rendererId)
   {
     try {
-      return RCRenderDocFFM.create();
+      return RCRenderDocFFM.create(rendererId);
     } catch (final RocaroException e) {
-      return createNoOp();
+      return createNoOp(rendererId);
     }
   }
 
   /**
    * Create a no-op RenderDoc service.
    *
+   * @param rendererId The ID of the renderer that owns the service
+   *
    * @return The service
    */
 
-  public static RCRenderDocServiceType createNoOp()
+  public static RCRenderDocServiceType createNoOp(
+    final RCRendererID rendererId)
   {
-    return RCRenderDocNoOp.create();
+    return RCRenderDocNoOp.create(rendererId);
   }
 }

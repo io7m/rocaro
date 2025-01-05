@@ -17,20 +17,24 @@
 
 package com.io7m.rocaro.tests.graph2;
 
+import com.io7m.jcoronado.api.VulkanFormat;
+import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Constant;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Post;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.Pre;
 import com.io7m.rocaro.api.graph.RCGOperationImageLayoutTransitionType.PreAndPost;
 import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImage2DType;
 import com.io7m.rocaro.tests.graph2.OpImageModifier0.Parameters;
 import com.io7m.rocaro.vanilla.RCGraph;
+import com.io7m.rocaro.vanilla.RCStrings;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.io7m.rocaro.api.devices.RCDeviceQueueCategory.GRAPHICS;
-import static com.io7m.rocaro.api.graph.RCGNoParameters.NO_PARAMETERS;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_ATTACHMENT;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET;
 import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_UNDEFINED;
@@ -38,6 +42,31 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public final class RCGraphImageLayoutTransitionsTest
 {
+  private static final RCResourceSchematicImage2DType ANY_IMAGE =
+    new RCResourceSchematicImage2DType()
+    {
+      @Override
+      public Vector2I size()
+      {
+        return Vector2I.of(128, 128);
+      }
+
+      @Override
+      public VulkanFormat format()
+      {
+        return VulkanFormat.VK_FORMAT_R8_UNORM;
+      }
+
+      @Override
+      public boolean isPresentationImage()
+      {
+        return false;
+      }
+    };
+
+  private static final RCStrings STRINGS =
+    new RCStrings(Locale.getDefault());
+
   /**
    * No transitions occur.
    */
@@ -47,7 +76,7 @@ public final class RCGraphImageLayoutTransitionsTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -84,7 +113,7 @@ public final class RCGraphImageLayoutTransitionsTest
         )
       );
     final var r =
-      b.declareResource("Image0", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("Image0", ANY_IMAGE);
 
     b.resourceAssign(op0.port(), r);
     b.connect(op0.port(), op1.port());
@@ -114,7 +143,7 @@ public final class RCGraphImageLayoutTransitionsTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -151,7 +180,7 @@ public final class RCGraphImageLayoutTransitionsTest
         )
       );
     final var r =
-      b.declareResource("Image0", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("Image0", ANY_IMAGE);
 
     b.resourceAssign(op0.port(), r);
     b.connect(op0.port(), op1.port());
@@ -181,7 +210,7 @@ public final class RCGraphImageLayoutTransitionsTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -218,7 +247,7 @@ public final class RCGraphImageLayoutTransitionsTest
         )
       );
     final var r =
-      b.declareResource("Image0", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("Image0", ANY_IMAGE);
 
     b.resourceAssign(op0.port(), r);
     b.connect(op0.port(), op1.port());
@@ -248,7 +277,7 @@ public final class RCGraphImageLayoutTransitionsTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -285,7 +314,7 @@ public final class RCGraphImageLayoutTransitionsTest
         )
       );
     final var r =
-      b.declareResource("Image0", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("Image0", ANY_IMAGE);
 
     b.resourceAssign(op0.port(), r);
     b.connect(op0.port(), op1.port());
@@ -315,7 +344,7 @@ public final class RCGraphImageLayoutTransitionsTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -352,7 +381,7 @@ public final class RCGraphImageLayoutTransitionsTest
         )
       );
     final var r =
-      b.declareResource("Image0", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("Image0", ANY_IMAGE);
 
     b.resourceAssign(op0.port(), r);
     b.connect(op0.port(), op1.port());
@@ -386,7 +415,7 @@ public final class RCGraphImageLayoutTransitionsTest
     throws Exception
   {
     final var b =
-      RCGraph.builder(new RCGraphName("Main"));
+      RCGraph.builder(STRINGS, new RCGraphName("Main"));
 
     final var op0 =
       b.declareOperation(
@@ -423,7 +452,7 @@ public final class RCGraphImageLayoutTransitionsTest
         )
       );
     final var r =
-      b.declareResource("Image0", ResImage0.factory(), NO_PARAMETERS);
+      b.declareResource("Image0", ANY_IMAGE);
 
     b.resourceAssign(op0.port(), r);
     b.connect(op0.port(), op1.port());

@@ -19,11 +19,14 @@ package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeaturesFunctions;
 
+import java.util.Set;
+
 /**
  * Determine device features required by the graph.
  */
 
 public final class RCGPassDeviceFeatures
+  extends RCGPassAbstract
   implements RCGGraphPassType
 {
   /**
@@ -32,7 +35,7 @@ public final class RCGPassDeviceFeatures
 
   public RCGPassDeviceFeatures()
   {
-
+    super(Set.of(RCGPassCheckNonEmpty.class));
   }
 
   @Override

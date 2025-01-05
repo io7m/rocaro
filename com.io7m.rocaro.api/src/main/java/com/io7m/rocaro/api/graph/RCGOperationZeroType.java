@@ -17,6 +17,8 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
+
 /**
  * An operation that zeroes out the primary color attachment.
  */
@@ -28,5 +30,5 @@ public interface RCGOperationZeroType
    * @return The image to which rendering will occur
    */
 
-  RCGPortModifierType frame();
+  RCGPortModifierType<RCRenderTargetType> frame();
 }

@@ -18,6 +18,7 @@
 package com.io7m.rocaro.vanilla.internal.graph;
 
 import com.io7m.jcoronado.api.VulkanPhysicalDeviceFeatures;
+import com.io7m.rocaro.api.graph.RCGExecutionPlanType;
 import com.io7m.rocaro.api.graph.RCGGraphConnection;
 import com.io7m.rocaro.api.graph.RCGGraphOpConnection;
 import com.io7m.rocaro.api.graph.RCGGraphType;
@@ -26,8 +27,10 @@ import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortType;
 import com.io7m.rocaro.api.graph.RCGResourceName;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
 import com.io7m.rocaro.api.graph.RCGraphName;
+import com.io7m.rocaro.api.resources.RCResourceSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceType;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.AsUnmodifiableGraph;
 import org.jgrapht.graph.DirectedAcyclicGraph;
@@ -43,17 +46,18 @@ import java.util.Objects;
 public final class RCGGraph implements RCGGraphType
 {
   private final AsUnmodifiableGraph<RCGOperationType, RCGGraphOpConnection> opGraphRead;
-  private final AsUnmodifiableGraph<RCGPortType, RCGGraphConnection> graphRead;
+  private final AsUnmodifiableGraph<RCGPortType<?>, RCGGraphConnection> graphRead;
   private final DirectedAcyclicGraph<RCGOperationType, RCGGraphOpConnection> opGraph;
-  private final DirectedAcyclicGraph<RCGPortType, RCGGraphConnection> graph;
-  private final List<RCGPortType> portsOrdered;
+  private final DirectedAcyclicGraph<RCGPortType<?>, RCGGraphConnection> graph;
+  private final List<RCGPortType<?>> portsOrdered;
   private final List<RCGOperationType> opsOrdered;
   private final Map<RCGOperationName, RCGOperationType> ops;
-  private final Map<RCGPortType, RCGOperationImageLayoutTransitionType> imageLayouts;
-  private final Map<RCGPortType, RCGResourcePlaceholderType> portResources;
-  private final Map<RCGResourceName, RCGResourcePlaceholderType> resources;
+  private final Map<RCGPortType<?>, RCGOperationImageLayoutTransitionType> imageLayouts;
+  private final Map<RCGPortType<?>, RCGResourceVariable<?>> portResources;
+  private final Map<RCGResourceName, RCGResourceVariable<?>> resources;
   private final RCGraphName name;
   private final VulkanPhysicalDeviceFeatures requiredFeatures;
+  private final RCGExecutionPlanType executionPlan;
 
   /**
    * An immutable compiled graph.
@@ -61,26 +65,28 @@ public final class RCGGraph implements RCGGraphType
    * @param inName             The graph name
    * @param inGraph            The graph of ports
    * @param inOpGraph          The graph of operations
-   * @param inPortsOrdered       The ports in topological order
-   * @param inOpsOrdered         The operations in topological order
+   * @param inPortsOrdered     The ports in topological order
+   * @param inOpsOrdered       The operations in topological order
    * @param inOps              The operations
    * @param inResources        The resources
    * @param inPortResources    The resources at every port
    * @param inImageLayouts     The image layout transitions
    * @param inRequiredFeatures The required device features
+   * @param inExecutionPlan    The execution plan
    */
 
   public RCGGraph(
     final RCGraphName inName,
-    final DirectedAcyclicGraph<RCGPortType, RCGGraphConnection> inGraph,
+    final DirectedAcyclicGraph<RCGPortType<?>, RCGGraphConnection> inGraph,
     final DirectedAcyclicGraph<RCGOperationType, RCGGraphOpConnection> inOpGraph,
-    final List<RCGPortType> inPortsOrdered,
+    final List<RCGPortType<?>> inPortsOrdered,
     final List<RCGOperationType> inOpsOrdered,
     final Map<RCGOperationName, RCGOperationType> inOps,
-    final Map<RCGResourceName, RCGResourcePlaceholderType> inResources,
-    final Map<RCGPortType, RCGResourcePlaceholderType> inPortResources,
-    final Map<RCGPortType, RCGOperationImageLayoutTransitionType> inImageLayouts,
-    final VulkanPhysicalDeviceFeatures inRequiredFeatures)
+    final Map<RCGResourceName, RCGResourceVariable<?>> inResources,
+    final Map<RCGPortType<?>, RCGResourceVariable<?>> inPortResources,
+    final Map<RCGPortType<?>, RCGOperationImageLayoutTransitionType> inImageLayouts,
+    final VulkanPhysicalDeviceFeatures inRequiredFeatures,
+    final RCGExecutionPlanType inExecutionPlan)
   {
     this.name =
       Objects.requireNonNull(inName, "inName");
@@ -102,6 +108,8 @@ public final class RCGGraph implements RCGGraphType
       Objects.requireNonNull(inImageLayouts, "imageLayouts");
     this.requiredFeatures =
       Objects.requireNonNull(inRequiredFeatures, "requiredFeatures");
+    this.executionPlan =
+      Objects.requireNonNull(inExecutionPlan, "executionPlan");
 
     this.graphRead =
       new AsUnmodifiableGraph<>(this.graph);
@@ -116,8 +124,11 @@ public final class RCGGraph implements RCGGraphType
   }
 
   @Override
-  public RCGResourcePlaceholderType resourceAt(
-    final RCGPortType port)
+  @SuppressWarnings("unchecked")
+  public <R extends RCResourceType, S extends RCResourceSchematicType>
+  RCGResourceVariable<S>
+  resourceAt(
+    final RCGPortType<R> port)
   {
     Objects.requireNonNull(port, "port");
 
@@ -125,12 +136,13 @@ public final class RCGGraph implements RCGGraphType
     if (r == null) {
       throw new IllegalStateException("Nonexistent port: %s".formatted(port));
     }
-    return r;
+    return (RCGResourceVariable<S>) r;
   }
 
   @Override
-  public RCGOperationImageLayoutTransitionType imageTransitionAt(
-    final RCGPortType port)
+  public <R extends RCResourceType> RCGOperationImageLayoutTransitionType
+  imageTransitionAt(
+    final RCGPortType<R> port)
   {
     Objects.requireNonNull(port, "port");
 
@@ -142,7 +154,7 @@ public final class RCGGraph implements RCGGraphType
   }
 
   @Override
-  public Graph<RCGPortType, RCGGraphConnection> portGraph()
+  public Graph<RCGPortType<?>, RCGGraphConnection> portGraph()
   {
     return this.graphRead;
   }
@@ -163,5 +175,11 @@ public final class RCGGraph implements RCGGraphType
   public VulkanPhysicalDeviceFeatures requiredDeviceFeatures()
   {
     return this.requiredFeatures;
+  }
+
+  @Override
+  public RCGExecutionPlanType executionPlan()
+  {
+    return this.executionPlan;
   }
 }

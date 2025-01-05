@@ -32,7 +32,7 @@ import com.io7m.junreachable.UnreachableCodeException;
 import com.io7m.rocaro.api.RCRendererID;
 import com.io7m.rocaro.api.RendererVulkanConfiguration;
 import com.io7m.rocaro.api.RocaroException;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.threading.RCStandardExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

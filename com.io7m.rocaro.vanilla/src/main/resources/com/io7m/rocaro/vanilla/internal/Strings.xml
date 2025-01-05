@@ -29,6 +29,7 @@
     No loader factory is registered for the given asset class.
   </entry>
 
+  <entry key="error_graph_already_built">This graph builder has already been compiled.</entry>
   <entry key="error_graph_not_ready">The given graph is not yet ready for execution.</entry>
   <entry key="error_graph_nonexistent">No graph exists with the given name.</entry>
   <entry key="error_graph_name_already_used">A graph already exists with the given name.</entry>
@@ -45,6 +46,9 @@
   <entry key="error_port_cyclic">
     The given ports cannot be connected as this would introduce a cycle in the render graph.
   </entry>
+  <entry key="error_port_already_connected">Port is already connected.</entry>
+  <entry key="error_port_resource_already_assigned">The given port already has an assigned resource.</entry>
+  <entry key="error_resource_already_assigned">The given resource is already assigned to a different port.</entry>
   <entry key="error_resource_close">
     One or more resources could not be closed.
   </entry>
@@ -88,6 +92,14 @@
   <entry key="error_frame_source_nonexistent_remediate">Declare a frame source node.</entry>
   <entry key="error_frame_target_nonexistent_remediate">Declare a frame target node.</entry>
 
+  <entry key="error_operation_not_declared">Operation not declared.</entry>
+  <entry key="error_operation_name_used">Operation name already used.</entry>
+  <entry key="error_resource_name_used">Resource name already used.</entry>
+
+  <entry key="error_resource_type_constraint_error">
+    The given resource does not conform to the specified type constraint.
+  </entry>
+
   <entry key="window_width">Window Width</entry>
   <entry key="window_height">Window Height</entry>
 
@@ -103,6 +115,10 @@
   <entry key="graph">Graph</entry>
   <entry key="node">Node</entry>
   <entry key="node_existing">Node (Existing)</entry>
+  <entry key="operation">Operation</entry>
+  <entry key="port">Port</entry>
+  <entry key="port_assigned">Port (Assigned)</entry>
+  <entry key="port_requested">Port (Requested)</entry>
   <entry key="render_pass">RenderPass</entry>
   <entry key="resource">Resource</entry>
   <entry key="source_node">Source Node</entry>
@@ -112,6 +128,8 @@
   <entry key="target_port">Target Port</entry>
   <entry key="target_port_requires">Target Port Requires</entry>
   <entry key="type">Type</entry>
+  <entry key="type_expected">Type (Expected)</entry>
+  <entry key="type_provided">Type (Provided)</entry>
   <entry key="vulkan_error">Vulkan Error</entry>
   <entry key="vulkan_operation">Vulkan Operation</entry>
 

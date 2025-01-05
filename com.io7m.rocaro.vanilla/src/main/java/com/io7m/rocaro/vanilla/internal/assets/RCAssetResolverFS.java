@@ -25,8 +25,8 @@ import com.io7m.rocaro.api.assets.RCAssetIdentifier;
 import com.io7m.rocaro.api.assets.RCAssetResolutionContextType;
 import com.io7m.rocaro.api.assets.RCAssetResolvedType;
 import com.io7m.rocaro.api.assets.RCAssetResolverType;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCStringConstants;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;

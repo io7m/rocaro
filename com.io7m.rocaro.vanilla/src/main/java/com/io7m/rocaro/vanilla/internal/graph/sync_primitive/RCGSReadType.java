@@ -18,14 +18,15 @@
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
 import com.io7m.rocaro.api.graph.RCGOperationType;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderType;
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
 
 /**
  * The type of commands that perform read accesses at a particular stage.
  */
 
 public sealed interface RCGSReadType
-  extends RCGSyncCommandType permits RCGSImageReadBarrier,
+  extends RCGSyncCommandType
+  permits RCGSImageReadBarrier,
   RCGSImageReadBarrierWithQueueTransfer,
   RCGSMemoryReadBarrier,
   RCGSMemoryReadBarrierWithQueueTransfer,
@@ -50,5 +51,5 @@ public sealed interface RCGSReadType
    * @return The resource
    */
 
-  RCGResourcePlaceholderType resource();
+  RCGResourceVariable<?> resource();
 }

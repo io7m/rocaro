@@ -17,16 +17,22 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.resources.RCResourceSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintType;
+
 /**
  * The type of ports that are consumers.
+ *
+ * @param <R> The resource type
  */
 
-public non-sealed interface RCGPortConsumerType
-  extends RCGPortType, RCGPortTargetType
+public non-sealed interface RCGPortConsumerType<R extends RCResourceType>
+  extends RCGPortType<R>, RCGPortTargetType<R>
 {
   /**
    * @return The type constraint of the port
    */
 
-  RCGPortTypeConstraintType<?> typeConsumed();
+  RCSchematicConstraintType<? extends RCResourceSchematicType> typeConsumed();
 }

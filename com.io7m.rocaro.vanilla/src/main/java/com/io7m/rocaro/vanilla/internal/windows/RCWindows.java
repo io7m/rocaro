@@ -28,8 +28,8 @@ import com.io7m.rocaro.api.displays.RCDisplaySelectionOffscreen;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionPreciseType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionType;
 import com.io7m.rocaro.api.displays.RCDisplaySelectionWindowed;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.RCGLFWFacadeType;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
 
 import java.util.List;
 import java.util.Map;

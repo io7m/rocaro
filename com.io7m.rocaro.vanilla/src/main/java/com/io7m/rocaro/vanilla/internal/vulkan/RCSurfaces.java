@@ -20,7 +20,7 @@ package com.io7m.rocaro.vanilla.internal.vulkan;
 import com.io7m.jcoronado.api.VulkanException;
 import com.io7m.jcoronado.api.VulkanInstanceType;
 import com.io7m.jcoronado.extensions.khr_surface.api.VulkanExtKHRSurfaceType;
-import com.io7m.rocaro.vanilla.internal.RCStrings;
+import com.io7m.rocaro.vanilla.RCStrings;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindow;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowFullscreen;
 import com.io7m.rocaro.vanilla.internal.windows.RCWindowOffscreen;

@@ -17,13 +17,17 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.resources.RCResourceType;
+
 import java.util.Set;
 
 /**
  * The type of ports on operations.
+ *
+ * @param <R> The resource type
  */
 
-public sealed interface RCGPortType
+public sealed interface RCGPortType<R extends RCResourceType>
   permits RCGPortConsumerType,
   RCGPortModifierType,
   RCGPortProducerType,

@@ -17,6 +17,8 @@
 
 package com.io7m.rocaro.api.graph;
 
+import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
+
 /**
  * The operation representing the presentation of a frame to the swapchain.
  */
@@ -28,5 +30,5 @@ public interface RCGOperationFramePresentType
    * @return The port that consumes a frame
    */
 
-  RCGPortConsumerType frame();
+  RCGPortConsumerType<RCRenderTargetType> frame();
 }

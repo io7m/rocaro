@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  */
 
 public final class RCGPassCheckPortResourcesAssigned
+  extends RCGPassAbstract
   implements RCGGraphPassType
 {
   /**
@@ -41,7 +43,7 @@ public final class RCGPassCheckPortResourcesAssigned
 
   public RCGPassCheckPortResourcesAssigned()
   {
-
+    super(Set.of(RCGPassCheckPortsConnected.class));
   }
 
   @Override
@@ -58,10 +60,10 @@ public final class RCGPassCheckPortResourcesAssigned
 
     for (final var port : graph.vertexSet()) {
       switch (port) {
-        case final RCGPortModifierType _ -> {
+        case final RCGPortModifierType<?> _ -> {
           // Nothing required
         }
-        case final RCGPortProducerType p -> {
+        case final RCGPortProducerType<?> p -> {
           final var resource =
             builder.portResources().get(p);
 
@@ -72,7 +74,7 @@ public final class RCGPassCheckPortResourcesAssigned
             ++index;
           }
         }
-        case final RCGPortConsumerType _ -> {
+        case final RCGPortConsumerType<?> _ -> {
           // Nothing required
         }
       }

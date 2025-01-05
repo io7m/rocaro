@@ -17,38 +17,31 @@
 
 package com.io7m.rocaro.tests.graph2;
 
-import com.io7m.rocaro.api.graph.RCGNoParameters;
-import com.io7m.rocaro.api.graph.RCGResourceFactoryType;
-import com.io7m.rocaro.api.graph.RCGResourceName;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderBufferType;
+import com.io7m.rocaro.api.buffers.RCBufferType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicBufferType;
 
 import java.util.Objects;
 
-final class ResBuffer0
-  implements RCGResourcePlaceholderBufferType
+final class ResBuffer0 implements RCBufferType
 {
-  private final RCGResourceName name;
+  private final RCResourceSchematicBufferType schematic;
 
   public ResBuffer0(
-    final RCGResourceName inName)
+    final RCResourceSchematicBufferType inSchematic)
   {
-    this.name = Objects.requireNonNull(inName, "name");
-  }
-
-  public static RCGResourceFactoryType<RCGNoParameters, ResBuffer0> factory()
-  {
-    return (name, _) -> new ResBuffer0(name);
+    this.schematic = Objects.requireNonNull(inSchematic, "name");
   }
 
   @Override
   public String toString()
   {
-    return "[ResBuffer0 %s]".formatted(this.name);
+    return "[ResBuffer0 0x%s]"
+      .formatted(Integer.toUnsignedString(this.hashCode(), 16));
   }
 
   @Override
-  public RCGResourceName name()
+  public RCResourceSchematicBufferType schematic()
   {
-    return this.name;
+    return this.schematic;
   }
 }

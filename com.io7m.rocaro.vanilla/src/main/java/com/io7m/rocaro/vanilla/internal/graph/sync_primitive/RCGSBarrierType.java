@@ -17,6 +17,8 @@
 
 package com.io7m.rocaro.vanilla.internal.graph.sync_primitive;
 
+import com.io7m.rocaro.api.graph.RCGResourceVariable;
+
 /**
  * The base type of commands that are barriers.
  */
@@ -32,4 +34,10 @@ public sealed interface RCGSBarrierType
    */
 
   RCGSExecute owner();
+
+  /**
+   * @return The resource
+   */
+
+  RCGResourceVariable<?> resource();
 }

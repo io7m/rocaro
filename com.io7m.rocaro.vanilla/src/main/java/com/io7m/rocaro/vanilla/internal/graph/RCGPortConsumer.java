@@ -21,7 +21,9 @@ import com.io7m.rocaro.api.graph.RCGCommandPipelineStage;
 import com.io7m.rocaro.api.graph.RCGOperationType;
 import com.io7m.rocaro.api.graph.RCGPortConsumerType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicType;
+import com.io7m.rocaro.api.resources.RCResourceType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintType;
 
 import java.util.Objects;
 import java.util.Set;
@@ -34,15 +36,19 @@ import java.util.Set;
  * @param readsOnStages  The stages at which the resource is read
  * @param typeConsumed   The resource type constraint
  * @param writesOnStages The stages at which the resource is written
+ * @param <S>            The resource schematic type
+ * @param <R>            The resource type
  */
 
-public record RCGPortConsumer(
+public record RCGPortConsumer<
+  R extends RCResourceType,
+  S extends RCResourceSchematicType>(
   RCGOperationType owner,
   RCGPortName name,
   Set<RCGCommandPipelineStage> readsOnStages,
-  RCGPortTypeConstraintType<?> typeConsumed,
+  RCSchematicConstraintType<S> typeConsumed,
   Set<RCGCommandPipelineStage> writesOnStages)
-  implements RCGPortConsumerType
+  implements RCGPortConsumerType<R>
 {
   /**
    * A consumer port.

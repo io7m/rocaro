@@ -17,7 +17,6 @@
 
 package com.io7m.rocaro.demo.internal.triangle;
 
-import com.io7m.rocaro.api.graph.RCGNoParameters;
 import com.io7m.rocaro.api.graph.RCGOperationAbstract;
 import com.io7m.rocaro.api.graph.RCGOperationCreationContextType;
 import com.io7m.rocaro.api.graph.RCGOperationExecutionContextType;
@@ -26,9 +25,16 @@ import com.io7m.rocaro.api.graph.RCGOperationName;
 import com.io7m.rocaro.api.graph.RCGOperationPreparationContextType;
 import com.io7m.rocaro.api.graph.RCGPortModifierType;
 import com.io7m.rocaro.api.graph.RCGPortName;
-import com.io7m.rocaro.api.graph.RCGPortTypeConstraintImage;
-import com.io7m.rocaro.api.graph.RCGResourcePlaceholderRenderTargetType;
+import com.io7m.rocaro.api.graph.RCNoParameters;
+import com.io7m.rocaro.api.images.RCImage2DType;
+import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
+import com.io7m.rocaro.api.resources.RCDepthComponents;
+import com.io7m.rocaro.api.resources.RCResourceSchematicImage2DType;
+import com.io7m.rocaro.api.resources.RCResourceSchematicRenderTargetType;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintImage2D;
+import com.io7m.rocaro.api.resources.RCSchematicConstraintRenderTarget;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,7 +49,7 @@ import static com.io7m.rocaro.api.graph.RCGResourceImageLayout.LAYOUT_OPTIMAL_FO
 public final class RCGRenderPassTriangle
   extends RCGOperationAbstract
 {
-  private final RCGPortModifierType frame;
+  private final RCGPortModifierType<RCRenderTargetType> frame;
 
   /**
    * A simple triangle render pass.
@@ -65,13 +71,31 @@ public final class RCGRenderPassTriangle
           this,
           new RCGPortName("Frame"),
           Set.of(),
-          new RCGPortTypeConstraintImage<>(
-            RCGResourcePlaceholderRenderTargetType.class,
-            Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT)
+          new RCSchematicConstraintRenderTarget<>(
+            RCRenderTargetType.class,
+            RCResourceSchematicRenderTargetType.class,
+            List.of(
+              new RCSchematicConstraintImage2D<>(
+                RCImage2DType.class,
+                RCResourceSchematicImage2DType.class,
+                Optional.of(LAYOUT_OPTIMAL_FOR_ATTACHMENT),
+                false
+              )
+            ),
+            Optional.empty()
           ),
           Set.of(STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT),
-          new RCGPortTypeConstraintImage<>(
-            RCGResourcePlaceholderRenderTargetType.class,
+          new RCSchematicConstraintRenderTarget<>(
+            RCRenderTargetType.class,
+            RCResourceSchematicRenderTargetType.class,
+            List.of(
+              new RCSchematicConstraintImage2D<>(
+                RCImage2DType.class,
+                RCResourceSchematicImage2DType.class,
+                Optional.empty(),
+                false
+              )
+            ),
             Optional.empty()
           )
         )
@@ -82,7 +106,7 @@ public final class RCGRenderPassTriangle
    * @return The frame port
    */
 
-  public RCGPortModifierType frame()
+  public RCGPortModifierType<RCRenderTargetType> frame()
   {
     return this.frame;
   }
@@ -91,7 +115,7 @@ public final class RCGRenderPassTriangle
    * @return A simple triangle render pass.
    */
 
-  public static RCGOperationFactoryType<RCGNoParameters, RCGRenderPassTriangle> factory()
+  public static RCGOperationFactoryType<RCNoParameters, RCGRenderPassTriangle> factory()
   {
     return (context, name, _) -> new RCGRenderPassTriangle(context, name);
   }
@@ -104,7 +128,7 @@ public final class RCGRenderPassTriangle
   }
 
   @Override
-  protected void onPrepareCheck(
+  protected void onPrepareContinue(
     final RCGOperationPreparationContextType context)
   {
 

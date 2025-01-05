@@ -25,7 +25,6 @@ import com.io7m.jcoronado.api.VulkanFenceType;
 import com.io7m.jcoronado.api.VulkanLogicalDeviceType;
 import com.io7m.jcoronado.api.VulkanQueueType;
 import com.io7m.jcoronado.api.VulkanSemaphoreSubmitInfo;
-import com.io7m.jcoronado.api.VulkanSemaphoreTimelineType;
 import com.io7m.jcoronado.api.VulkanSemaphoreTimelineWait;
 import com.io7m.jcoronado.api.VulkanSubmitInfo;
 import com.io7m.jcoronado.layers.khronos_validation.api.VulkanValidationValidateBestPractices;
