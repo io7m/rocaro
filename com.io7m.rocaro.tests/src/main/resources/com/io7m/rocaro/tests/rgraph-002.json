@@ -1,0 +1,122 @@
+{
+  "Declarations" : {
+    "Image" : {
+      "Name" : "Image",
+      "Position" : {
+        "Line" : 6,
+        "Column" : 35
+      },
+      "Type" : "ImageType"
+    },
+    "Op0" : {
+      "Name" : "Op0",
+      "Ports" : {
+        "Image" : {
+          "AccessSet" : {
+            "EnsuresImageLayout" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+            "Kind" : "Singleton"
+          },
+          "Kind" : "Producer",
+          "Name" : "Image",
+          "Position" : {
+            "Line" : 16,
+            "Column" : 32
+          },
+          "Type" : "com.io7m.example:Image"
+        },
+        "R" : {
+          "AccessSet" : {
+            "EnsuresImageLayout" : {
+              "F0" : "LAYOUT_OPTIMAL_FOR_PRESENTATION"
+            },
+            "Kind" : "Composite",
+            "RequiresImageLayout" : {
+              "F0" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT"
+            },
+            "Writes" : {
+              "F0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+            }
+          },
+          "Kind" : "Producer",
+          "Name" : "R",
+          "Position" : {
+            "Line" : 20,
+            "Column" : 28
+          },
+          "Type" : "com.io7m.example:R"
+        }
+      },
+      "Position" : {
+        "Line" : 15,
+        "Column" : 32
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    },
+    "Op1" : {
+      "Name" : "Op1",
+      "Ports" : {
+        "Image" : {
+          "AccessSet" : {
+            "Kind" : "Singleton",
+            "RequiresImageLayout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT"
+          },
+          "Kind" : "Consumer",
+          "Name" : "Image",
+          "Position" : {
+            "Line" : 30,
+            "Column" : 32
+          },
+          "Type" : "com.io7m.example:Image"
+        },
+        "R" : {
+          "AccessSet" : {
+            "Kind" : "Composite",
+            "Reads" : {
+              "F0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+            }
+          },
+          "Kind" : "Consumer",
+          "Name" : "R",
+          "Position" : {
+            "Line" : 34,
+            "Column" : 28
+          },
+          "Type" : "com.io7m.example:R"
+        }
+      },
+      "Position" : {
+        "Line" : 29,
+        "Column" : 32
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    },
+    "R" : {
+      "Fields" : {
+        "F0" : {
+          "Name" : "F0",
+          "Type" : "com.io7m.example:Image"
+        }
+      },
+      "Name" : "R",
+      "Position" : {
+        "Line" : 8,
+        "Column" : 31
+      },
+      "Type" : "RecordType"
+    }
+  },
+  "Package" : "com.io7m.example",
+  "PortConnections" : [ {
+    "SourceOperation" : "Op0",
+    "SourcePort" : "Image",
+    "TargetOperation" : "Op1",
+    "TargetPort" : "Image"
+  }, {
+    "SourceOperation" : "Op0",
+    "SourcePort" : "R",
+    "TargetOperation" : "Op1",
+    "TargetPort" : "R"
+  } ]
+}

@@ -33,6 +33,7 @@ open module com.io7m.rocaro.tests
   requires org.junit.platform.engine;
   requires org.junit.platform.launcher;
 
+  requires com.io7m.anethum.api;
   requires com.io7m.jcoronado.api;
   requires com.io7m.jcoronado.extensions.khr.surface.api;
   requires com.io7m.jcoronado.fake;
@@ -41,13 +42,17 @@ open module com.io7m.rocaro.tests
   requires com.io7m.jcoronado.vma;
   requires com.io7m.jtensors.core;
   requires com.io7m.junreachable.core;
+  requires com.io7m.jxe.core;
   requires com.io7m.percentpass.extension;
+  requires com.io7m.rocaro.rgraphc;
   requires net.jqwik.api;
   requires net.jqwik.engine;
   requires org.jgrapht.core;
   requires org.jgrapht.io;
   requires org.mockito;
   requires org.slf4j;
+  requires com.fasterxml.jackson.databind;
+  requires com.fasterxml.jackson.datatype.jdk8;
 
   uses RendererFactoryType;
   uses RCDisplayServiceType;

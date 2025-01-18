@@ -1,0 +1,239 @@
+{
+  "Declarations" : {
+    "AOImage" : {
+      "Name" : "AOImage",
+      "Position" : {
+        "Line" : 18,
+        "Column" : 36
+      },
+      "Type" : "ImageType"
+    },
+    "ComputeInstances" : {
+      "Name" : "ComputeInstances",
+      "Ports" : {
+        "Draws" : {
+          "AccessSet" : {
+            "Kind" : "Singleton",
+            "Writes" : [ "STAGE_COMPUTE_SHADER" ]
+          },
+          "Kind" : "Producer",
+          "Name" : "Draws",
+          "Position" : {
+            "Line" : 55,
+            "Column" : 32
+          },
+          "Type" : "com.io7m.example:DrawBuffer"
+        }
+      },
+      "Position" : {
+        "Line" : 50,
+        "Column" : 45
+      },
+      "QueueCategory" : "COMPUTE",
+      "Type" : "Operation"
+    },
+    "CreateGBuffer" : {
+      "Name" : "CreateGBuffer",
+      "Ports" : {
+        "AOImage" : {
+          "AccessSet" : {
+            "Kind" : "Singleton"
+          },
+          "Kind" : "Producer",
+          "Name" : "AOImage",
+          "Position" : {
+            "Line" : 71,
+            "Column" : 34
+          },
+          "Type" : "com.io7m.example:AOImage"
+        },
+        "GBuffer" : {
+          "AccessSet" : {
+            "Kind" : "Composite",
+            "Writes" : {
+              "AlbedoEmissive" : [ "STAGE_CPU" ],
+              "Depth" : [ "STAGE_CPU" ],
+              "Lit" : [ "STAGE_CPU" ],
+              "NormalSpecular" : [ "STAGE_CPU" ]
+            }
+          },
+          "Kind" : "Producer",
+          "Name" : "GBuffer",
+          "Position" : {
+            "Line" : 67,
+            "Column" : 34
+          },
+          "Type" : "com.io7m.example:GBuffer"
+        }
+      },
+      "Position" : {
+        "Line" : 62,
+        "Column" : 42
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    },
+    "DrawBuffer" : {
+      "Name" : "DrawBuffer",
+      "Position" : {
+        "Line" : 12,
+        "Column" : 40
+      },
+      "Type" : "BufferType"
+    },
+    "FrameSink" : {
+      "Name" : "FrameSink",
+      "Ports" : {
+        "AOImage" : {
+          "AccessSet" : {
+            "Kind" : "Singleton"
+          },
+          "Kind" : "Consumer",
+          "Name" : "AOImage",
+          "Position" : {
+            "Line" : 111,
+            "Column" : 34
+          },
+          "Type" : "com.io7m.example:AOImage"
+        },
+        "GBuffer" : {
+          "AccessSet" : {
+            "Kind" : "Composite",
+            "Reads" : {
+              "Lit" : [ "STAGE_TRANSFER_BLIT" ]
+            },
+            "RequiresImageLayout" : {
+              "Lit" : "LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE"
+            }
+          },
+          "Kind" : "Consumer",
+          "Name" : "GBuffer",
+          "Position" : {
+            "Line" : 103,
+            "Column" : 34
+          },
+          "Type" : "com.io7m.example:GBuffer"
+        }
+      },
+      "Position" : {
+        "Line" : 98,
+        "Column" : 38
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    },
+    "GBuffer" : {
+      "Attachments" : {
+        "AlbedoEmissive" : {
+          "Index" : 0,
+          "Kind" : "ColorAttachment",
+          "Type" : "AlbedoEmissive"
+        },
+        "Depth" : {
+          "Kind" : "DepthAttachment",
+          "Name" : "Depth"
+        },
+        "Lit" : {
+          "Index" : 2,
+          "Kind" : "ColorAttachment",
+          "Type" : "Lit"
+        },
+        "NormalSpecular" : {
+          "Index" : 1,
+          "Kind" : "ColorAttachment",
+          "Type" : "NormalSpecular"
+        }
+      },
+      "Name" : "GBuffer",
+      "Position" : {
+        "Line" : 24,
+        "Column" : 43
+      },
+      "Type" : "RenderTargetType"
+    },
+    "R" : {
+      "Fields" : {
+        "F0" : {
+          "Name" : "F0",
+          "Type" : "com.io7m.example:DrawBuffer"
+        }
+      },
+      "Name" : "R",
+      "Position" : {
+        "Line" : 6,
+        "Column" : 31
+      },
+      "Type" : "RecordType"
+    },
+    "RenderImage" : {
+      "Name" : "RenderImage",
+      "Ports" : {
+        "Draws" : {
+          "AccessSet" : {
+            "Kind" : "Singleton",
+            "Reads" : [ "STAGE_RENDER_DRAW_INDIRECT" ]
+          },
+          "Kind" : "Consumer",
+          "Name" : "Draws",
+          "Position" : {
+            "Line" : 82,
+            "Column" : 32
+          },
+          "Type" : "com.io7m.example:DrawBuffer"
+        },
+        "GBuffer" : {
+          "AccessSet" : {
+            "Kind" : "Composite",
+            "Reads" : {
+              "AlbedoEmissive" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ],
+              "Depth" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ],
+              "Lit" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ],
+              "NormalSpecular" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ]
+            },
+            "Writes" : {
+              "AlbedoEmissive" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "Depth" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "Lit" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "NormalSpecular" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+            }
+          },
+          "Kind" : "Modifier",
+          "Name" : "GBuffer",
+          "Position" : {
+            "Line" : 87,
+            "Column" : 34
+          },
+          "Type" : "com.io7m.example:GBuffer"
+        }
+      },
+      "Position" : {
+        "Line" : 77,
+        "Column" : 40
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    }
+  },
+  "Package" : "com.io7m.example",
+  "PortConnections" : [ {
+    "SourceOperation" : "ComputeInstances",
+    "SourcePort" : "Draws",
+    "TargetOperation" : "RenderImage",
+    "TargetPort" : "Draws"
+  }, {
+    "SourceOperation" : "CreateGBuffer",
+    "SourcePort" : "GBuffer",
+    "TargetOperation" : "RenderImage",
+    "TargetPort" : "GBuffer"
+  }, {
+    "SourceOperation" : "CreateGBuffer",
+    "SourcePort" : "AOImage",
+    "TargetOperation" : "FrameSink",
+    "TargetPort" : "AOImage"
+  }, {
+    "SourceOperation" : "RenderImage",
+    "SourcePort" : "GBuffer",
+    "TargetOperation" : "FrameSink",
+    "TargetPort" : "GBuffer"
+  } ]
+}

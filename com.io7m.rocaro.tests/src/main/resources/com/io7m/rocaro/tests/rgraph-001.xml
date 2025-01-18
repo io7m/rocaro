@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareRecordType Name="R">
+    <Field Name="F0">
+      <TypeReference Type="DrawBuffer"/>
+    </Field>
+  </DeclareRecordType>
+
+  <DeclareBufferType Name="DrawBuffer">
+    <Comment>
+      The buffer that will hold draw operations.
+    </Comment>
+  </DeclareBufferType>
+
+  <DeclareImageType Name="AOImage">
+    <Comment>
+      The image that will hold AO data.
+    </Comment>
+  </DeclareImageType>
+
+  <DeclareRenderTargetType Name="GBuffer">
+    <Comment>
+      The GBuffer type.
+    </Comment>
+    <ColorAttachment Name="AlbedoEmissive"
+                     Index="0">
+      <Comment>
+        The albedo in (R,G,B) and the emission in A.
+      </Comment>
+    </ColorAttachment>
+    <ColorAttachment Name="NormalSpecular"
+                     Index="1">
+      <Comment>
+        The compressed normal in (R,G), the specular intensity in B, and the specular exponent in A.
+      </Comment>
+    </ColorAttachment>
+    <ColorAttachment Name="Lit"
+                     Index="2">
+      <Comment>
+        The lit surface in (R,G,B).
+      </Comment>
+    </ColorAttachment>
+    <DepthAttachment Name="Depth"/>
+  </DeclareRenderTargetType>
+
+  <DeclareOperation QueueCategory="COMPUTE"
+                    Name="ComputeInstances">
+    <Comment>
+      A GPU compute operation that determines the set of visible instances.
+    </Comment>
+
+    <PortProducer Name="Draws">
+      <TypeReference Type="DrawBuffer"/>
+      <Writes AtStage="STAGE_COMPUTE_SHADER"/>
+    </PortProducer>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="CreateGBuffer">
+    <Comment>
+      An operation that allocates a new GBuffer (or reuses an existing one from a previous frame).
+    </Comment>
+
+    <PortProducer Name="GBuffer">
+      <TypeReference Type="GBuffer"/>
+      <Writes AtStage="STAGE_CPU"/>
+    </PortProducer>
+    <PortProducer Name="AOImage">
+      <TypeReference Type="AOImage"/>
+    </PortProducer>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="RenderImage">
+    <Comment>
+      A deferred rendering pass that populates the GBuffer with the scene surfaces and then produces a lit image.
+    </Comment>
+
+    <PortConsumer Name="Draws">
+      <TypeReference Type="DrawBuffer"/>
+      <Reads AtStage="STAGE_RENDER_DRAW_INDIRECT"/>
+    </PortConsumer>
+
+    <PortModifier Name="GBuffer">
+      <TypeReference Type="GBuffer"/>
+      <Reads AtStage="STAGE_RENDER_FRAGMENT_SHADER"/>
+      <Reads AtStage="STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS"/>
+      <Reads AtStage="STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS"/>
+      <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <RequiresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
+    </PortModifier>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="FrameSink">
+    <Comment>
+      An operation that blits the lit scene image onto a swapchain image, potentially scaling it up/down in the process.
+    </Comment>
+
+    <PortConsumer Name="GBuffer">
+      <TypeReference Type="GBuffer"/>
+      <Reads AtStage="STAGE_TRANSFER_BLIT"
+             Subresource="Lit"/>
+      <RequiresImageLayout Layout="LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE"
+                           Image="Lit"/>
+    </PortConsumer>
+
+    <PortConsumer Name="AOImage">
+      <TypeReference Type="AOImage"/>
+    </PortConsumer>
+  </DeclareOperation>
+
+  <Connect SourceOperation="ComputeInstances"
+           SourcePort="Draws"
+           TargetOperation="RenderImage"
+           TargetPort="Draws"/>
+
+  <Connect SourceOperation="CreateGBuffer"
+           SourcePort="GBuffer"
+           TargetOperation="RenderImage"
+           TargetPort="GBuffer"/>
+
+  <Connect SourceOperation="CreateGBuffer"
+           SourcePort="AOImage"
+           TargetOperation="FrameSink"
+           TargetPort="AOImage"/>
+
+  <Connect SourceOperation="RenderImage"
+           SourcePort="GBuffer"
+           TargetOperation="FrameSink"
+           TargetPort="GBuffer"/>
+
+</RenderGraph>

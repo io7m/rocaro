@@ -24,6 +24,7 @@
   <modules>
     <module>com.io7m.rocaro.api</module>
     <module>com.io7m.rocaro.demo</module>
+    <module>com.io7m.rocaro.rgraphc</module>
     <module>com.io7m.rocaro.tests.arbitraries</module>
     <module>com.io7m.rocaro.tests</module>
     <module>com.io7m.rocaro.vanilla</module>
@@ -35,13 +36,17 @@
     <io7m.java.targetJavaVersion>22</io7m.java.targetJavaVersion>
 
     <!-- io7m dependencies. -->
+    <com.io7m.anethum.version>1.1.1</com.io7m.anethum.version>
+    <com.io7m.blackthorne.version>2.0.2</com.io7m.blackthorne.version>
     <com.io7m.jaffirm.version>4.0.1</com.io7m.jaffirm.version>
     <com.io7m.jattribute.version>1.0.1</com.io7m.jattribute.version>
     <com.io7m.jcoronado.version>0.0.2-SNAPSHOT</com.io7m.jcoronado.version>
     <com.io7m.jdeferthrow.version>1.3.0</com.io7m.jdeferthrow.version>
+    <com.io7m.jlexing.version>3.2.0</com.io7m.jlexing.version>
     <com.io7m.jmulticlose.version>1.1.3</com.io7m.jmulticlose.version>
     <com.io7m.jtensors.version>11.0.0</com.io7m.jtensors.version>
     <com.io7m.junreachable.version>4.0.2</com.io7m.junreachable.version>
+    <com.io7m.jxe.version>2.0.0</com.io7m.jxe.version>
     <com.io7m.jxtrand.version>2.1.0</com.io7m.jxtrand.version>
     <com.io7m.lanark.version>1.2.0</com.io7m.lanark.version>
     <com.io7m.montarre.version>0.0.3</com.io7m.montarre.version>
@@ -53,6 +58,7 @@
     <com.io7m.verona.version>1.0.1</com.io7m.verona.version>
 
     <!-- Third-party dependencies. -->
+    <com.fasterxml.jackson.version>2.18.2</com.fasterxml.jackson.version>
     <net.bytebuddy.version>1.15.10</net.bytebuddy.version>
     <net.jqwik.version>1.9.1</net.jqwik.version>
     <org.immutables.value.version>2.10.1</org.immutables.value.version>
@@ -172,6 +178,33 @@
         <version>${com.io7m.jattribute.version}</version>
       </dependency>
 
+      <!-- Parsers -->
+      <dependency>
+        <groupId>com.io7m.anethum</groupId>
+        <artifactId>com.io7m.anethum.api</artifactId>
+        <version>${com.io7m.anethum.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jxe</groupId>
+        <artifactId>com.io7m.jxe.core</artifactId>
+        <version>${com.io7m.jxe.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.blackthorne</groupId>
+        <artifactId>com.io7m.blackthorne.core</artifactId>
+        <version>${com.io7m.blackthorne.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.blackthorne</groupId>
+        <artifactId>com.io7m.blackthorne.jxe</artifactId>
+        <version>${com.io7m.blackthorne.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jlexing</groupId>
+        <artifactId>com.io7m.jlexing.core</artifactId>
+        <version>${com.io7m.jlexing.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>com.io7m.jcoronado</groupId>
         <artifactId>com.io7m.jcoronado.api</artifactId>
@@ -238,6 +271,28 @@
         <groupId>com.io7m.quarrel</groupId>
         <artifactId>com.io7m.quarrel.ext.logback</artifactId>
         <version>${com.io7m.quarrel.version}</version>
+      </dependency>
+
+      <!-- Jackson XML handling, etc. -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${com.fasterxml.jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${com.fasterxml.jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${com.fasterxml.jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jdk8</artifactId>
+        <version>${com.fasterxml.jackson.version}</version>
       </dependency>
 
       <!-- LWJGL -->

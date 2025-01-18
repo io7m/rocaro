@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareBufferType Name="R1"/>
+
+  <DeclareRecordType Name="R0">
+    <Field Name="F">
+      <TypeReference Type="R1"/>
+    </Field>
+    <Field Name="F">
+      <TypeReference Type="R1"/>
+    </Field>
+  </DeclareRecordType>
+
+</RenderGraph>

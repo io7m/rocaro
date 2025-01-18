@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareBufferType Name="R0"/>
+
+  <DeclareOperation QueueCategory="COMPUTE"
+                    Name="R1">
+    <PortConsumer Name="P">
+      <TypeReference Type="R0"/>
+      <Reads AtStage="STAGE_RENDER_DRAW_INDIRECT"
+             Subresource="X"/>
+    </PortConsumer>
+  </DeclareOperation>
+
+</RenderGraph>

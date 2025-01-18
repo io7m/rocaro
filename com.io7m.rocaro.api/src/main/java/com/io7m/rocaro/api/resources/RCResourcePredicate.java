@@ -18,7 +18,6 @@
 package com.io7m.rocaro.api.resources;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * A predicate on part of a resource.

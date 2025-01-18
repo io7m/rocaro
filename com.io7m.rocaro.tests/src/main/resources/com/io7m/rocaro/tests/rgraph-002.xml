@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareImageType Name="Image"/>
+
+  <DeclareRecordType Name="R">
+    <Field Name="F0">
+      <TypeReference Type="Image"/>
+    </Field>
+  </DeclareRecordType>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op0">
+    <PortProducer Name="Image">
+      <TypeReference Type="Image"/>
+      <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET"/>
+    </PortProducer>
+    <PortProducer Name="R">
+      <TypeReference Type="R"/>
+      <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <RequiresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
+      <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_PRESENTATION"/>
+    </PortProducer>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op1">
+    <PortConsumer Name="Image">
+      <TypeReference Type="Image"/>
+      <RequiresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
+    </PortConsumer>
+    <PortConsumer Name="R">
+      <TypeReference Type="R"/>
+      <Reads AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+    </PortConsumer>
+  </DeclareOperation>
+
+  <Connect SourceOperation="Op0"
+           SourcePort="Image"
+           TargetOperation="Op1"
+           TargetPort="Image"/>
+
+  <Connect SourceOperation="Op0"
+           SourcePort="R"
+           TargetOperation="Op1"
+           TargetPort="R"/>
+
+</RenderGraph>

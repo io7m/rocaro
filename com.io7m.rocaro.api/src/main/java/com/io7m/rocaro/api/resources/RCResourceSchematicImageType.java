@@ -18,7 +18,6 @@
 package com.io7m.rocaro.api.resources;
 
 import com.io7m.jcoronado.api.VulkanFormat;
-import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
 
 /**
  * A schematic for an image resource; the information that fully describes a

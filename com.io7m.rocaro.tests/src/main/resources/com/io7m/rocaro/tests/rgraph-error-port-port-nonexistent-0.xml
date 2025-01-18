@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareBufferType Name="B"/>
+
+  <DeclareOperation QueueCategory="COMPUTE"
+                    Name="O0">
+    <PortProducer Name="P">
+      <TypeReference Type="B"/>
+    </PortProducer>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="COMPUTE"
+                    Name="O1">
+    <PortConsumer Name="P">
+      <TypeReference Type="B"/>
+    </PortConsumer>
+  </DeclareOperation>
+
+  <Connect SourceOperation="O0"
+           TargetOperation="O1"
+           SourcePort="P"
+           TargetPort="Q"/>
+
+</RenderGraph>

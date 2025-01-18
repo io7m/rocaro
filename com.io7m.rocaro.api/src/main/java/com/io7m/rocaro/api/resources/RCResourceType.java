@@ -17,10 +17,6 @@
 
 package com.io7m.rocaro.api.resources;
 
-import com.io7m.rocaro.api.buffers.RCBufferType;
-import com.io7m.rocaro.api.images.RCImageType;
-import com.io7m.rocaro.api.render_targets.RCRenderTargetType;
-
 /**
  * A run-time resource.
  */

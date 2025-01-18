@@ -17,9 +17,6 @@
 
 package com.io7m.rocaro.api.resources;
 
-import java.util.Objects;
-import java.util.function.Function;
-
 public final class RCResourcePredicates
 {
   private RCResourcePredicates()

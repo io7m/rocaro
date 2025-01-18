@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="O">
+    <PortProducer Name="P">
+      <TypeReference Package="com.io7m.example2"
+                     Type="T"/>
+    </PortProducer>
+  </DeclareOperation>
+
+</RenderGraph>

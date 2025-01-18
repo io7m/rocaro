@@ -17,8 +17,6 @@
 
 package com.io7m.rocaro.api.resources;
 
-import com.io7m.jtensors.core.unparameterized.vectors.Vector2I;
-
 /**
  * A schematic for a 2D depth/stencil image resource; the information that
  * fully describes a run-time resource value.

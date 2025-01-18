@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:r="urn:com.io7m.rocaro:render-graph:1"
+           targetNamespace="urn:com.io7m.rocaro:render-graph:1">
+
+  <xs:simpleType name="BasicName">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z][A-Za-z0-9_]{0,127}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PackageName">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([a-z][a-z0-9_]{0,63})(\.[a-z][a-z0-9_]{0,62}){0,15}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Path">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([A-Z][A-Za-z0-9_]{0,127})(\.[A-Z][A-Za-z0-9_]{0,127})*"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="Comment">
+    <xs:simpleType>
+      <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="Import">
+    <xs:complexType>
+      <xs:attribute name="Package"
+                    type="r:PackageName"
+                    use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="ImageLayout">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="LAYOUT_UNDEFINED"/>
+      <xs:enumeration value="LAYOUT_OPTIMAL_FOR_SHADER_READ"/>
+      <xs:enumeration value="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
+      <xs:enumeration value="LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE"/>
+      <xs:enumeration value="LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET"/>
+      <xs:enumeration value="LAYOUT_OPTIMAL_FOR_PRESENTATION"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PipelineStage">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="STAGE_RENDER_DRAW_INDIRECT"/>
+      <xs:enumeration value="STAGE_RENDER_VERTEX_SHADER"/>
+      <xs:enumeration value="STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS"/>
+      <xs:enumeration value="STAGE_RENDER_FRAGMENT_SHADER"/>
+      <xs:enumeration value="STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS"/>
+      <xs:enumeration value="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <xs:enumeration value="STAGE_COMPUTE_SHADER"/>
+      <xs:enumeration value="STAGE_CPU"/>
+      <xs:enumeration value="STAGE_TRANSFER_COPY"/>
+      <xs:enumeration value="STAGE_TRANSFER_BLIT"/>
+      <xs:enumeration value="STAGE_TRANSFER_RESOLVE"/>
+      <xs:enumeration value="STAGE_TRANSFER_CLEAR"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="QueueCategory">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="COMPUTE"/>
+      <xs:enumeration value="GRAPHICS"/>
+      <xs:enumeration value="TRANSFER"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="TypeDeclarationT"
+                  abstract="true">
+    <xs:attribute name="Name"
+                  type="r:BasicName"
+                  use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="TypeDeclarationBufferT">
+    <xs:complexContent>
+      <xs:extension base="r:TypeDeclarationT">
+        <xs:sequence minOccurs="0"
+                     maxOccurs="1">
+          <xs:element ref="r:Comment"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="DeclareBufferType"
+              type="r:TypeDeclarationBufferT"/>
+
+  <xs:complexType name="TypeDeclarationImageT">
+    <xs:complexContent>
+      <xs:extension base="r:TypeDeclarationT">
+        <xs:sequence minOccurs="0"
+                     maxOccurs="1">
+          <xs:element ref="r:Comment"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="DeclareImageType"
+              type="r:TypeDeclarationImageT"/>
+
+  <xs:element name="Field">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="r:TypeReference"/>
+      </xs:sequence>
+      <xs:attribute name="Name"
+                    type="r:BasicName"
+                    use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="TypeDeclarationRecordT">
+    <xs:complexContent>
+      <xs:extension base="r:TypeDeclarationT">
+        <xs:sequence>
+          <xs:sequence minOccurs="0"
+                       maxOccurs="1">
+            <xs:element ref="r:Comment"/>
+          </xs:sequence>
+          <xs:element minOccurs="0"
+                      maxOccurs="unbounded"
+                      ref="r:Field"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="DeclareRecordType"
+              type="r:TypeDeclarationRecordT"/>
+
+  <xs:element name="ColorAttachment">
+    <xs:complexType>
+      <xs:sequence minOccurs="0"
+                   maxOccurs="1">
+        <xs:element ref="r:Comment"/>
+      </xs:sequence>
+
+      <xs:attribute name="Name"
+                    type="r:BasicName"
+                    use="required"/>
+      <xs:attribute name="Index"
+                    type="xs:unsignedInt"
+                    use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="DepthAttachment">
+    <xs:complexType>
+      <xs:sequence minOccurs="0"
+                   maxOccurs="1">
+        <xs:element ref="r:Comment"/>
+      </xs:sequence>
+
+      <xs:attribute name="Name"
+                    type="r:BasicName"
+                    use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="TypeDeclarationRenderTargetT">
+    <xs:complexContent>
+      <xs:extension base="r:TypeDeclarationT">
+        <xs:sequence>
+          <xs:sequence minOccurs="0"
+                       maxOccurs="1">
+            <xs:element ref="r:Comment"/>
+          </xs:sequence>
+          <xs:sequence minOccurs="0"
+                       maxOccurs="unbounded">
+            <xs:element ref="r:ColorAttachment"/>
+          </xs:sequence>
+          <xs:sequence minOccurs="0"
+                       maxOccurs="1">
+            <xs:element ref="r:DepthAttachment"/>
+          </xs:sequence>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="DeclareRenderTargetType"
+              type="r:TypeDeclarationRenderTargetT"/>
+
+  <xs:group name="TypeDeclarationGroup">
+    <xs:choice>
+      <xs:element ref="r:DeclareBufferType"/>
+      <xs:element ref="r:DeclareImageType"/>
+      <xs:element ref="r:DeclareRecordType"/>
+      <xs:element ref="r:DeclareRenderTargetType"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:element name="TypeReference">
+    <xs:complexType>
+      <xs:attribute name="Package"
+                    type="r:PackageName"
+                    use="optional"/>
+      <xs:attribute name="Type"
+                    type="r:BasicName"
+                    use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="MemoryAccessT"
+                  abstract="true">
+    <xs:attribute name="AtStage"
+                  type="r:PipelineStage"
+                  use="required"/>
+    <xs:attribute name="Subresource"
+                  type="r:Path"/>
+  </xs:complexType>
+
+  <xs:complexType name="ReadsT">
+    <xs:complexContent>
+      <xs:extension base="r:MemoryAccessT"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="Reads"
+              type="r:ReadsT"/>
+
+  <xs:complexType name="WritesT">
+    <xs:complexContent>
+      <xs:extension base="r:MemoryAccessT"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="Writes"
+              type="r:WritesT"/>
+
+  <xs:group name="MemoryAccessGroup">
+    <xs:choice>
+      <xs:element ref="r:Reads"/>
+      <xs:element ref="r:Writes"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:element name="EnsuresImageLayout">
+    <xs:complexType>
+      <xs:attribute name="Image"
+                    type="r:BasicName"/>
+      <xs:attribute name="Layout"
+                    type="r:ImageLayout"
+                    use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="RequiresImageLayout">
+    <xs:complexType>
+      <xs:attribute name="Image"
+                    type="r:BasicName"/>
+      <xs:attribute name="Layout"
+                    type="r:ImageLayout"
+                    use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="PortT"
+                  abstract="true">
+    <xs:sequence>
+      <xs:element ref="r:TypeReference"/>
+      <xs:sequence minOccurs="0"
+                   maxOccurs="unbounded">
+        <xs:group ref="r:MemoryAccessGroup"/>
+      </xs:sequence>
+      <xs:element ref="r:RequiresImageLayout"
+                  minOccurs="0"
+                  maxOccurs="unbounded"/>
+      <xs:element ref="r:EnsuresImageLayout"
+                  minOccurs="0"
+                  maxOccurs="unbounded"/>
+    </xs:sequence>
+
+    <xs:attribute name="Name"
+                  type="r:BasicName"
+                  use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="PortProducerT">
+    <xs:complexContent>
+      <xs:extension base="r:PortT"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="PortProducer"
+              type="r:PortProducerT"/>
+
+  <xs:complexType name="PortConsumerT">
+    <xs:complexContent>
+      <xs:extension base="r:PortT"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="PortConsumer"
+              type="r:PortProducerT"/>
+
+  <xs:complexType name="PortModifierT">
+    <xs:complexContent>
+      <xs:extension base="r:PortT"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="PortModifier"
+              type="r:PortProducerT"/>
+
+  <xs:group name="PortGroup">
+    <xs:choice>
+      <xs:element ref="r:PortConsumer"/>
+      <xs:element ref="r:PortModifier"/>
+      <xs:element ref="r:PortProducer"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:element name="DeclareOperation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:sequence minOccurs="0"
+                     maxOccurs="1">
+          <xs:element ref="r:Comment"/>
+        </xs:sequence>
+        <xs:sequence minOccurs="0"
+                     maxOccurs="unbounded">
+          <xs:element ref="r:PortConsumer"/>
+        </xs:sequence>
+        <xs:sequence minOccurs="0"
+                     maxOccurs="unbounded">
+          <xs:element ref="r:PortModifier"/>
+        </xs:sequence>
+        <xs:sequence minOccurs="0"
+                     maxOccurs="unbounded">
+          <xs:element ref="r:PortProducer"/>
+        </xs:sequence>
+      </xs:sequence>
+
+      <xs:attribute name="QueueCategory"
+                    type="r:QueueCategory"
+                    use="required"/>
+
+      <xs:attribute name="Name"
+                    type="r:BasicName"
+                    use="required"/>
+    </xs:complexType>
+
+    <xs:key name="PortNameKey">
+      <xs:selector xpath="r:PortConsumer|r:PortModifier|r:PortProducer"/>
+      <xs:field xpath="@Name"/>
+    </xs:key>
+  </xs:element>
+
+  <xs:element name="Connect">
+    <xs:complexType>
+      <xs:attribute name="SourceOperation"
+                    type="r:BasicName"
+                    use="required"/>
+      <xs:attribute name="TargetOperation"
+                    type="r:BasicName"
+                    use="required"/>
+      <xs:attribute name="SourcePort"
+                    type="r:BasicName"
+                    use="required"/>
+      <xs:attribute name="TargetPort"
+                    type="r:BasicName"
+                    use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="RenderGraph">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:sequence minOccurs="0"
+                     maxOccurs="unbounded">
+          <xs:element ref="r:Import"/>
+        </xs:sequence>
+        <xs:sequence minOccurs="0"
+                     maxOccurs="unbounded">
+          <xs:choice>
+            <xs:group ref="r:TypeDeclarationGroup"/>
+          </xs:choice>
+        </xs:sequence>
+        <xs:sequence minOccurs="0"
+                     maxOccurs="unbounded">
+          <xs:element ref="r:DeclareOperation"/>
+        </xs:sequence>
+        <xs:sequence minOccurs="0"
+                     maxOccurs="unbounded">
+          <xs:element ref="r:Connect"/>
+        </xs:sequence>
+      </xs:sequence>
+
+      <xs:attribute name="Package"
+                    type="r:PackageName"
+                    use="required"/>
+    </xs:complexType>
+
+    <xs:key name="OperationNameKey">
+      <xs:selector xpath="r:DeclareOperation"/>
+      <xs:field xpath="@Name"/>
+    </xs:key>
+
+    <xs:keyref name="ConnectOperationSourceExists"
+               refer="r:OperationNameKey">
+      <xs:selector xpath="r:Connect"/>
+      <xs:field xpath="@SourceOperation"/>
+    </xs:keyref>
+
+    <xs:keyref name="ConnectOperationTargetExists"
+               refer="r:OperationNameKey">
+      <xs:selector xpath="r:Connect"/>
+      <xs:field xpath="@TargetOperation"/>
+    </xs:keyref>
+
+    <xs:key name="TypeNameKey">
+      <xs:selector xpath="r:DeclareBufferType|r:DeclareImageType|r:DeclareRenderTargetType|r:DeclareRecordType"/>
+      <xs:field xpath="@Name"/>
+    </xs:key>
+  </xs:element>
+
+</xs:schema>

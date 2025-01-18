@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareBufferType Name="B"/>
+
+  <DeclareRecordType Name="R0">
+    <Field Name="F">
+      <TypeReference Type="B"/>
+    </Field>
+  </DeclareRecordType>
+
+  <DeclareRecordType Name="R1">
+    <Field Name="F0">
+      <TypeReference Type="R0"/>
+    </Field>
+    <Field Name="F1">
+      <TypeReference Type="R0"/>
+    </Field>
+    <Field Name="F2">
+      <TypeReference Type="R0"/>
+    </Field>
+  </DeclareRecordType>
+
+  <DeclareOperation QueueCategory="COMPUTE"
+                    Name="O0">
+    <PortProducer Name="PP">
+      <TypeReference Type="R1"/>
+    </PortProducer>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="COMPUTE"
+                    Name="O1">
+    <PortConsumer Name="PC">
+      <TypeReference Type="O0"/>
+      <Reads AtStage="STAGE_COMPUTE_SHADER"/>
+    </PortConsumer>
+  </DeclareOperation>
+
+  <Connect SourceOperation="O0"
+           TargetOperation="O1"
+           SourcePort="PP"
+           TargetPort="PC"/>
+
+</RenderGraph>
