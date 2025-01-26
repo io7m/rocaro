@@ -1,0 +1,188 @@
+{
+  "Commands" : {
+    "0" : {
+      "Comment" : "Command buffers for Op0",
+      "ID" : 0,
+      "Kind" : "RCCExecute",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "1" : {
+      "Comment" : "Access on port Op0:ImagePort",
+      "ID" : 1,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "2" : {
+      "Comment" : "Intro on port Op0:ImagePort",
+      "ID" : 2,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "3" : {
+      "Comment" : "Command buffers for Op1",
+      "ID" : 3,
+      "Kind" : "RCCExecute",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "4" : {
+      "Comment" : "Access on port Op1:ImagePort (Requires LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE)",
+      "ID" : 4,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "5" : {
+      "Comment" : "Command buffers for Op2",
+      "ID" : 5,
+      "Kind" : "RCCExecute",
+      "Operation" : "Op2",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "6" : {
+      "Comment" : "Access on port Op2:ImagePort (Requires LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET)",
+      "ID" : 6,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op2",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "7" : {
+      "Comment" : "Command buffers for Op3",
+      "ID" : 7,
+      "Kind" : "RCCExecute",
+      "Operation" : "Op3",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "8" : {
+      "Comment" : "Access on port Op3:ImagePort (Requires LAYOUT_OPTIMAL_FOR_SHADER_READ)",
+      "ID" : 8,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op3",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "9" : {
+      "ID" : 9,
+      "Kind" : "RCCDiscard",
+      "Operation" : "Op3",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "10" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_FRAGMENT_SHADER" ],
+      "BlocksWritesAt" : [ "STAGE_RENDER_FRAGMENT_SHADER" ],
+      "Comment" : "Pre barrier for port Op1:ImagePort",
+      "ID" : 10,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "Op1",
+      "Resource" : 0,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_TRANSFER_BLIT" ]
+    },
+    "12" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_FRAGMENT_SHADER" ],
+      "BlocksWritesAt" : [ "STAGE_RENDER_FRAGMENT_SHADER" ],
+      "Comment" : "Merged barrier for port Op2:ImagePort",
+      "ID" : 12,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "Op2",
+      "Resource" : 0,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_FRAGMENT_SHADER" ]
+    },
+    "14" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "BlocksWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "Comment" : "Merged barrier for port Op3:ImagePort",
+      "ID" : 14,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_SHADER_READ",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "Op3",
+      "Resource" : 0,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_FRAGMENT_SHADER" ]
+    }
+  },
+  "Connections" : [ {
+    "Source" : "0",
+    "Target" : "1"
+  }, {
+    "Source" : "1",
+    "Target" : "10"
+  }, {
+    "Source" : "2",
+    "Target" : "0"
+  }, {
+    "Source" : "3",
+    "Target" : "4"
+  }, {
+    "Source" : "4",
+    "Target" : "12"
+  }, {
+    "Source" : "5",
+    "Target" : "6"
+  }, {
+    "Source" : "6",
+    "Target" : "14"
+  }, {
+    "Source" : "7",
+    "Target" : "8"
+  }, {
+    "Source" : "8",
+    "Target" : "9"
+  }, {
+    "Source" : "10",
+    "Target" : "4"
+  }, {
+    "Source" : "12",
+    "Target" : "6"
+  }, {
+    "Source" : "14",
+    "Target" : "8"
+  } ]
+}

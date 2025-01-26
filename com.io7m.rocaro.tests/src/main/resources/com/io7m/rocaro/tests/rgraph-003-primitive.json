@@ -1,0 +1,147 @@
+{
+  "Connections" : [ {
+    "SourcePort" : "Op0:ImagePort",
+    "TargetPort" : "Op1:ImagePort"
+  }, {
+    "SourcePort" : "Op0:RF0.SF0",
+    "TargetPort" : "Op1:RF0.SF0"
+  }, {
+    "SourcePort" : "Op0:RF0.SF1",
+    "TargetPort" : "Op1:RF0.SF1"
+  }, {
+    "SourcePort" : "Op0:RF1.SF0",
+    "TargetPort" : "Op1:RF1.SF0"
+  }, {
+    "SourcePort" : "Op0:RF1.SF1",
+    "TargetPort" : "Op1:RF1.SF1"
+  }, {
+    "SourcePort" : "Op0:RF2.SF0",
+    "TargetPort" : "Op1:RF2.SF0"
+  }, {
+    "SourcePort" : "Op0:RF2.SF1",
+    "TargetPort" : "Op1:RF2.SF1"
+  } ],
+  "ImageLayoutTransitions" : {
+    "Op0:ImagePort" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "Kind" : "Constant"
+    },
+    "Op0:RF0.SF0" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "Constant"
+    },
+    "Op0:RF1.SF0" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "Constant"
+    },
+    "Op0:RF2.SF0" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "Constant"
+    },
+    "Op1:ImagePort" : {
+      "LayoutFrom" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "LayoutTo" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Pre"
+    },
+    "Op1:RF0.SF0" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "Constant"
+    },
+    "Op1:RF1.SF0" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "Constant"
+    },
+    "Op1:RF2.SF0" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "Constant"
+    }
+  },
+  "PortResources" : {
+    "Op0:ImagePort" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    },
+    "Op0:RF0.SF0" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    },
+    "Op0:RF0.SF1" : {
+      "ID" : 2,
+      "Kind" : "Buffer"
+    },
+    "Op0:RF1.SF0" : {
+      "ID" : 3,
+      "Kind" : "Image"
+    },
+    "Op0:RF1.SF1" : {
+      "ID" : 4,
+      "Kind" : "Buffer"
+    },
+    "Op0:RF2.SF0" : {
+      "ID" : 5,
+      "Kind" : "Image"
+    },
+    "Op0:RF2.SF1" : {
+      "ID" : 6,
+      "Kind" : "Buffer"
+    },
+    "Op1:ImagePort" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    },
+    "Op1:RF0.SF0" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    },
+    "Op1:RF0.SF1" : {
+      "ID" : 2,
+      "Kind" : "Buffer"
+    },
+    "Op1:RF1.SF0" : {
+      "ID" : 3,
+      "Kind" : "Image"
+    },
+    "Op1:RF1.SF1" : {
+      "ID" : 4,
+      "Kind" : "Buffer"
+    },
+    "Op1:RF2.SF0" : {
+      "ID" : 5,
+      "Kind" : "Image"
+    },
+    "Op1:RF2.SF1" : {
+      "ID" : 6,
+      "Kind" : "Buffer"
+    }
+  },
+  "Resources" : {
+    "0" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    },
+    "1" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    },
+    "2" : {
+      "ID" : 2,
+      "Kind" : "Buffer"
+    },
+    "3" : {
+      "ID" : 3,
+      "Kind" : "Image"
+    },
+    "4" : {
+      "ID" : 4,
+      "Kind" : "Buffer"
+    },
+    "5" : {
+      "ID" : 5,
+      "Kind" : "Image"
+    },
+    "6" : {
+      "ID" : 6,
+      "Kind" : "Buffer"
+    }
+  }
+}

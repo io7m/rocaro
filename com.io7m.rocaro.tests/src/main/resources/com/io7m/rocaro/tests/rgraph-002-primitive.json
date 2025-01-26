@@ -1,0 +1,56 @@
+{
+  "Connections" : [ {
+    "SourcePort" : "Op0:F0",
+    "TargetPort" : "Op1:F0"
+  }, {
+    "SourcePort" : "Op0:ImagePort",
+    "TargetPort" : "Op1:ImagePort"
+  } ],
+  "ImageLayoutTransitions" : {
+    "Op0:F0" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "Constant"
+    },
+    "Op0:ImagePort" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "Kind" : "Constant"
+    },
+    "Op1:F0" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "Constant"
+    },
+    "Op1:ImagePort" : {
+      "LayoutFrom" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "LayoutTo" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Pre"
+    }
+  },
+  "PortResources" : {
+    "Op0:F0" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    },
+    "Op0:ImagePort" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    },
+    "Op1:F0" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    },
+    "Op1:ImagePort" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    }
+  },
+  "Resources" : {
+    "0" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    },
+    "1" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    }
+  }
+}

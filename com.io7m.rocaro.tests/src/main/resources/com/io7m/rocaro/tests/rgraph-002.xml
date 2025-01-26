@@ -13,38 +13,37 @@
 
   <DeclareOperation QueueCategory="GRAPHICS"
                     Name="Op0">
-    <PortProducer Name="Image">
+    <PortProducer Name="ImagePort">
       <TypeReference Type="Image"/>
       <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET"/>
     </PortProducer>
-    <PortProducer Name="R">
+    <PortProducer Name="RPort">
       <TypeReference Type="R"/>
       <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
-      <RequiresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
       <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_PRESENTATION"/>
     </PortProducer>
   </DeclareOperation>
 
   <DeclareOperation QueueCategory="GRAPHICS"
                     Name="Op1">
-    <PortConsumer Name="Image">
+    <PortConsumer Name="ImagePort">
       <TypeReference Type="Image"/>
       <RequiresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
     </PortConsumer>
-    <PortConsumer Name="R">
+    <PortConsumer Name="RPort">
       <TypeReference Type="R"/>
       <Reads AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
     </PortConsumer>
   </DeclareOperation>
 
   <Connect SourceOperation="Op0"
-           SourcePort="Image"
+           SourcePort="ImagePort"
            TargetOperation="Op1"
-           TargetPort="Image"/>
+           TargetPort="ImagePort"/>
 
   <Connect SourceOperation="Op0"
-           SourcePort="R"
+           SourcePort="RPort"
            TargetOperation="Op1"
-           TargetPort="R"/>
+           TargetPort="RPort"/>
 
 </RenderGraph>

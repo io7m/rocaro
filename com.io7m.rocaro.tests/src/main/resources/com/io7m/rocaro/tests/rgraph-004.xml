@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareImageType Name="Image"/>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op0">
+    <PortProducer Name="ImagePort">
+      <TypeReference Type="Image"/>
+      <Writes AtStage="STAGE_TRANSFER_BLIT"/>
+      <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET"/>
+    </PortProducer>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op1">
+    <PortConsumer Name="ImagePort">
+      <TypeReference Type="Image"/>
+      <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <RequiresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
+    </PortConsumer>
+  </DeclareOperation>
+
+  <Connect SourceOperation="Op0"
+           SourcePort="ImagePort"
+           TargetOperation="Op1"
+           TargetPort="ImagePort"/>
+
+</RenderGraph>

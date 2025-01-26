@@ -19,6 +19,7 @@ package com.io7m.rocaro.rgraphc.internal.typed;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.io7m.rocaro.rgraphc.internal.RCCName;
+import com.io7m.rocaro.rgraphc.internal.access_set.RCTAccessSetType;
 
 public interface RCTPortMetaType
   extends RCTLexicalType
@@ -28,6 +29,8 @@ public interface RCTPortMetaType
   RCTTypeDeclarationType type();
 
   RCCName name();
+
+  RCTAccessSetType accessSet();
 
   @JsonProperty("Kind")
   String kind();

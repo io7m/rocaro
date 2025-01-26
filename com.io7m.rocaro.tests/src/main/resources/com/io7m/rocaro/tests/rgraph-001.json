@@ -37,18 +37,25 @@
       "Ports" : {
         "AOImage" : {
           "AccessSet" : {
+            "EnsuresImageLayout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
             "Kind" : "Singleton"
           },
           "Kind" : "Producer",
           "Name" : "AOImage",
           "Position" : {
-            "Line" : 71,
+            "Line" : 72,
             "Column" : 34
           },
           "Type" : "com.io7m.example:AOImage"
         },
         "GBuffer" : {
           "AccessSet" : {
+            "EnsuresImageLayout" : {
+              "AlbedoEmissive" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+              "Depth" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+              "Lit" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+              "NormalSpecular" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT"
+            },
             "Kind" : "Composite",
             "Writes" : {
               "AlbedoEmissive" : [ "STAGE_CPU" ],
@@ -91,7 +98,7 @@
           "Kind" : "Consumer",
           "Name" : "AOImage",
           "Position" : {
-            "Line" : 111,
+            "Line" : 113,
             "Column" : 34
           },
           "Type" : "com.io7m.example:AOImage"
@@ -109,14 +116,14 @@
           "Kind" : "Consumer",
           "Name" : "GBuffer",
           "Position" : {
-            "Line" : 103,
+            "Line" : 105,
             "Column" : 34
           },
           "Type" : "com.io7m.example:GBuffer"
         }
       },
       "Position" : {
-        "Line" : 98,
+        "Line" : 100,
         "Column" : 38
       },
       "QueueCategory" : "GRAPHICS",
@@ -176,7 +183,7 @@
           "Kind" : "Consumer",
           "Name" : "Draws",
           "Position" : {
-            "Line" : 82,
+            "Line" : 84,
             "Column" : 32
           },
           "Type" : "com.io7m.example:DrawBuffer"
@@ -190,6 +197,12 @@
               "Lit" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ],
               "NormalSpecular" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ]
             },
+            "RequiresImageLayout" : {
+              "AlbedoEmissive" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+              "Depth" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+              "Lit" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+              "NormalSpecular" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT"
+            },
             "Writes" : {
               "AlbedoEmissive" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
               "Depth" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
@@ -200,14 +213,14 @@
           "Kind" : "Modifier",
           "Name" : "GBuffer",
           "Position" : {
-            "Line" : 87,
+            "Line" : 89,
             "Column" : 34
           },
           "Type" : "com.io7m.example:GBuffer"
         }
       },
       "Position" : {
-        "Line" : 77,
+        "Line" : 79,
         "Column" : 40
       },
       "QueueCategory" : "GRAPHICS",

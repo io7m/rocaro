@@ -77,16 +77,16 @@ public final class RCTTypeDeclarations
     for (final var f : r.fields().values()) {
       switch (f.type()) {
         case final RCTTypeDeclarationBuffer b -> {
-          branchBuilder.addResource(b.name(), b);
+          branchBuilder.addResource(f.name(), b);
         }
         case final RCTTypeDeclarationImage i -> {
-          branchBuilder.addResource(i.name(), i);
+          branchBuilder.addResource(f.name(), i);
         }
         case final RCTTypeDeclarationRecord rr -> {
-          primitiveBranchOf(branchBuilder.addBranch(rr.name()), rr);
+          primitiveBranchOf(branchBuilder.addBranch(f.name()), rr);
         }
         case final RCTTypeDeclarationRenderTarget rt -> {
-          primitiveBranchOf(branchBuilder.addBranch(rt.name()), rt);
+          primitiveBranchOf(branchBuilder.addBranch(f.name()), rt);
         }
       }
     }

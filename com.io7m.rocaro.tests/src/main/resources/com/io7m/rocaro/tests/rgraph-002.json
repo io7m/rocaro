@@ -11,37 +11,34 @@
     "Op0" : {
       "Name" : "Op0",
       "Ports" : {
-        "Image" : {
+        "ImagePort" : {
           "AccessSet" : {
             "EnsuresImageLayout" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
             "Kind" : "Singleton"
           },
           "Kind" : "Producer",
-          "Name" : "Image",
+          "Name" : "ImagePort",
           "Position" : {
             "Line" : 16,
-            "Column" : 32
+            "Column" : 36
           },
           "Type" : "com.io7m.example:Image"
         },
-        "R" : {
+        "RPort" : {
           "AccessSet" : {
             "EnsuresImageLayout" : {
               "F0" : "LAYOUT_OPTIMAL_FOR_PRESENTATION"
             },
             "Kind" : "Composite",
-            "RequiresImageLayout" : {
-              "F0" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT"
-            },
             "Writes" : {
               "F0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
             }
           },
           "Kind" : "Producer",
-          "Name" : "R",
+          "Name" : "RPort",
           "Position" : {
             "Line" : 20,
-            "Column" : 28
+            "Column" : 32
           },
           "Type" : "com.io7m.example:R"
         }
@@ -56,20 +53,20 @@
     "Op1" : {
       "Name" : "Op1",
       "Ports" : {
-        "Image" : {
+        "ImagePort" : {
           "AccessSet" : {
             "Kind" : "Singleton",
             "RequiresImageLayout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT"
           },
           "Kind" : "Consumer",
-          "Name" : "Image",
+          "Name" : "ImagePort",
           "Position" : {
-            "Line" : 30,
-            "Column" : 32
+            "Line" : 29,
+            "Column" : 36
           },
           "Type" : "com.io7m.example:Image"
         },
-        "R" : {
+        "RPort" : {
           "AccessSet" : {
             "Kind" : "Composite",
             "Reads" : {
@@ -77,16 +74,16 @@
             }
           },
           "Kind" : "Consumer",
-          "Name" : "R",
+          "Name" : "RPort",
           "Position" : {
-            "Line" : 34,
-            "Column" : 28
+            "Line" : 33,
+            "Column" : 32
           },
           "Type" : "com.io7m.example:R"
         }
       },
       "Position" : {
-        "Line" : 29,
+        "Line" : 28,
         "Column" : 32
       },
       "QueueCategory" : "GRAPHICS",
@@ -110,13 +107,13 @@
   "Package" : "com.io7m.example",
   "PortConnections" : [ {
     "SourceOperation" : "Op0",
-    "SourcePort" : "Image",
+    "SourcePort" : "ImagePort",
     "TargetOperation" : "Op1",
-    "TargetPort" : "Image"
+    "TargetPort" : "ImagePort"
   }, {
     "SourceOperation" : "Op0",
-    "SourcePort" : "R",
+    "SourcePort" : "RPort",
     "TargetOperation" : "Op1",
-    "TargetPort" : "R"
+    "TargetPort" : "RPort"
   } ]
 }

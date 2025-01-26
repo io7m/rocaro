@@ -26,16 +26,21 @@ module com.io7m.rocaro.rgraphc
   requires com.io7m.rocaro.api;
 
   requires com.fasterxml.jackson.databind;
+  requires com.fasterxml.jackson.datatype.jdk8;
   requires com.io7m.anethum.api;
   requires com.io7m.blackthorne.core;
   requires com.io7m.blackthorne.jxe;
   requires com.io7m.jaffirm.core;
+  requires com.io7m.jdeferthrow.core;
   requires com.io7m.jlexing.core;
+  requires com.io7m.jtensors.core;
   requires com.io7m.junreachable.core;
   requires com.io7m.jxe.core;
   requires java.net.http;
   requires java.xml;
   requires org.jgrapht.core;
+  requires org.jgrapht.io;
+  requires org.slf4j;
 
   opens com.io7m.rocaro.rgraphc.internal.typed
     to com.fasterxml.jackson.databind;
@@ -45,6 +50,12 @@ module com.io7m.rocaro.rgraphc
     com.fasterxml.jackson.databind;
   opens com.io7m.rocaro.rgraphc.internal.primitive_tree
     to com.fasterxml.jackson.databind;
+  opens com.io7m.rocaro.rgraphc.internal.primitive_graph
+    to com.fasterxml.jackson.databind;
+  opens com.io7m.rocaro.rgraphc.internal.primitive_sync
+    to com.fasterxml.jackson.databind;
+  opens com.io7m.rocaro.rgraphc.internal.json to
+    com.fasterxml.jackson.databind;
 
   exports com.io7m.rocaro.rgraphc;
 
@@ -62,4 +73,10 @@ module com.io7m.rocaro.rgraphc
     to com.fasterxml.jackson.databind, com.io7m.rocaro.tests;
   exports com.io7m.rocaro.rgraphc.internal.primitive_tree
     to com.io7m.rocaro.tests;
+  exports com.io7m.rocaro.rgraphc.internal.primitive_graph
+    to com.io7m.rocaro.tests;
+  exports com.io7m.rocaro.rgraphc.internal.primitive_sync
+    to com.io7m.rocaro.tests;
+  exports com.io7m.rocaro.rgraphc.internal.json to
+    com.fasterxml.jackson.databind, com.io7m.rocaro.tests;
 }

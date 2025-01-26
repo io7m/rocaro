@@ -1,0 +1,165 @@
+{
+  "Declarations" : {
+    "Buffer" : {
+      "Name" : "Buffer",
+      "Position" : {
+        "Line" : 8,
+        "Column" : 37
+      },
+      "Type" : "BufferType"
+    },
+    "Image" : {
+      "Name" : "Image",
+      "Position" : {
+        "Line" : 6,
+        "Column" : 35
+      },
+      "Type" : "ImageType"
+    },
+    "Op0" : {
+      "Name" : "Op0",
+      "Ports" : {
+        "ImagePort" : {
+          "AccessSet" : {
+            "EnsuresImageLayout" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+            "Kind" : "Singleton"
+          },
+          "Kind" : "Producer",
+          "Name" : "ImagePort",
+          "Position" : {
+            "Line" : 33,
+            "Column" : 36
+          },
+          "Type" : "com.io7m.example:Image"
+        },
+        "RPort" : {
+          "AccessSet" : {
+            "EnsuresImageLayout" : {
+              "RF0.SF0" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+              "RF1.SF0" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+              "RF2.SF0" : "LAYOUT_OPTIMAL_FOR_PRESENTATION"
+            },
+            "Kind" : "Composite",
+            "Writes" : {
+              "RF0.SF0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF0.SF1" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF1.SF0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF1.SF1" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF2.SF0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF2.SF1" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+            }
+          },
+          "Kind" : "Producer",
+          "Name" : "RPort",
+          "Position" : {
+            "Line" : 37,
+            "Column" : 32
+          },
+          "Type" : "com.io7m.example:R"
+        }
+      },
+      "Position" : {
+        "Line" : 32,
+        "Column" : 32
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    },
+    "Op1" : {
+      "Name" : "Op1",
+      "Ports" : {
+        "ImagePort" : {
+          "AccessSet" : {
+            "Kind" : "Singleton",
+            "RequiresImageLayout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT"
+          },
+          "Kind" : "Consumer",
+          "Name" : "ImagePort",
+          "Position" : {
+            "Line" : 46,
+            "Column" : 36
+          },
+          "Type" : "com.io7m.example:Image"
+        },
+        "RPort" : {
+          "AccessSet" : {
+            "Kind" : "Composite",
+            "Reads" : {
+              "RF0.SF0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF0.SF1" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF1.SF0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF1.SF1" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF2.SF0" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+              "RF2.SF1" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+            }
+          },
+          "Kind" : "Consumer",
+          "Name" : "RPort",
+          "Position" : {
+            "Line" : 50,
+            "Column" : 32
+          },
+          "Type" : "com.io7m.example:R"
+        }
+      },
+      "Position" : {
+        "Line" : 45,
+        "Column" : 32
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    },
+    "R" : {
+      "Fields" : {
+        "RF0" : {
+          "Name" : "RF0",
+          "Type" : "com.io7m.example:S"
+        },
+        "RF1" : {
+          "Name" : "RF1",
+          "Type" : "com.io7m.example:S"
+        },
+        "RF2" : {
+          "Name" : "RF2",
+          "Type" : "com.io7m.example:S"
+        }
+      },
+      "Name" : "R",
+      "Position" : {
+        "Line" : 19,
+        "Column" : 31
+      },
+      "Type" : "RecordType"
+    },
+    "S" : {
+      "Fields" : {
+        "SF0" : {
+          "Name" : "SF0",
+          "Type" : "com.io7m.example:Image"
+        },
+        "SF1" : {
+          "Name" : "SF1",
+          "Type" : "com.io7m.example:Buffer"
+        }
+      },
+      "Name" : "S",
+      "Position" : {
+        "Line" : 10,
+        "Column" : 31
+      },
+      "Type" : "RecordType"
+    }
+  },
+  "Package" : "com.io7m.example",
+  "PortConnections" : [ {
+    "SourceOperation" : "Op0",
+    "SourcePort" : "ImagePort",
+    "TargetOperation" : "Op1",
+    "TargetPort" : "ImagePort"
+  }, {
+    "SourceOperation" : "Op0",
+    "SourcePort" : "RPort",
+    "TargetOperation" : "Op1",
+    "TargetPort" : "RPort"
+  } ]
+}

@@ -14,36 +14,11 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/**
+ * 3D rendering system (Render graph compiler [Primitive port graph]).
+ */
 
-package com.io7m.rocaro.rgraphc.internal;
+@Version("1.0.0")
+package com.io7m.rocaro.rgraphc.internal.primitive_graph;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-
-import java.io.IOException;
-
-public final class RCCPathSerializer
-  extends JsonSerializer<RCCPath>
-{
-  public RCCPathSerializer()
-  {
-
-  }
-
-  @Override
-  public Class<RCCPath> handledType()
-  {
-    return RCCPath.class;
-  }
-
-  @Override
-  public void serialize(
-    final RCCPath value,
-    final JsonGenerator gen,
-    final SerializerProvider serializers)
-    throws IOException
-  {
-    gen.writeString(value.toString());
-  }
-}
+import org.osgi.annotation.versioning.Version;

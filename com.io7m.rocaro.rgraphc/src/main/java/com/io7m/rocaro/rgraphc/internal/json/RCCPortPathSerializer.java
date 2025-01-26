@@ -15,48 +15,36 @@
  */
 
 
-package com.io7m.rocaro.tests.rgraphc;
+package com.io7m.rocaro.rgraphc.internal.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.io7m.jlexing.core.LexicalPosition;
+import com.io7m.rocaro.rgraphc.internal.primitive_graph.RCCPortPath;
 
 import java.io.IOException;
-import java.util.Optional;
 
-public final class RCLexicalPositionSerializer
-  extends JsonSerializer<LexicalPosition<?>>
+public final class RCCPortPathSerializer
+  extends JsonSerializer<RCCPortPath>
 {
-  public RCLexicalPositionSerializer()
+  public RCCPortPathSerializer()
   {
 
   }
 
   @Override
-  public Class<LexicalPosition<?>> handledType()
+  public Class<RCCPortPath> handledType()
   {
-    return (Class<LexicalPosition<?>>) (Object) LexicalPosition.class;
+    return RCCPortPath.class;
   }
 
   @Override
   public void serialize(
-    final LexicalPosition<?> lexicalPosition,
-    final JsonGenerator jsonGenerator,
-    final SerializerProvider serializerProvider)
+    final RCCPortPath value,
+    final JsonGenerator gen,
+    final SerializerProvider serializers)
     throws IOException
   {
-    jsonGenerator.writeStartObject();
-    final Optional<?> fileOpt = lexicalPosition.file();
-    if (fileOpt.isPresent()) {
-      final var file = fileOpt.get();
-      jsonGenerator.writeFieldName("File");
-      jsonGenerator.writeString(file.toString());
-    }
-    jsonGenerator.writeFieldName("Line");
-    jsonGenerator.writeNumber(lexicalPosition.line());
-    jsonGenerator.writeFieldName("Column");
-    jsonGenerator.writeNumber(lexicalPosition.column());
-    jsonGenerator.writeEndObject();
+    gen.writeString(value.toString());
   }
 }

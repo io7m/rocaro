@@ -26,6 +26,7 @@ import com.io7m.rocaro.rgraphc.internal.loader.RCCLoaderFactoryType;
 import com.io7m.rocaro.rgraphc.internal.typed.RCTDeclarationType;
 import com.io7m.rocaro.rgraphc.internal.typed.RCTGraphDeclaration;
 import com.io7m.rocaro.rgraphc.internal.typed.RCTGraphDeclarationType;
+import com.io7m.rocaro.rgraphc.internal.typed.RCTOpConnection;
 import com.io7m.rocaro.rgraphc.internal.typed.RCTOperationDeclaration;
 import com.io7m.rocaro.rgraphc.internal.typed.RCTPortConnection;
 import com.io7m.rocaro.rgraphc.internal.typed.RCTPortConsumer;
@@ -86,6 +87,7 @@ public final class RCCChecker implements RCCCheckerType
   private final HashMap<RCCName, RCTDeclarationType> declarations;
   private final ArrayList<RCCName> typesChecking;
   private final DirectedAcyclicGraph<RCTPortType, RCTPortConnection> portGraph;
+  private final DirectedAcyclicGraph<RCTOperationDeclaration, RCTOpConnection> opGraph;
   private RCTGraphDeclaration.Builder graphBuilder;
   private RCUDeclGraph graphUntyped;
 
@@ -104,6 +106,8 @@ public final class RCCChecker implements RCCCheckerType
       new ArrayList<>();
     this.portGraph =
       new DirectedAcyclicGraph<>(RCTPortConnection.class);
+    this.opGraph =
+      new DirectedAcyclicGraph<>(RCTOpConnection.class);
   }
 
   private static <A, B> Stream<B> filterInstanceOf(
@@ -168,7 +172,7 @@ public final class RCCChecker implements RCCCheckerType
     this.checkOperations();
     this.checkConnects();
     this.checkErrors();
-    return this.graphBuilder.build(this.portGraph);
+    return this.graphBuilder.build(this.portGraph, this.opGraph);
   }
 
   private void checkConnects()
@@ -397,6 +401,21 @@ public final class RCCChecker implements RCCCheckerType
         portTarget,
         new RCTPortConnection(portSource, portTarget)
       );
+
+      final var sourceOwner =
+        portSource.owner();
+      final var targetOwner =
+        portTarget.owner();
+
+      this.opGraph.addVertex(sourceOwner);
+      this.opGraph.addVertex(targetOwner);
+      if (!this.opGraph.containsEdge(sourceOwner, targetOwner)) {
+        this.opGraph.addEdge(
+          sourceOwner,
+          targetOwner,
+          new RCTOpConnection(sourceOwner, targetOwner)
+        );
+      }
     } catch (final IllegalArgumentException e) {
       throw exceptionOf(
         this.errorPortCyclic(
@@ -710,6 +729,18 @@ public final class RCCChecker implements RCCCheckerType
       }
     }
 
+    if (port instanceof final RCUDeclPortProducer producer) {
+      if (!producer.requiresImageLayout().isEmpty()) {
+        throw exceptionOf(this.errorProducerPortsCannotRequire(producer));
+      }
+    }
+
+    if (port instanceof final RCUDeclPortConsumer consumer) {
+      if (!consumer.ensuresImageLayout().isEmpty()) {
+        throw exceptionOf(this.errorConsumerPortsCannotEnsure(consumer));
+      }
+    }
+
     for (final var i : port.ensuresImageLayout()) {
       switch (i) {
         case final RCUDeclEnsuresImageLayoutForAllImages all -> {
@@ -765,6 +796,38 @@ public final class RCCChecker implements RCCCheckerType
         }
       }
     }
+  }
+
+  private SStructuredError<String> errorProducerPortsCannotRequire(
+    final RCUDeclPortProducer producer)
+  {
+    final var position = producer.lexical();
+    return new SStructuredError<>(
+      "error-producer-cannot-ensure",
+      "Producer ports are not permitted to require image layouts.",
+      Map.ofEntries(
+        Map.entry("Port", producer.name().value()),
+        Map.entry("Position", showPosition(position))
+      ),
+      Optional.of("'Ensure' an image layout instead of 'Requiring' one."),
+      Optional.empty()
+    );
+  }
+
+  private SStructuredError<String> errorConsumerPortsCannotEnsure(
+    final RCUDeclPortConsumer consumer)
+  {
+    final var position = consumer.lexical();
+    return new SStructuredError<>(
+      "error-consumer-cannot-ensure",
+      "Consumer ports are not permitted to ensure image layouts.",
+      Map.ofEntries(
+        Map.entry("Port", consumer.name().value()),
+        Map.entry("Position", showPosition(position))
+      ),
+      Optional.of("'Require' an image layout instead of 'Ensuring' one."),
+      Optional.empty()
+    );
   }
 
   private SStructuredError<String> errorSubresourceMustBeImageType(

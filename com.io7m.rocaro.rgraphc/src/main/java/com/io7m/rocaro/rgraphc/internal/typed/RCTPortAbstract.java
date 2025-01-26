@@ -33,7 +33,6 @@ public abstract class RCTPortAbstract
   implements RCTPortMetaType, RCTLexicalType
 {
   private final RCTOperationDeclaration owner;
-
   @JsonProperty("Type")
   @JsonSerialize(using = RCTTypeNameSerializer.class)
   private final RCTTypeDeclarationType type;
@@ -43,7 +42,6 @@ public abstract class RCTPortAbstract
   private final RCTAccessSetType accessSet;
   @JsonProperty("Position")
   private LexicalPosition<URI> lexical = LexicalPositions.zero();
-
   protected RCTPortAbstract(
     final RCTOperationDeclaration inOwner,
     final RCTTypeDeclarationType inType,
@@ -58,6 +56,12 @@ public abstract class RCTPortAbstract
       Objects.requireNonNull(inName, "name");
     this.accessSet =
       Objects.requireNonNull(inAccessSet, "accessSet");
+  }
+
+  @Override
+  public final RCTAccessSetType accessSet()
+  {
+    return this.accessSet;
   }
 
   @Override

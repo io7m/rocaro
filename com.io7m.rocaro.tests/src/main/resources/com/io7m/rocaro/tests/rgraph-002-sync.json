@@ -1,0 +1,98 @@
+{
+  "Commands" : {
+    "0" : {
+      "Comment" : "Command buffers for Op0",
+      "ID" : 0,
+      "Kind" : "RCCExecute",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "1" : {
+      "Comment" : "Access on port Op0:F0",
+      "ID" : 1,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "2" : {
+      "Comment" : "Intro on port Op0:F0",
+      "ID" : 2,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "3" : {
+      "Comment" : "Command buffers for Op1",
+      "ID" : 3,
+      "Kind" : "RCCExecute",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "4" : {
+      "Comment" : "Access on port Op1:F0",
+      "ID" : 4,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "5" : {
+      "ID" : 5,
+      "Kind" : "RCCDiscard",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "6" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "BlocksWritesAt" : [ ],
+      "Comment" : "Pre barrier for port Op1:F0",
+      "ID" : 6,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "Op1",
+      "Resource" : 1,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+    }
+  },
+  "Connections" : [ {
+    "Source" : "0",
+    "Target" : "1"
+  }, {
+    "Source" : "1",
+    "Target" : "6"
+  }, {
+    "Source" : "2",
+    "Target" : "0"
+  }, {
+    "Source" : "3",
+    "Target" : "4"
+  }, {
+    "Source" : "4",
+    "Target" : "5"
+  }, {
+    "Source" : "6",
+    "Target" : "4"
+  } ]
+}

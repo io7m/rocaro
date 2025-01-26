@@ -28,9 +28,12 @@ import com.io7m.rocaro.rgraphc.internal.RCCompilerException;
 import com.io7m.seltzer.api.SStructuredError;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DirectedAcyclicGraph;
+import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,7 +49,10 @@ public final class RCTGraphDeclaration
   @JsonProperty("Declarations")
   private final TreeMap<RCCName, RCTDeclarationType> declarations;
   private final SortedMap<RCCName, RCTDeclarationType> declarationsRead;
+  private final List<RCTOperationDeclaration> opsOrderedRead;
   private Graph<RCTPortType, RCTPortConnection> portGraph;
+  private final List<RCTOperationDeclaration> opsOrdered;
+  private Graph<RCTOperationDeclaration, RCTOpConnection> opGraph;
 
   @Override
   public String toString()
@@ -64,6 +70,10 @@ public final class RCTGraphDeclaration
       new TreeMap<>();
     this.declarationsRead =
       Collections.unmodifiableSortedMap(this.declarations);
+    this.opsOrdered =
+      new ArrayList<>();
+    this.opsOrderedRead =
+      Collections.unmodifiableList(this.opsOrdered);
   }
 
   public static Builder builder(
@@ -90,6 +100,12 @@ public final class RCTGraphDeclaration
     return this.portGraph;
   }
 
+  @Override
+  public List<RCTOperationDeclaration> opsOrdered()
+  {
+    return this.opsOrderedRead;
+  }
+
   public static final class Builder
   {
     private RCTGraphDeclaration target;
@@ -102,12 +118,21 @@ public final class RCTGraphDeclaration
     }
 
     public RCTGraphDeclarationType build(
-      final DirectedAcyclicGraph<RCTPortType, RCTPortConnection> graph)
+      final DirectedAcyclicGraph<RCTPortType, RCTPortConnection> graph,
+      final DirectedAcyclicGraph<RCTOperationDeclaration, RCTOpConnection> opGraph)
     {
       this.checkNotBuilt();
 
       final var r = this.target;
-      r.setGraph(graph);
+      r.setGraphs(graph, opGraph);
+
+      {
+        final var iter = new TopologicalOrderIterator<>(opGraph);
+        while (iter.hasNext()) {
+          r.opsOrdered.add(iter.next());
+        }
+      }
+
       this.target = null;
       return r;
     }
@@ -280,9 +305,13 @@ public final class RCTGraphDeclaration
     }
   }
 
-  private void setGraph(
-    final DirectedAcyclicGraph<RCTPortType, RCTPortConnection> newGraph)
+  private void setGraphs(
+    final DirectedAcyclicGraph<RCTPortType, RCTPortConnection> newGraph,
+    final DirectedAcyclicGraph<RCTOperationDeclaration, RCTOpConnection> newOpGraph)
   {
-    this.portGraph = (Graph<RCTPortType, RCTPortConnection>) newGraph.clone();
+    this.portGraph =
+      (Graph<RCTPortType, RCTPortConnection>) newGraph.clone();
+    this.opGraph =
+      (Graph<RCTOperationDeclaration, RCTOpConnection>) newOpGraph.clone();
   }
 }

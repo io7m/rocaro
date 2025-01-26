@@ -1,0 +1,457 @@
+{
+  "Commands" : {
+    "0" : {
+      "Comment" : "Command buffers for Op0",
+      "ID" : 0,
+      "Kind" : "RCCExecute",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "1" : {
+      "Comment" : "Access on port Op0:RF0.SF0",
+      "ID" : 1,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "2" : {
+      "Comment" : "Intro on port Op0:RF0.SF0",
+      "ID" : 2,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "3" : {
+      "Comment" : "Access on port Op0:RF0.SF1",
+      "ID" : 3,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "4" : {
+      "Comment" : "Intro on port Op0:RF0.SF1",
+      "ID" : 4,
+      "Kind" : "RCCIntroduceMemory",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "5" : {
+      "Comment" : "Access on port Op0:RF1.SF0",
+      "ID" : 5,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "6" : {
+      "Comment" : "Intro on port Op0:RF1.SF0",
+      "ID" : 6,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "7" : {
+      "Comment" : "Access on port Op0:RF1.SF1",
+      "ID" : 7,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "8" : {
+      "Comment" : "Intro on port Op0:RF1.SF1",
+      "ID" : 8,
+      "Kind" : "RCCIntroduceMemory",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "9" : {
+      "Comment" : "Access on port Op0:RF2.SF0",
+      "ID" : 9,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "10" : {
+      "Comment" : "Intro on port Op0:RF2.SF0",
+      "ID" : 10,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "11" : {
+      "Comment" : "Access on port Op0:RF2.SF1",
+      "ID" : 11,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "12" : {
+      "Comment" : "Intro on port Op0:RF2.SF1",
+      "ID" : 12,
+      "Kind" : "RCCIntroduceMemory",
+      "Operation" : "Op0",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "13" : {
+      "Comment" : "Command buffers for Op1",
+      "ID" : 13,
+      "Kind" : "RCCExecute",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "14" : {
+      "Comment" : "Access on port Op1:RF0.SF0",
+      "ID" : 14,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "15" : {
+      "Comment" : "Access on port Op1:RF0.SF1",
+      "ID" : 15,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "16" : {
+      "Comment" : "Access on port Op1:RF1.SF0",
+      "ID" : 16,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "17" : {
+      "Comment" : "Access on port Op1:RF1.SF1",
+      "ID" : 17,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "18" : {
+      "Comment" : "Access on port Op1:RF2.SF0",
+      "ID" : 18,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "19" : {
+      "Comment" : "Access on port Op1:RF2.SF1",
+      "ID" : 19,
+      "Kind" : "RCCAccess",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "20" : {
+      "ID" : 20,
+      "Kind" : "RCCDiscard",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "21" : {
+      "ID" : 21,
+      "Kind" : "RCCDiscard",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "22" : {
+      "ID" : 22,
+      "Kind" : "RCCDiscard",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "23" : {
+      "ID" : 23,
+      "Kind" : "RCCDiscard",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "24" : {
+      "ID" : 24,
+      "Kind" : "RCCDiscard",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "25" : {
+      "ID" : 25,
+      "Kind" : "RCCDiscard",
+      "Operation" : "Op1",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "26" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "BlocksWritesAt" : [ ],
+      "Comment" : "Barrier for port Op1:RF0.SF1",
+      "ID" : 26,
+      "Kind" : "RCCMemoryBarrier",
+      "Operation" : "Op1",
+      "Resource" : 2,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+    },
+    "27" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "BlocksWritesAt" : [ ],
+      "Comment" : "Barrier for port Op1:RF1.SF1",
+      "ID" : 27,
+      "Kind" : "RCCMemoryBarrier",
+      "Operation" : "Op1",
+      "Resource" : 4,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+    },
+    "28" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "BlocksWritesAt" : [ ],
+      "Comment" : "Barrier for port Op1:RF2.SF1",
+      "ID" : 28,
+      "Kind" : "RCCMemoryBarrier",
+      "Operation" : "Op1",
+      "Resource" : 6,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+    },
+    "29" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "BlocksWritesAt" : [ ],
+      "Comment" : "Pre barrier for port Op1:RF0.SF0",
+      "ID" : 29,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "Op1",
+      "Resource" : 1,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+    },
+    "30" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "BlocksWritesAt" : [ ],
+      "Comment" : "Pre barrier for port Op1:RF1.SF0",
+      "ID" : 30,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "Op1",
+      "Resource" : 3,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+    },
+    "31" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "BlocksWritesAt" : [ ],
+      "Comment" : "Pre barrier for port Op1:RF2.SF0",
+      "ID" : 31,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_PRESENTATION",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "Op1",
+      "Resource" : 5,
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+    }
+  },
+  "Connections" : [ {
+    "Source" : "0",
+    "Target" : "1"
+  }, {
+    "Source" : "0",
+    "Target" : "3"
+  }, {
+    "Source" : "0",
+    "Target" : "5"
+  }, {
+    "Source" : "0",
+    "Target" : "7"
+  }, {
+    "Source" : "0",
+    "Target" : "9"
+  }, {
+    "Source" : "0",
+    "Target" : "11"
+  }, {
+    "Source" : "1",
+    "Target" : "29"
+  }, {
+    "Source" : "2",
+    "Target" : "0"
+  }, {
+    "Source" : "3",
+    "Target" : "26"
+  }, {
+    "Source" : "4",
+    "Target" : "0"
+  }, {
+    "Source" : "5",
+    "Target" : "30"
+  }, {
+    "Source" : "6",
+    "Target" : "0"
+  }, {
+    "Source" : "7",
+    "Target" : "27"
+  }, {
+    "Source" : "8",
+    "Target" : "0"
+  }, {
+    "Source" : "9",
+    "Target" : "31"
+  }, {
+    "Source" : "10",
+    "Target" : "0"
+  }, {
+    "Source" : "11",
+    "Target" : "28"
+  }, {
+    "Source" : "12",
+    "Target" : "0"
+  }, {
+    "Source" : "13",
+    "Target" : "14"
+  }, {
+    "Source" : "13",
+    "Target" : "15"
+  }, {
+    "Source" : "13",
+    "Target" : "16"
+  }, {
+    "Source" : "13",
+    "Target" : "17"
+  }, {
+    "Source" : "13",
+    "Target" : "18"
+  }, {
+    "Source" : "13",
+    "Target" : "19"
+  }, {
+    "Source" : "14",
+    "Target" : "20"
+  }, {
+    "Source" : "15",
+    "Target" : "21"
+  }, {
+    "Source" : "16",
+    "Target" : "22"
+  }, {
+    "Source" : "17",
+    "Target" : "23"
+  }, {
+    "Source" : "18",
+    "Target" : "24"
+  }, {
+    "Source" : "19",
+    "Target" : "25"
+  }, {
+    "Source" : "26",
+    "Target" : "15"
+  }, {
+    "Source" : "27",
+    "Target" : "17"
+  }, {
+    "Source" : "28",
+    "Target" : "19"
+  }, {
+    "Source" : "29",
+    "Target" : "14"
+  }, {
+    "Source" : "30",
+    "Target" : "16"
+  }, {
+    "Source" : "31",
+    "Target" : "18"
+  } ]
+}

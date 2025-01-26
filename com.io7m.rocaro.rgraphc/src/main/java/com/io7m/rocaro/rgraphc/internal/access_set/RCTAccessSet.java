@@ -220,7 +220,7 @@ public final class RCTAccessSet
 
       for (final var entry : this.tree.nodes().entrySet()) {
         if (entry.getValue() instanceof final RCTPTreeLeafType leaf) {
-          if (leaf.resource() instanceof RCTTypeDeclarationImage) {
+          if (leaf.resource().isImageType()) {
             this.setEnsuresImageLayoutSpecificInner(
               entry.getKey(),
               layout,
@@ -285,7 +285,7 @@ public final class RCTAccessSet
 
       for (final var entry : this.tree.nodes().entrySet()) {
         if (entry.getValue() instanceof final RCTPTreeLeafType leaf) {
-          if (leaf.resource() instanceof RCTTypeDeclarationImage) {
+          if (leaf.resource().isImageType()) {
             this.setRequiresImageLayoutSpecificInner(
               entry.getKey(),
               layout,

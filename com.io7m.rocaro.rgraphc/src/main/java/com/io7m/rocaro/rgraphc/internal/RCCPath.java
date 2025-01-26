@@ -19,6 +19,7 @@ package com.io7m.rocaro.rgraphc.internal;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,6 +67,21 @@ public record RCCPath(
         .map(RCCName::new)
         .toList()
     );
+  }
+
+  /**
+   * Construct a singleton path.
+   *
+   * @param name The name
+   *
+   * @return The path
+   */
+
+  public static RCCPath singleton(
+    final RCCName name)
+  {
+    Objects.requireNonNull(name, "name");
+    return new RCCPath(List.of(name));
   }
 
   @Override

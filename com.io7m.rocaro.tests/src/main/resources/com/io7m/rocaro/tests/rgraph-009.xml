@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareBufferType Name="Memory"/>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op0">
+    <PortProducer Name="MemoryPort">
+      <TypeReference Type="Memory"/>
+      <Writes AtStage="STAGE_TRANSFER_BLIT"/>
+      <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <Reads AtStage="STAGE_TRANSFER_BLIT"/>
+      <Reads AtStage="STAGE_RENDER_DRAW_INDIRECT"/>
+    </PortProducer>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op1">
+    <PortModifier Name="MemoryPort">
+      <TypeReference Type="Memory"/>
+      <Reads AtStage="STAGE_RENDER_FRAGMENT_SHADER"/>
+      <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+    </PortModifier>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op2">
+    <PortConsumer Name="MemoryPort">
+      <TypeReference Type="Memory"/>
+      <Reads AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <Writes AtStage="STAGE_CPU"/>
+    </PortConsumer>
+  </DeclareOperation>
+
+  <Connect SourceOperation="Op0"
+           SourcePort="MemoryPort"
+           TargetOperation="Op1"
+           TargetPort="MemoryPort"/>
+
+  <Connect SourceOperation="Op1"
+           SourcePort="MemoryPort"
+           TargetOperation="Op2"
+           TargetPort="MemoryPort"/>
+
+</RenderGraph>

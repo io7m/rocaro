@@ -1,0 +1,184 @@
+{
+  "Connections" : [ {
+    "SourcePort" : "ComputeInstances:Draws",
+    "TargetPort" : "RenderImage:Draws"
+  }, {
+    "SourcePort" : "CreateGBuffer:AOImage",
+    "TargetPort" : "FrameSink:AOImage"
+  }, {
+    "SourcePort" : "CreateGBuffer:AlbedoEmissive",
+    "TargetPort" : "RenderImage:AlbedoEmissive"
+  }, {
+    "SourcePort" : "CreateGBuffer:Depth",
+    "TargetPort" : "RenderImage:Depth"
+  }, {
+    "SourcePort" : "CreateGBuffer:Lit",
+    "TargetPort" : "RenderImage:Lit"
+  }, {
+    "SourcePort" : "CreateGBuffer:NormalSpecular",
+    "TargetPort" : "RenderImage:NormalSpecular"
+  }, {
+    "SourcePort" : "RenderImage:AlbedoEmissive",
+    "TargetPort" : "FrameSink:AlbedoEmissive"
+  }, {
+    "SourcePort" : "RenderImage:Depth",
+    "TargetPort" : "FrameSink:Depth"
+  }, {
+    "SourcePort" : "RenderImage:Lit",
+    "TargetPort" : "FrameSink:Lit"
+  }, {
+    "SourcePort" : "RenderImage:NormalSpecular",
+    "TargetPort" : "FrameSink:NormalSpecular"
+  } ],
+  "ImageLayoutTransitions" : {
+    "CreateGBuffer:AOImage" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "CreateGBuffer:AlbedoEmissive" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "CreateGBuffer:Depth" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "CreateGBuffer:Lit" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "CreateGBuffer:NormalSpecular" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "FrameSink:AOImage" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "FrameSink:AlbedoEmissive" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "FrameSink:Depth" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "FrameSink:Lit" : {
+      "LayoutFrom" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "LayoutTo" : "LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE",
+      "Kind" : "Pre"
+    },
+    "FrameSink:NormalSpecular" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "RenderImage:AlbedoEmissive" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "RenderImage:Depth" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "RenderImage:Lit" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    },
+    "RenderImage:NormalSpecular" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Constant"
+    }
+  },
+  "PortResources" : {
+    "ComputeInstances:Draws" : {
+      "ID" : 0,
+      "Kind" : "Buffer"
+    },
+    "CreateGBuffer:AOImage" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    },
+    "CreateGBuffer:AlbedoEmissive" : {
+      "ID" : 2,
+      "Kind" : "ColorAttachment"
+    },
+    "CreateGBuffer:Depth" : {
+      "ID" : 3,
+      "Kind" : "DepthAttachment"
+    },
+    "CreateGBuffer:Lit" : {
+      "ID" : 4,
+      "Kind" : "ColorAttachment"
+    },
+    "CreateGBuffer:NormalSpecular" : {
+      "ID" : 5,
+      "Kind" : "ColorAttachment"
+    },
+    "FrameSink:AOImage" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    },
+    "FrameSink:AlbedoEmissive" : {
+      "ID" : 2,
+      "Kind" : "ColorAttachment"
+    },
+    "FrameSink:Depth" : {
+      "ID" : 3,
+      "Kind" : "DepthAttachment"
+    },
+    "FrameSink:Lit" : {
+      "ID" : 4,
+      "Kind" : "ColorAttachment"
+    },
+    "FrameSink:NormalSpecular" : {
+      "ID" : 5,
+      "Kind" : "ColorAttachment"
+    },
+    "RenderImage:AlbedoEmissive" : {
+      "ID" : 2,
+      "Kind" : "ColorAttachment"
+    },
+    "RenderImage:Depth" : {
+      "ID" : 3,
+      "Kind" : "DepthAttachment"
+    },
+    "RenderImage:Draws" : {
+      "ID" : 0,
+      "Kind" : "Buffer"
+    },
+    "RenderImage:Lit" : {
+      "ID" : 4,
+      "Kind" : "ColorAttachment"
+    },
+    "RenderImage:NormalSpecular" : {
+      "ID" : 5,
+      "Kind" : "ColorAttachment"
+    }
+  },
+  "Resources" : {
+    "0" : {
+      "ID" : 0,
+      "Kind" : "Buffer"
+    },
+    "1" : {
+      "ID" : 1,
+      "Kind" : "Image"
+    },
+    "2" : {
+      "ID" : 2,
+      "Kind" : "ColorAttachment"
+    },
+    "3" : {
+      "ID" : 3,
+      "Kind" : "DepthAttachment"
+    },
+    "4" : {
+      "ID" : 4,
+      "Kind" : "ColorAttachment"
+    },
+    "5" : {
+      "ID" : 5,
+      "Kind" : "ColorAttachment"
+    }
+  }
+}

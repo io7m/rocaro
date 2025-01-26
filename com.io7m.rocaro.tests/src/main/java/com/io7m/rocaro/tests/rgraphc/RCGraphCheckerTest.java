@@ -25,6 +25,8 @@ import com.io7m.anethum.api.ParsingException;
 import com.io7m.jxe.core.JXEHardenedSAXParsers;
 import com.io7m.rocaro.rgraphc.internal.RCCompilerException;
 import com.io7m.rocaro.rgraphc.internal.checker.RCCCheckers;
+import com.io7m.rocaro.rgraphc.internal.json.RCCJson;
+import com.io7m.rocaro.rgraphc.internal.json.RCLexicalPositionSerializer;
 import com.io7m.rocaro.rgraphc.internal.loader.RCCLoaders;
 import com.io7m.rocaro.rgraphc.internal.parser.RCCGraphParserParameters;
 import com.io7m.rocaro.rgraphc.internal.parser.RCCGraphParsers;
@@ -49,21 +51,10 @@ public final class RCGraphCheckerTest
     LoggerFactory.getLogger(RCGraphCheckerTest.class);
 
   private static final ObjectMapper OBJECTS =
-    createObjectMapper();
+    RCCJson.createObjectMapper();
+
   private RCCGraphParsers parsers;
   private RCCCheckers checkers;
-
-  private static ObjectMapper createObjectMapper()
-  {
-    final var module = new SimpleModule();
-    module.addSerializer(new RCLexicalPositionSerializer());
-    final var mapper = new ObjectMapper();
-    mapper.registerModule(module);
-
-    final var jdk8 = new Jdk8Module();
-    mapper.registerModule(jdk8);
-    return mapper;
-  }
 
   private static String serialize(
     final RCTGraphDeclarationType r)
@@ -80,6 +71,21 @@ public final class RCGraphCheckerTest
     return text;
   }
 
+  private void doTestExample(
+    final String name,
+    final String fileName)
+    throws Exception
+  {
+    final var g =
+      this.graph(name);
+
+    final var r =
+      this.checkers.createChecker()
+        .execute(g);
+
+    this.checkText(fileName, r);
+  }
+
   @BeforeEach
   public void setup()
   {
@@ -93,28 +99,42 @@ public final class RCGraphCheckerTest
   public void testExample001()
     throws Exception
   {
-    final var g =
-      this.graph("rgraph-001.xml");
-
-    final var r =
-      this.checkers.createChecker()
-        .execute(g);
-
-    this.checkText("rgraph-001.json", r);
+    this.doTestExample("rgraph-001.xml", "rgraph-001.json");
   }
 
   @Test
   public void testExample002()
     throws Exception
   {
-    final var g =
-      this.graph("rgraph-002.xml");
+    this.doTestExample("rgraph-002.xml", "rgraph-002.json");
+  }
 
-    final var r =
-      this.checkers.createChecker()
-        .execute(g);
+  @Test
+  public void testExample003()
+    throws Exception
+  {
+    this.doTestExample("rgraph-003.xml", "rgraph-003.json");
+  }
 
-    this.checkText("rgraph-002.json", r);
+  @Test
+  public void testExample004()
+    throws Exception
+  {
+    this.doTestExample("rgraph-004.xml", "rgraph-004.json");
+  }
+
+  @Test
+  public void testExample005()
+    throws Exception
+  {
+    this.doTestExample("rgraph-005.xml", "rgraph-005.json");
+  }
+
+  @Test
+  public void testExample006()
+    throws Exception
+  {
+    this.doTestExample("rgraph-006.xml", "rgraph-006.json");
   }
 
   private void checkText(

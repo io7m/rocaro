@@ -1,0 +1,33 @@
+{
+  "Connections" : [ {
+    "SourcePort" : "Op0:ImagePort",
+    "TargetPort" : "Op1:ImagePort"
+  } ],
+  "ImageLayoutTransitions" : {
+    "Op0:ImagePort" : {
+      "Layout" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "Kind" : "Constant"
+    },
+    "Op1:ImagePort" : {
+      "LayoutFrom" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+      "LayoutTo" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "Pre"
+    }
+  },
+  "PortResources" : {
+    "Op0:ImagePort" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    },
+    "Op1:ImagePort" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    }
+  },
+  "Resources" : {
+    "0" : {
+      "ID" : 0,
+      "Kind" : "Image"
+    }
+  }
+}

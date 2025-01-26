@@ -22,6 +22,7 @@ import com.io7m.rocaro.rgraphc.internal.RCCName;
 import com.io7m.rocaro.rgraphc.internal.RCCPackageName;
 import org.jgrapht.Graph;
 
+import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -38,4 +39,6 @@ public interface RCTGraphDeclarationType
   {
     return this.portGraph().edgeSet();
   }
+
+  List<RCTOperationDeclaration> opsOrdered();
 }

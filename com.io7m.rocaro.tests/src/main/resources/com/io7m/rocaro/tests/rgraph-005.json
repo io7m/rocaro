@@ -1,0 +1,100 @@
+{
+  "Declarations" : {
+    "Image" : {
+      "Name" : "Image",
+      "Position" : {
+        "Line" : 6,
+        "Column" : 35
+      },
+      "Type" : "ImageType"
+    },
+    "Op0" : {
+      "Name" : "Op0",
+      "Ports" : {
+        "ImagePort" : {
+          "AccessSet" : {
+            "EnsuresImageLayout" : "LAYOUT_OPTIMAL_FOR_SHADER_READ",
+            "Kind" : "Singleton",
+            "Writes" : [ "STAGE_TRANSFER_BLIT" ]
+          },
+          "Kind" : "Producer",
+          "Name" : "ImagePort",
+          "Position" : {
+            "Line" : 10,
+            "Column" : 36
+          },
+          "Type" : "com.io7m.example:Image"
+        }
+      },
+      "Position" : {
+        "Line" : 9,
+        "Column" : 32
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    },
+    "Op1" : {
+      "Name" : "Op1",
+      "Ports" : {
+        "ImagePort" : {
+          "AccessSet" : {
+            "EnsuresImageLayout" : "LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET",
+            "Kind" : "Singleton",
+            "RequiresImageLayout" : "LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE",
+            "Writes" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+          },
+          "Kind" : "Modifier",
+          "Name" : "ImagePort",
+          "Position" : {
+            "Line" : 19,
+            "Column" : 36
+          },
+          "Type" : "com.io7m.example:Image"
+        }
+      },
+      "Position" : {
+        "Line" : 18,
+        "Column" : 32
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    },
+    "Op2" : {
+      "Name" : "Op2",
+      "Ports" : {
+        "ImagePort" : {
+          "AccessSet" : {
+            "Kind" : "Singleton",
+            "RequiresImageLayout" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+            "Writes" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+          },
+          "Kind" : "Consumer",
+          "Name" : "ImagePort",
+          "Position" : {
+            "Line" : 29,
+            "Column" : 36
+          },
+          "Type" : "com.io7m.example:Image"
+        }
+      },
+      "Position" : {
+        "Line" : 28,
+        "Column" : 32
+      },
+      "QueueCategory" : "GRAPHICS",
+      "Type" : "Operation"
+    }
+  },
+  "Package" : "com.io7m.example",
+  "PortConnections" : [ {
+    "SourceOperation" : "Op0",
+    "SourcePort" : "ImagePort",
+    "TargetOperation" : "Op1",
+    "TargetPort" : "ImagePort"
+  }, {
+    "SourceOperation" : "Op1",
+    "SourcePort" : "ImagePort",
+    "TargetOperation" : "Op2",
+    "TargetPort" : "ImagePort"
+  } ]
+}

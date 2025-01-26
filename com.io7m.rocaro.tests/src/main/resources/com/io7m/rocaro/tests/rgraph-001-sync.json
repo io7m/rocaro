@@ -1,0 +1,450 @@
+{
+  "Commands" : {
+    "0" : {
+      "Comment" : "Command buffers for ComputeInstances",
+      "ID" : 0,
+      "Kind" : "RCCExecute",
+      "Operation" : "ComputeInstances",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "COMPUTE"
+      }
+    },
+    "1" : {
+      "Comment" : "Access on port ComputeInstances:Draws",
+      "ID" : 1,
+      "Kind" : "RCCAccess",
+      "Operation" : "ComputeInstances",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "COMPUTE"
+      }
+    },
+    "2" : {
+      "Comment" : "Intro on port ComputeInstances:Draws",
+      "ID" : 2,
+      "Kind" : "RCCIntroduceMemory",
+      "Operation" : "ComputeInstances",
+      "Submission" : {
+        "ID" : 0,
+        "Queue" : "COMPUTE"
+      }
+    },
+    "3" : {
+      "Comment" : "Command buffers for CreateGBuffer",
+      "ID" : 3,
+      "Kind" : "RCCExecute",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "4" : {
+      "Comment" : "Access on port CreateGBuffer:AlbedoEmissive",
+      "ID" : 4,
+      "Kind" : "RCCAccess",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "5" : {
+      "Comment" : "Intro on port CreateGBuffer:AlbedoEmissive",
+      "ID" : 5,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "6" : {
+      "Comment" : "Access on port CreateGBuffer:Depth",
+      "ID" : 6,
+      "Kind" : "RCCAccess",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "7" : {
+      "Comment" : "Intro on port CreateGBuffer:Depth",
+      "ID" : 7,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "8" : {
+      "Comment" : "Access on port CreateGBuffer:Lit",
+      "ID" : 8,
+      "Kind" : "RCCAccess",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "9" : {
+      "Comment" : "Intro on port CreateGBuffer:Lit",
+      "ID" : 9,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "10" : {
+      "Comment" : "Access on port CreateGBuffer:NormalSpecular",
+      "ID" : 10,
+      "Kind" : "RCCAccess",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "11" : {
+      "Comment" : "Intro on port CreateGBuffer:NormalSpecular",
+      "ID" : 11,
+      "Kind" : "RCCIntroduceImage",
+      "Operation" : "CreateGBuffer",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "12" : {
+      "Comment" : "Command buffers for RenderImage",
+      "ID" : 12,
+      "Kind" : "RCCExecute",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "13" : {
+      "Comment" : "Access on port RenderImage:AlbedoEmissive (Requires LAYOUT_OPTIMAL_FOR_ATTACHMENT)",
+      "ID" : 13,
+      "Kind" : "RCCAccess",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "14" : {
+      "Comment" : "Access on port RenderImage:Depth (Requires LAYOUT_OPTIMAL_FOR_ATTACHMENT)",
+      "ID" : 14,
+      "Kind" : "RCCAccess",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "15" : {
+      "Comment" : "Access on port RenderImage:Draws",
+      "ID" : 15,
+      "Kind" : "RCCAccess",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "16" : {
+      "Comment" : "Access on port RenderImage:Lit (Requires LAYOUT_OPTIMAL_FOR_ATTACHMENT)",
+      "ID" : 16,
+      "Kind" : "RCCAccess",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "17" : {
+      "Comment" : "Access on port RenderImage:NormalSpecular (Requires LAYOUT_OPTIMAL_FOR_ATTACHMENT)",
+      "ID" : 17,
+      "Kind" : "RCCAccess",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "18" : {
+      "Comment" : "Command buffers for FrameSink",
+      "ID" : 18,
+      "Kind" : "RCCExecute",
+      "Operation" : "FrameSink",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "19" : {
+      "Comment" : "Access on port FrameSink:Lit (Requires LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE)",
+      "ID" : 19,
+      "Kind" : "RCCAccess",
+      "Operation" : "FrameSink",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "20" : {
+      "ID" : 20,
+      "Kind" : "RCCDiscard",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "21" : {
+      "ID" : 21,
+      "Kind" : "RCCDiscard",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "22" : {
+      "ID" : 22,
+      "Kind" : "RCCDiscard",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "23" : {
+      "ID" : 23,
+      "Kind" : "RCCDiscard",
+      "Operation" : "RenderImage",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "24" : {
+      "ID" : 24,
+      "Kind" : "RCCDiscard",
+      "Operation" : "FrameSink",
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      }
+    },
+    "25" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_DRAW_INDIRECT" ],
+      "BlocksWritesAt" : [ ],
+      "ID" : 25,
+      "Kind" : "RCCMemoryBarrierWithQueueTransfer",
+      "Operation" : "RenderImage",
+      "QueueSource" : {
+        "ID" : 0,
+        "Queue" : "COMPUTE"
+      },
+      "QueueTarget" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      },
+      "Resource" : 0,
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_COMPUTE_SHADER" ]
+    },
+    "26" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ],
+      "BlocksWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "Comment" : "Pre barrier for port RenderImage:AlbedoEmissive",
+      "ID" : 26,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "RenderImage",
+      "Resource" : 2,
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_CPU" ]
+    },
+    "27" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ],
+      "BlocksWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "Comment" : "Pre barrier for port RenderImage:Depth",
+      "ID" : 27,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "RenderImage",
+      "Resource" : 3,
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_CPU" ]
+    },
+    "28" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ],
+      "BlocksWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "Comment" : "Pre barrier for port RenderImage:Lit",
+      "ID" : 28,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "RenderImage",
+      "Resource" : 4,
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_CPU" ]
+    },
+    "29" : {
+      "BlocksReadsAt" : [ "STAGE_RENDER_FRAGMENT_SHADER_EARLY_TESTS", "STAGE_RENDER_FRAGMENT_SHADER", "STAGE_RENDER_FRAGMENT_SHADER_LATE_TESTS" ],
+      "BlocksWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ],
+      "Comment" : "Pre barrier for port RenderImage:NormalSpecular",
+      "ID" : 29,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "RenderImage",
+      "Resource" : 5,
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_CPU" ]
+    },
+    "30" : {
+      "BlocksReadsAt" : [ "STAGE_TRANSFER_BLIT" ],
+      "BlocksWritesAt" : [ ],
+      "Comment" : "Pre barrier for port FrameSink:Lit",
+      "ID" : 30,
+      "ImageLayoutFrom" : "LAYOUT_OPTIMAL_FOR_ATTACHMENT",
+      "ImageLayoutTo" : "LAYOUT_OPTIMAL_FOR_TRANSFER_SOURCE",
+      "Kind" : "RCCImageBarrier",
+      "Operation" : "FrameSink",
+      "Resource" : 4,
+      "Submission" : {
+        "ID" : 1,
+        "Queue" : "GRAPHICS"
+      },
+      "WaitsForWritesAt" : [ "STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT" ]
+    }
+  },
+  "Connections" : [ {
+    "Source" : "0",
+    "Target" : "1"
+  }, {
+    "Source" : "1",
+    "Target" : "25"
+  }, {
+    "Source" : "2",
+    "Target" : "0"
+  }, {
+    "Source" : "3",
+    "Target" : "4"
+  }, {
+    "Source" : "3",
+    "Target" : "6"
+  }, {
+    "Source" : "3",
+    "Target" : "8"
+  }, {
+    "Source" : "3",
+    "Target" : "10"
+  }, {
+    "Source" : "4",
+    "Target" : "26"
+  }, {
+    "Source" : "5",
+    "Target" : "3"
+  }, {
+    "Source" : "6",
+    "Target" : "27"
+  }, {
+    "Source" : "7",
+    "Target" : "3"
+  }, {
+    "Source" : "8",
+    "Target" : "28"
+  }, {
+    "Source" : "9",
+    "Target" : "3"
+  }, {
+    "Source" : "10",
+    "Target" : "29"
+  }, {
+    "Source" : "11",
+    "Target" : "3"
+  }, {
+    "Source" : "12",
+    "Target" : "13"
+  }, {
+    "Source" : "12",
+    "Target" : "14"
+  }, {
+    "Source" : "12",
+    "Target" : "15"
+  }, {
+    "Source" : "12",
+    "Target" : "16"
+  }, {
+    "Source" : "12",
+    "Target" : "17"
+  }, {
+    "Source" : "13",
+    "Target" : "20"
+  }, {
+    "Source" : "14",
+    "Target" : "21"
+  }, {
+    "Source" : "15",
+    "Target" : "22"
+  }, {
+    "Source" : "16",
+    "Target" : "30"
+  }, {
+    "Source" : "17",
+    "Target" : "23"
+  }, {
+    "Source" : "18",
+    "Target" : "19"
+  }, {
+    "Source" : "19",
+    "Target" : "24"
+  }, {
+    "Source" : "25",
+    "Target" : "15"
+  }, {
+    "Source" : "26",
+    "Target" : "13"
+  }, {
+    "Source" : "27",
+    "Target" : "14"
+  }, {
+    "Source" : "28",
+    "Target" : "16"
+  }, {
+    "Source" : "29",
+    "Target" : "17"
+  }, {
+    "Source" : "30",
+    "Target" : "19"
+  } ]
+}

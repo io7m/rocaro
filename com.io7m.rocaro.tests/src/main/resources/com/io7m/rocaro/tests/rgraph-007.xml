@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<RenderGraph xmlns="urn:com.io7m.rocaro:render-graph:1"
+             Package="com.io7m.example">
+
+  <DeclareImageType Name="Image"/>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op0">
+    <PortProducer Name="ImagePort">
+      <TypeReference Type="Image"/>
+      <Writes AtStage="STAGE_TRANSFER_BLIT"/>
+      <Reads AtStage="STAGE_TRANSFER_BLIT"/>
+      <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_SHADER_READ"/>
+    </PortProducer>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op1">
+    <PortModifier Name="ImagePort">
+      <TypeReference Type="Image"/>
+      <Reads AtStage="STAGE_RENDER_FRAGMENT_SHADER"/>
+      <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_TRANSFER_TARGET"/>
+    </PortModifier>
+  </DeclareOperation>
+
+  <DeclareOperation QueueCategory="GRAPHICS"
+                    Name="Op2">
+    <PortConsumer Name="ImagePort">
+      <TypeReference Type="Image"/>
+      <Reads AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <Writes AtStage="STAGE_RENDER_COLOR_ATTACHMENT_OUTPUT"/>
+      <RequiresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
+    </PortConsumer>
+  </DeclareOperation>
+
+  <Connect SourceOperation="Op0"
+           SourcePort="ImagePort"
+           TargetOperation="Op1"
+           TargetPort="ImagePort"/>
+
+  <Connect SourceOperation="Op1"
+           SourcePort="ImagePort"
+           TargetOperation="Op2"
+           TargetPort="ImagePort"/>
+
+</RenderGraph>

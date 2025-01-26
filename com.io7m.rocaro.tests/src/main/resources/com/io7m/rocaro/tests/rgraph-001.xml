@@ -67,9 +67,11 @@
     <PortProducer Name="GBuffer">
       <TypeReference Type="GBuffer"/>
       <Writes AtStage="STAGE_CPU"/>
+      <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
     </PortProducer>
     <PortProducer Name="AOImage">
       <TypeReference Type="AOImage"/>
+      <EnsuresImageLayout Layout="LAYOUT_OPTIMAL_FOR_ATTACHMENT"/>
     </PortProducer>
   </DeclareOperation>
 
